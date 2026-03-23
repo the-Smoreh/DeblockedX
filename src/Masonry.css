@@ -5,10 +5,9 @@
 
 .item-wrapper {
   opacity: 0;
-  filter: blur(12px);
-  transition: transform 0.55s ease, opacity 0.55s ease, filter 0.55s ease;
+  transition: transform 0.4s ease, opacity 0.35s ease;
   position: absolute;
-  will-change: transform, width, height, opacity;
+  will-change: transform, opacity;
   padding: 8px;
   cursor: pointer;
   top: 0;
@@ -34,7 +33,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(5, 8, 22, 0.08), rgba(5, 8, 22, 0.76));
+  background: linear-gradient(180deg, rgba(5, 8, 22, 0.02) 24%, rgba(5, 8, 22, 0.82));
+  opacity: 0.2;
+  transition: opacity 0.22s ease;
 }
 
 .item-copy {
@@ -47,6 +48,10 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #fff;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
 }
 
 .item-copy small {
@@ -61,7 +66,6 @@
 
 .item-wrapper--ready {
   opacity: 1;
-  filter: blur(0);
 }
 
 .item-wrapper:hover .item-img,
@@ -76,4 +80,15 @@
 
 .item-wrapper:focus-visible .item-img {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 28px 90px rgba(0, 0, 0, 0.45);
+}
+
+.item-wrapper:hover .item-img::after,
+.item-wrapper:focus-visible .item-img::after {
+  opacity: 1;
+}
+
+.item-wrapper:hover .item-copy,
+.item-wrapper:focus-visible .item-copy {
+  opacity: 1;
+  transform: translateY(0);
 }
