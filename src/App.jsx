@@ -1,21 +1,94 @@
 import { useEffect, useState } from 'react';
 import BlurText from './BlurText';
 import FloatingLines from './FloatingLines';
-import Particles from './Particles';
 import GradualBlur from './GradualBlur';
+import MagicRings from './MagicRings';
+
+const INTRO_DURATION_MS = 3200;
+const INTRO_FADE_MS = 700;
 
 export default function App() {
   const [showIntro, setShowIntro] = useState(true);
+  const [introExiting, setIntroExiting] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowIntro(false), 3200);
-    return () => clearTimeout(timer);
+    const exitTimer = setTimeout(() => setIntroExiting(true), INTRO_DURATION_MS - INTRO_FADE_MS);
+    const hideTimer = setTimeout(() => setShowIntro(false), INTRO_DURATION_MS);
+
+    return () => {
+      clearTimeout(exitTimer);
+      clearTimeout(hideTimer);
+    };
   }, []);
 
   return (
     <main>
-      {showIntro ? (
-        <section className="intro-screen">
+      <section className="main-content">
+        <div className="main-background">
+          <MagicRings
+            color="#fc42ff"
+            colorTwo="#42fcff"
+            ringCount={4}
+            speed={1.5}
+            attenuation={10}
+            lineThickness={2}
+            baseRadius={0.35}
+            radiusStep={0.1}
+            scaleRate={0.1}
+            opacity={1}
+            blur={0}
+            noiseAmount={0.1}
+            rotation={0}
+            ringGap={1.5}
+            fadeIn={0.7}
+            fadeOut={0.5}
+            followMouse={false}
+            mouseInfluence={0.2}
+            hoverScale={1.2}
+            parallax={0.05}
+            clickBurst={false}
+          />
+        </div>
+
+        <section className="content-shell">
+          <div className="content-scroll">
+            <h1>Deblocked</h1>
+            <p>
+              Main content is now shown over the animated ring background, while the intro keeps only
+              the Deblocked reveal before fading away.
+            </p>
+            <div className="feature-grid">
+              <article>
+                <h2>Intro</h2>
+                <p>Floating lines background with only the Deblocked text reveal.</p>
+              </article>
+              <article>
+                <h2>Transition</h2>
+                <p>The intro now fades out smoothly before the main content fully takes focus.</p>
+              </article>
+              <article>
+                <h2>Main view</h2>
+                <p>Magic rings replace the old particle background for the content page.</p>
+              </article>
+            </div>
+            <div className="spacer" />
+          </div>
+
+          <GradualBlur
+            target="parent"
+            position="bottom"
+            height="8rem"
+            strength={2.5}
+            divCount={8}
+            curve="bezier"
+            exponential
+            opacity={1}
+          />
+        </section>
+      </section>
+
+      {showIntro && (
+        <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>
           <div className="intro-overlay" />
           <FloatingLines
             enabledWaves={['top', 'middle', 'bottom']}
@@ -25,81 +98,18 @@ export default function App() {
             bendStrength={-0.85}
             interactive
             parallax
+            linesGradient={['#fc42ff', '#42fcff']}
           />
 
           <div className="intro-content">
-            <span className="eyebrow">React Bits-inspired intro</span>
             <BlurText
-              text="DeblockedX"
+              text="Deblocked"
               delay={160}
               animateBy="letters"
               direction="top"
               className="hero-title"
             />
-            <p className="hero-subtitle">
-              Motion-based text, layered lines, and glassmorphism effects now use the original-style
-              animation patterns instead of simplified placeholders.
-            </p>
           </div>
-        </section>
-      ) : (
-        <section className="main-content">
-          <div className="background-gradient" />
-          <Particles
-            className="particles-bg"
-            particleColors={['#9ad1ff', '#ffffff', '#6ee7ff']}
-            particleCount={700}
-            particleSpread={11}
-            speed={0.12}
-            particleBaseSize={110}
-            sizeRandomness={1}
-            moveParticlesOnHover
-            particleHoverFactor={0.9}
-            alphaParticles
-            disableRotation={false}
-            pixelRatio={Math.min(window.devicePixelRatio || 1, 1.5)}
-          />
-
-          <section className="content-shell">
-            <div className="content-scroll">
-              <span className="eyebrow">Updated visual system</span>
-              <h1>Closer to the real React Bits rendering.</h1>
-              <p>
-                The text reveal now runs through <code>motion/react</code>, particles use the full OGL
-                shader setup, and the edge blur uses the original layered mask/backdrop technique.
-              </p>
-              <p>
-                If you add more React Bits components, this project now has the key runtime
-                dependencies and rendering patterns those effects expect.
-              </p>
-              <div className="feature-grid">
-                <article>
-                  <h2>BlurText</h2>
-                  <p>Intersection-triggered keyframes with staggered segment animation.</p>
-                </article>
-                <article>
-                  <h2>Particles</h2>
-                  <p>Depth-aware point cloud shader with hover parallax and alpha sprites.</p>
-                </article>
-                <article>
-                  <h2>GradualBlur</h2>
-                  <p>Multi-layer masked backdrop blur that fades naturally at the panel edge.</p>
-                </article>
-              </div>
-              <div className="spacer" />
-            </div>
-
-            <GradualBlur
-              target="parent"
-              position="bottom"
-              height="8rem"
-              strength={2.5}
-              divCount={8}
-              curve="bezier"
-              exponential
-              opacity={1}
-            />
-          </section>
         </section>
       )}
     </main>
