@@ -1,194 +1,43 @@
 :root {
   color: #f5f7ff;
-  background:
-    radial-gradient(circle at top, rgba(31, 91, 163, 0.25), transparent 32%),
-    linear-gradient(180deg, #050816 0%, #03040a 100%);
+  background: radial-gradient(circle at top, rgba(31, 91, 163, 0.25), transparent 32%), linear-gradient(180deg, #050816 0%, #03040a 100%);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  min-height: 100%;
-}
-
-body {
-  margin: 0;
-}
-
-code {
-  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-}
-
-main {
-  min-height: 100vh;
-  position: relative;
-  background: linear-gradient(180deg, #050816 0%, #03040a 100%);
-}
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; }
+body { margin: 0; }
+main { min-height: 100vh; position: relative; background: linear-gradient(180deg, #050816 0%, #03040a 100%); }
 
 .intro-screen,
-.main-content {
-  position: relative;
-  min-height: 100vh;
-  overflow: hidden;
-}
+.main-content { position: relative; min-height: 100vh; overflow: hidden; }
 
-.intro-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 5;
-  opacity: 1;
-  transition: opacity 0.7s ease, visibility 0.7s ease;
-}
+.intro-screen { position: fixed; inset: 0; z-index: 50; opacity: 1; transition: opacity 0.7s ease, visibility 0.7s ease; }
+.intro-screen--exit { opacity: 0; visibility: hidden; pointer-events: none; }
+.intro-overlay, .main-background { position: absolute; inset: 0; width: 100%; height: 100%; }
+.intro-overlay { background: radial-gradient(circle at center, rgba(115, 196, 255, 0.16), transparent 36%), linear-gradient(180deg, rgba(7, 9, 24, 0.22), rgba(3, 4, 10, 0.94)); }
+.main-background { opacity: 0.95; }
 
-.intro-screen--exit {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
+.intro-content, .page-shell { position: relative; z-index: 1; }
+.intro-content { min-height: 100vh; display: grid; place-content: center; padding: 2rem; text-align: center; text-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
+.hero-title { margin: 0; justify-content: center; font-size: clamp(3.4rem, 10vw, 7rem); font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; }
+.blur-text-segment { display: inline-block; will-change: transform, filter, opacity; }
 
-.intro-overlay,
-.main-background,
-.particles-bg,
-.particles-container {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
+.main-content { padding: 1.25rem 0 4rem; }
+.page-shell { width: min(1200px, 100%); margin: 0 auto; padding: 0 0.75rem 3rem; }
+.games-page { margin-top: 2rem; padding: 2rem 0 0; }
+.games-page__intro { padding: 1rem 0 2rem; }
+.eyebrow { margin: 0 0 0.6rem; text-transform: uppercase; letter-spacing: 0.24em; font-size: 0.72rem; color: rgba(255,255,255,0.72); }
+.games-page h1, .hacks-preview h2 { margin: 0; font-size: clamp(2.25rem, 5vw, 4.25rem); letter-spacing: -0.05em; }
 
-.intro-overlay {
-  background:
-    radial-gradient(circle at center, rgba(115, 196, 255, 0.16), transparent 36%),
-    linear-gradient(180deg, rgba(7, 9, 24, 0.22), rgba(3, 4, 10, 0.94));
-}
+.hacks-preview { position: relative; min-height: 420px; margin-top: 3rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; overflow: hidden; background: rgba(7, 10, 21, 0.4); }
+.hacks-preview__background { position: absolute; inset: 0; }
+.hacks-preview__content { position: relative; z-index: 1; padding: 3rem; max-width: 42rem; background: linear-gradient(90deg, rgba(5, 8, 22, 0.88), rgba(5, 8, 22, 0.18)); min-height: 420px; display: flex; flex-direction: column; justify-content: flex-end; }
+.hacks-preview__content p:last-child { color: rgba(255,255,255,0.8); line-height: 1.7; max-width: 32rem; }
 
-.main-background {
-  opacity: 0.95;
-}
-
-.intro-content,
-.content-shell {
-  position: relative;
-  z-index: 1;
-}
-
-.intro-content {
-  min-height: 100vh;
-  display: grid;
-  place-content: center;
-  padding: 2rem;
-  text-align: center;
-  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-}
-
-.hero-title {
-  margin: 0;
-  justify-content: center;
-  font-size: clamp(3.4rem, 10vw, 7rem);
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 0.95;
-}
-
-.blur-text-segment {
-  display: inline-block;
-  will-change: transform, filter, opacity;
-}
-
-.main-content {
-  display: grid;
-  place-items: center;
-  padding: 2rem;
-}
-
-.content-shell {
-  width: min(960px, 94vw);
-  min-height: min(72vh, 760px);
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(180deg, rgba(11, 16, 31, 0.5), rgba(7, 10, 21, 0.28));
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(18px);
-  border-radius: 28px;
-}
-
-.content-scroll {
-  position: relative;
-  height: 100%;
-  overflow-y: auto;
-  padding: 4rem 2.5rem 10rem;
-  text-align: left;
-}
-
-.content-scroll h1 {
-  margin: 1rem 0;
-  font-size: clamp(2.4rem, 4vw, 4.2rem);
-  line-height: 1.05;
-  max-width: 11ch;
-}
-
-.content-scroll p {
-  max-width: 62ch;
-  margin: 0.9rem 0;
-  color: rgba(241, 245, 255, 0.86);
-  font-size: 1.05rem;
-  line-height: 1.8;
-}
-
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.feature-grid article {
-  padding: 1.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.feature-grid h2 {
-  margin-top: 0;
-  margin-bottom: 0.55rem;
-  font-size: 1.05rem;
-}
-
-.feature-grid p {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.65;
-}
-
-.spacer {
-  height: 28rem;
-}
-
-.gradual-blur {
-  pointer-events: none;
-  transition: opacity 0.3s ease-out;
-}
-
-.gradual-blur-parent {
-  overflow: hidden;
-}
-
-.gradual-blur-inner {
-  pointer-events: none;
-}
-
-@media (max-width: 800px) {
-  .feature-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .content-scroll {
-    padding-inline: 1.25rem;
-  }
+@media (max-width: 768px) {
+  .main-content { padding-top: 0.5rem; }
+  .page-shell { padding-inline: 0.5rem; }
+  .games-page { margin-top: 1.5rem; }
+  .hacks-preview__content { padding: 1.5rem; min-height: 360px; }
 }
