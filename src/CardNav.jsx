@@ -5,6 +5,8 @@ const CardNav = ({
   title = 'Deblocked',
   items,
   className = '',
+  activePage = 'games',
+  onNavigate,
   baseColor = '#fff',
   menuColor,
   buttonBgColor,
@@ -12,9 +14,15 @@ const CardNav = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const height = isExpanded ? 260 : 60;
+  const height = isExpanded ? 260 : 72;
 
   const toggleMenu = () => setIsExpanded((open) => !open);
+  const handleNavigate = (page) => {
+    if (page && onNavigate) {
+      onNavigate(page);
+    }
+    setIsExpanded(false);
+  };
 
   return (
     <div className={`card-nav-container ${className}`}>
@@ -46,8 +54,9 @@ const CardNav = ({
             type="button"
             className="card-nav-cta-button"
             style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+            onClick={() => handleNavigate(activePage === 'games' ? 'hacks' : 'games')}
           >
-            Browse All
+            {activePage === 'games' ? 'Open Hacks' : 'Open Games'}
           </button>
         </div>
 
@@ -55,22 +64,22 @@ const CardNav = ({
           {(items || []).slice(0, 3).map((item, index) => (
             <div
               key={`${item.label}-${index}`}
-              className="nav-card"
+              className={`nav-card ${activePage === item.label.toLowerCase() ? 'nav-card--active' : ''}`}
               style={{ backgroundColor: item.bgColor, color: item.textColor, transitionDelay: `${index * 80}ms` }}
             >
               <div className="nav-card-label">{item.label}</div>
               <div className="nav-card-links">
                 {item.links?.map((link, linkIndex) => (
-                  <a
+                  <button
                     key={`${link.label}-${linkIndex}`}
+                    type="button"
                     className="nav-card-link"
-                    href={link.href || '#'}
                     aria-label={link.ariaLabel}
-                    onClick={(event) => event.preventDefault()}
+                    onClick={() => handleNavigate(link.page)}
                   >
                     <span className="nav-card-link-icon" aria-hidden="true">↗</span>
                     {link.label}
-                  </a>
+                  </button>
                 ))}
               </div>
             </div>

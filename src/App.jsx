@@ -10,30 +10,6 @@ import RippleGrid from './RippleGrid';
 const INTRO_DURATION_MS = 3200;
 const INTRO_FADE_MS = 700;
 
-const navItems = [
-  {
-    label: 'Games',
-    bgColor: '#0D0716',
-    textColor: '#fff',
-    links: [{ label: '800+', ariaLabel: '800 plus games' }],
-  },
-  {
-    label: 'Hacks',
-    bgColor: '#170D27',
-    textColor: '#fff',
-    links: [
-      { label: 'Bookmarklets', ariaLabel: 'Bookmarklets' },
-      { label: 'Console Hacks', ariaLabel: 'Console Hacks' },
-    ],
-  },
-  {
-    label: 'Proxies',
-    bgColor: '#271E37',
-    textColor: '#fff',
-    links: [{ label: 'See everything', ariaLabel: 'See every proxy' }],
-  },
-];
-
 const gameItems = [
   { id: '1', title: 'Retro Run', img: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=900&q=80', url: 'https://example.com/retro-run', height: 520 },
   { id: '2', title: 'Sky Drift', img: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80', url: 'https://example.com/sky-drift', height: 360 },
@@ -43,9 +19,25 @@ const gameItems = [
   { id: '6', title: 'Orbital Dash', img: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?auto=format&fit=crop&w=900&q=80', url: 'https://example.com/orbital-dash', height: 390 },
 ];
 
+const hacksItems = [
+  {
+    title: 'Bookmarklets',
+    description: 'Quick-launch tools for bypass helpers, tab cloaking, and classroom-safe shortcuts.',
+  },
+  {
+    title: 'Console Hacks',
+    description: 'Devtools snippets and browser-console tweaks collected into a dedicated hacks hub.',
+  },
+  {
+    title: 'Stealth Tools',
+    description: 'A separate staging area for privacy-focused utilities and future experiments.',
+  },
+];
+
 export default function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [introExiting, setIntroExiting] = useState(false);
+  const [activePage, setActivePage] = useState('games');
 
   useEffect(() => {
     const exitTimer = setTimeout(() => setIntroExiting(true), INTRO_DURATION_MS - INTRO_FADE_MS);
@@ -57,6 +49,33 @@ export default function App() {
   }, []);
 
   const masonryItems = useMemo(() => gameItems, []);
+
+  const navItems = useMemo(
+    () => [
+      {
+        label: 'Games',
+        bgColor: activePage === 'games' ? '#1a2235' : '#111827',
+        textColor: '#fff',
+        links: [{ label: 'Open game page', ariaLabel: 'Open game page', page: 'games' }],
+      },
+      {
+        label: 'Hacks',
+        bgColor: activePage === 'hacks' ? '#362046' : '#1a1029',
+        textColor: '#fff',
+        links: [
+          { label: 'Bookmarklets', ariaLabel: 'Open hacks page', page: 'hacks' },
+          { label: 'Console hacks', ariaLabel: 'Open hacks page', page: 'hacks' },
+        ],
+      },
+      {
+        label: 'Proxies',
+        bgColor: '#202838',
+        textColor: '#fff',
+        links: [{ label: 'See everything', ariaLabel: 'See every proxy', page: 'games' }],
+      },
+    ],
+    [activePage],
+  );
 
   return (
     <main>
@@ -92,50 +111,66 @@ export default function App() {
             <CardNav
               title="deblocked"
               items={navItems}
-              baseColor="rgba(255, 255, 255, 0.92)"
-              menuColor="#000"
-              buttonBgColor="#111"
-              buttonTextColor="#fff"
+              activePage={activePage}
+              onNavigate={setActivePage}
+              baseColor="rgba(6, 10, 20, 0.92)"
+              menuColor="#ffffff"
+              buttonBgColor="#ffffff"
+              buttonTextColor="#050816"
               ease="power3.out"
             />
 
-            <section className="games-page">
-              <div className="games-page__intro">
-                <p className="eyebrow">Game Page</p>
-                <h1>Deblocked game room.</h1>
-              </div>
-              <Masonry
-                items={masonryItems}
-                ease="elastic.out(1, 0.75)"
-                duration={0.1}
-                stagger={0.09}
-                animateFrom="bottom"
-                scaleOnHover
-                hoverScale={0.95}
-                blurToFocus
-                colorShiftOnHover={false}
-              />
-            </section>
-
-            <section className="hacks-preview">
-              <div className="hacks-preview__background">
-                <RippleGrid
-                  enableRainbow={false}
-                  gridColor="#ffffff"
-                  rippleIntensity={0.05}
-                  gridSize={10}
-                  gridThickness={15}
-                  mouseInteraction
-                  mouseInteractionRadius={1.2}
-                  opacity={0.8}
+            {activePage === 'games' ? (
+              <section className="games-page">
+                <div className="games-page__intro">
+                  <p className="eyebrow">Game Page</p>
+                  <h1>Deblocked game room.</h1>
+                  <p className="page-copy">Browse the games collection here. The hacks section now lives on its own separate page in the header navigation.</p>
+                </div>
+                <Masonry
+                  items={masonryItems}
+                  ease="elastic.out(1, 0.75)"
+                  duration={0.1}
+                  stagger={0.09}
+                  animateFrom="bottom"
+                  scaleOnHover
+                  hoverScale={0.95}
+                  blurToFocus
+                  colorShiftOnHover={false}
                 />
-              </div>
-              <div className="hacks-preview__content">
-                <p className="eyebrow">Hacks</p>
-                <h2>Ripple background staged for the hacks page.</h2>
-                <p>Bookmarklets and console hacks will plug into this section next.</p>
-              </div>
-            </section>
+              </section>
+            ) : (
+              <section className="hacks-page">
+                <div className="hacks-page__background">
+                  <RippleGrid
+                    enableRainbow={false}
+                    gridColor="#ffffff"
+                    rippleIntensity={0.05}
+                    gridSize={10}
+                    gridThickness={15}
+                    mouseInteraction
+                    mouseInteractionRadius={1.2}
+                    opacity={0.8}
+                  />
+                </div>
+                <div className="hacks-page__content">
+                  <div className="games-page__intro hacks-page__intro">
+                    <p className="eyebrow">Hacks Page</p>
+                    <h1>Separate hacks staging area.</h1>
+                    <p className="page-copy">Bookmarklets, console hacks, and stealth tools now have their own dedicated page instead of sharing the games screen.</p>
+                  </div>
+                  <div className="hacks-grid">
+                    {hacksItems.map((item) => (
+                      <article key={item.title} className="hacks-card">
+                        <p className="eyebrow">Toolset</p>
+                        <h2>{item.title}</h2>
+                        <p>{item.description}</p>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
           </section>
         </ClickSpark>
       </section>

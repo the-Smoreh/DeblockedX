@@ -25,19 +25,25 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 
 .main-content { padding: 1.25rem 0 4rem; }
 .page-shell { width: min(1200px, 100%); margin: 0 auto; padding: 0 0.75rem 3rem; }
-.games-page { margin-top: 2rem; padding: 2rem 0 0; }
+.games-page, .hacks-page { margin-top: 2rem; padding: 2rem 0 0; }
 .games-page__intro { padding: 1rem 0 2rem; }
 .eyebrow { margin: 0 0 0.6rem; text-transform: uppercase; letter-spacing: 0.24em; font-size: 0.72rem; color: rgba(255,255,255,0.72); }
-.games-page h1, .hacks-preview h2 { margin: 0; font-size: clamp(2.25rem, 5vw, 4.25rem); letter-spacing: -0.05em; }
+.games-page h1, .hacks-page h1 { margin: 0; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.05em; }
+.page-copy { margin: 1rem 0 0; font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.82); max-width: 46rem; }
 
-.hacks-preview { position: relative; min-height: 420px; margin-top: 3rem; border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; overflow: hidden; background: rgba(7, 10, 21, 0.4); }
-.hacks-preview__background { position: absolute; inset: 0; }
-.hacks-preview__content { position: relative; z-index: 1; padding: 3rem; max-width: 42rem; background: linear-gradient(90deg, rgba(5, 8, 22, 0.88), rgba(5, 8, 22, 0.18)); min-height: 420px; display: flex; flex-direction: column; justify-content: flex-end; }
-.hacks-preview__content p:last-child { color: rgba(255,255,255,0.8); line-height: 1.7; max-width: 32rem; }
+.hacks-page { position: relative; min-height: 680px; border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; overflow: hidden; background: rgba(7, 10, 21, 0.45); }
+.hacks-page__background { position: absolute; inset: 0; }
+.hacks-page__content { position: relative; z-index: 1; min-height: 680px; padding: 0 0 3rem; background: linear-gradient(180deg, rgba(5, 8, 22, 0.76), rgba(5, 8, 22, 0.4)); }
+.hacks-page__intro { padding: 3rem 3rem 1.5rem; }
+.hacks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; padding: 0 3rem 3rem; }
+.hacks-card { border: 1px solid rgba(255,255,255,0.14); border-radius: 22px; padding: 1.5rem; background: rgba(8, 12, 24, 0.82); backdrop-filter: blur(8px); }
+.hacks-card h2 { margin: 0 0 0.8rem; font-size: 1.5rem; }
+.hacks-card p:last-child { margin: 0; color: rgba(255,255,255,0.82); line-height: 1.7; }
 
 @media (max-width: 768px) {
   .main-content { padding-top: 0.5rem; }
   .page-shell { padding-inline: 0.5rem; }
   .games-page { margin-top: 1.5rem; }
-  .hacks-preview__content { padding: 1.5rem; min-height: 360px; }
+  .hacks-page__content { min-height: 560px; }
+  .hacks-page__intro, .hacks-grid { padding-inline: 1.5rem; }
 }
