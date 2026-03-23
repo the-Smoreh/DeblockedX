@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import BlurText from './BlurText';
 import CardNav from './CardNav';
 import ClickSpark from './ClickSpark';
-import PixelBlast from './PixelBlast';
+import PrismaticBurst from './PrismaticBurst';
 import Masonry from './Masonry';
 import RippleGrid from './RippleGrid';
 import gamesData from '../games.json';
@@ -285,21 +285,21 @@ export default function App() {
 
       {showIntro && (
         <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>
-          <PixelBlast
-            variant="square"
-            pixelSize={4}
-            color="#B19EEF"
-            patternScale={2}
-            patternDensity={1.05}
-            pixelSizeJitter={1.4}
-            enableRipples
-            rippleSpeed={0.4}
-            rippleThickness={0.12}
-            rippleIntensityScale={1.5}
-            speed={0.5}
-            edgeFade={0.25}
-            transparent
-            className="intro-pixel-blast"
+          <PrismaticBurst
+            className="intro-prismatic-burst"
+            animationType="rotate3d"
+            intensity={2.3}
+            speed={0.35}
+            distort={5}
+            paused={false}
+            offset={{ x: 0, y: 0 }}
+            hoverDampness={0.25}
+            rayCount={0}
+            mixBlendMode="lighten"
+            colors={["#ff007a", "#4d3dff", "#ffffff"]}
+            color0="#009dff"
+            color1="#00fffb"
+            color2="#ae00ff"
           />
           <div className="intro-overlay" />
 
