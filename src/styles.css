@@ -9,6 +9,10 @@ html, body, #root { min-height: 100%; }
 body { margin: 0; }
 main { min-height: 100vh; position: relative; background: linear-gradient(180deg, #050816 0%, #03040a 100%); }
 
+.app-shell--hacks {
+  background: linear-gradient(180deg, #050816 0%, #03040a 100%);
+}
+
 .intro-screen,
 .main-content { position: relative; min-height: 100vh; overflow: hidden; }
 
@@ -17,6 +21,7 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .intro-overlay, .main-background { position: absolute; inset: 0; width: 100%; height: 100%; }
 .intro-overlay { background: radial-gradient(circle at center, rgba(115, 196, 255, 0.16), transparent 36%), linear-gradient(180deg, rgba(7, 9, 24, 0.22), rgba(3, 4, 10, 0.94)); }
 .main-background { opacity: 0.95; }
+.main-background > * { width: 100%; height: 100%; }
 
 .intro-content, .page-shell { position: relative; z-index: 1; }
 .intro-content { min-height: 100vh; display: grid; place-content: center; padding: 2rem; text-align: center; text-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
@@ -26,14 +31,14 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .main-content { padding: 1.25rem 0 4rem; }
 .page-shell { width: min(1200px, 100%); margin: 0 auto; padding: 0 0.75rem 3rem; }
 .games-page, .hacks-page { margin-top: 2rem; padding: 2rem 0 0; }
+.games-page--compact { padding-top: 0.5rem; }
 .games-page__intro { padding: 1rem 0 2rem; }
 .eyebrow { margin: 0 0 0.6rem; text-transform: uppercase; letter-spacing: 0.24em; font-size: 0.72rem; color: rgba(255,255,255,0.72); }
 .games-page h1, .hacks-page h1 { margin: 0; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.05em; }
 .page-copy { margin: 1rem 0 0; font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.82); max-width: 46rem; }
 
-.hacks-page { position: relative; min-height: 680px; border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; overflow: hidden; background: rgba(7, 10, 21, 0.45); }
-.hacks-page__background { position: absolute; inset: 0; }
-.hacks-page__content { position: relative; z-index: 1; min-height: 680px; padding: 0 0 3rem; background: linear-gradient(180deg, rgba(5, 8, 22, 0.76), rgba(5, 8, 22, 0.4)); }
+.hacks-page { position: relative; min-height: 680px; border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; overflow: hidden; background: rgba(7, 10, 21, 0.38); }
+.hacks-page__content { position: relative; z-index: 1; min-height: 680px; padding: 0 0 3rem; background: linear-gradient(180deg, rgba(5, 8, 22, 0.58), rgba(5, 8, 22, 0.28)); }
 .hacks-page__intro { padding: 3rem 3rem 1.5rem; }
 .hacks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; padding: 0 3rem 3rem; }
 .hacks-card { border: 1px solid rgba(255,255,255,0.14); border-radius: 22px; padding: 1.5rem; background: rgba(8, 12, 24, 0.82); backdrop-filter: blur(8px); }
