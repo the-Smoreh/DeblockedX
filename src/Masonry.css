@@ -1,0 +1,64 @@
+.list {
+  position: relative;
+  width: 100%;
+}
+
+.item-wrapper {
+  opacity: 0;
+  filter: blur(12px);
+  transition: transform 0.55s ease, opacity 0.55s ease, filter 0.55s ease;
+  position: absolute;
+  will-change: transform, width, height, opacity;
+  padding: 8px;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+}
+
+.item-img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.3);
+}
+
+.item-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5, 8, 22, 0.08), rgba(5, 8, 22, 0.72));
+}
+
+.item-copy {
+  position: absolute;
+  inset: auto 1rem 1rem;
+  z-index: 1;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.color-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, rgba(255, 0, 150, 0.5), rgba(0, 150, 255, 0.5));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.item-wrapper--ready {
+  opacity: 1;
+  filter: blur(0);
+}
+
+.item-img {
+  transition: transform 0.3s ease;
+}
+
+.item-wrapper:hover .item-img {
+  transform: scale(var(--hover-scale, 0.95));
+}
