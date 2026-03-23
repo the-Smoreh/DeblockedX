@@ -78,32 +78,45 @@ export default function App() {
   );
 
   return (
-    <main>
+    <main className={`app-shell app-shell--${activePage}`}>
       <section className="main-content">
         <div className="main-background">
-          <MagicRings
-            color="#fc42ff"
-            colorTwo="#42fcff"
-            ringCount={4}
-            speed={1.5}
-            attenuation={10}
-            lineThickness={2}
-            baseRadius={0.35}
-            radiusStep={0.1}
-            scaleRate={0.1}
-            opacity={1}
-            blur={0}
-            noiseAmount={0.1}
-            rotation={0}
-            ringGap={1.5}
-            fadeIn={0.7}
-            fadeOut={0.5}
-            followMouse={false}
-            mouseInfluence={0.2}
-            hoverScale={1.2}
-            parallax={0.05}
-            clickBurst={false}
-          />
+          {activePage === 'games' ? (
+            <MagicRings
+              color="#fc42ff"
+              colorTwo="#42fcff"
+              ringCount={4}
+              speed={1.5}
+              attenuation={10}
+              lineThickness={2}
+              baseRadius={0.35}
+              radiusStep={0.1}
+              scaleRate={0.1}
+              opacity={1}
+              blur={0}
+              noiseAmount={0.1}
+              rotation={0}
+              ringGap={1.5}
+              fadeIn={0.7}
+              fadeOut={0.5}
+              followMouse={false}
+              mouseInfluence={0.2}
+              hoverScale={1.2}
+              parallax={0.05}
+              clickBurst={false}
+            />
+          ) : (
+            <RippleGrid
+              enableRainbow={false}
+              gridColor="#ffffff"
+              rippleIntensity={0.05}
+              gridSize={10}
+              gridThickness={15}
+              mouseInteraction
+              mouseInteractionRadius={1.2}
+              opacity={0.8}
+            />
+          )}
         </div>
 
         <ClickSpark sparkColor="#fff" sparkSize={7} sparkRadius={30} sparkCount={8} duration={400}>
@@ -115,18 +128,11 @@ export default function App() {
               onNavigate={setActivePage}
               baseColor="rgba(6, 10, 20, 0.92)"
               menuColor="#ffffff"
-              buttonBgColor="#ffffff"
-              buttonTextColor="#050816"
               ease="power3.out"
             />
 
             {activePage === 'games' ? (
-              <section className="games-page">
-                <div className="games-page__intro">
-                  <p className="eyebrow">Game Page</p>
-                  <h1>Deblocked game room.</h1>
-                  <p className="page-copy">Browse the games collection here. The hacks section now lives on its own separate page in the header navigation.</p>
-                </div>
+              <section className="games-page games-page--compact">
                 <Masonry
                   items={masonryItems}
                   ease="elastic.out(1, 0.75)"
@@ -141,18 +147,6 @@ export default function App() {
               </section>
             ) : (
               <section className="hacks-page">
-                <div className="hacks-page__background">
-                  <RippleGrid
-                    enableRainbow={false}
-                    gridColor="#ffffff"
-                    rippleIntensity={0.05}
-                    gridSize={10}
-                    gridThickness={15}
-                    mouseInteraction
-                    mouseInteractionRadius={1.2}
-                    opacity={0.8}
-                  />
-                </div>
                 <div className="hacks-page__content">
                   <div className="games-page__intro hacks-page__intro">
                     <p className="eyebrow">Hacks Page</p>

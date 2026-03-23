@@ -28,7 +28,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 0.6rem 0.6rem 1.2rem;
+  padding: 0.6rem 1.2rem;
   z-index: 2;
 }
 
@@ -73,16 +73,6 @@
   letter-spacing: -0.05em;
   color: #ffffff;
   text-transform: lowercase;
-}
-
-.card-nav-cta-button {
-  border: none;
-  border-radius: 0.75rem;
-  padding: 0 1.2rem;
-  height: 100%;
-  font-weight: 700;
-  font-size: 0.98rem;
-  cursor: pointer;
 }
 
 .card-nav-content {
@@ -184,10 +174,6 @@
     position: static;
     transform: none;
     order: 1;
-  }
-
-  .card-nav-cta-button {
-    display: none;
   }
 
   .card-nav-content {

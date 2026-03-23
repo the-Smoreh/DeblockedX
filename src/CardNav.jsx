@@ -9,8 +9,6 @@ const CardNav = ({
   onNavigate,
   baseColor = '#fff',
   menuColor,
-  buttonBgColor,
-  buttonTextColor,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -50,14 +48,6 @@ const CardNav = ({
             <span className="logo-wordmark">{title}</span>
           </div>
 
-          <button
-            type="button"
-            className="card-nav-cta-button"
-            style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
-            onClick={() => handleNavigate(activePage === 'games' ? 'hacks' : 'games')}
-          >
-            {activePage === 'games' ? 'Open Hacks' : 'Open Games'}
-          </button>
         </div>
 
         <div className="card-nav-content" aria-hidden={!isExpanded}>
