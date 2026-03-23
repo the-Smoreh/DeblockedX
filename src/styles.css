@@ -26,6 +26,8 @@ code {
 
 main {
   min-height: 100vh;
+  position: relative;
+  background: linear-gradient(180deg, #050816 0%, #03040a 100%);
 }
 
 .intro-screen,
@@ -35,9 +37,22 @@ main {
   overflow: hidden;
 }
 
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  opacity: 1;
+  transition: opacity 0.7s ease, visibility 0.7s ease;
+}
+
+.intro-screen--exit {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .intro-overlay,
-.background-gradient,
-.floating-lines,
+.main-background,
 .particles-bg,
 .particles-container {
   position: absolute;
@@ -48,15 +63,12 @@ main {
 
 .intro-overlay {
   background:
-    radial-gradient(circle at center, rgba(115, 196, 255, 0.18), transparent 36%),
-    linear-gradient(180deg, rgba(7, 9, 24, 0.2), rgba(3, 4, 10, 0.92));
+    radial-gradient(circle at center, rgba(115, 196, 255, 0.16), transparent 36%),
+    linear-gradient(180deg, rgba(7, 9, 24, 0.22), rgba(3, 4, 10, 0.94));
 }
 
-.background-gradient {
-  background:
-    radial-gradient(circle at top, rgba(125, 211, 252, 0.18), transparent 32%),
-    radial-gradient(circle at 80% 20%, rgba(168, 85, 247, 0.12), transparent 26%),
-    linear-gradient(180deg, rgba(5, 8, 22, 0.85), rgba(3, 4, 10, 0.98));
+.main-background {
+  opacity: 0.95;
 }
 
 .intro-content,
@@ -69,24 +81,9 @@ main {
   min-height: 100vh;
   display: grid;
   place-content: center;
-  gap: 1.25rem;
   padding: 2rem;
   text-align: center;
   text-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-self: center;
-  justify-self: center;
-  padding: 0.45rem 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(230, 240, 255, 0.82);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: 0.72rem;
 }
 
 .hero-title {
@@ -103,14 +100,6 @@ main {
   will-change: transform, filter, opacity;
 }
 
-.hero-subtitle {
-  margin: 0 auto;
-  max-width: 60ch;
-  color: rgba(235, 242, 255, 0.78);
-  font-size: clamp(1rem, 2.5vw, 1.125rem);
-  line-height: 1.7;
-}
-
 .main-content {
   display: grid;
   place-items: center;
@@ -122,7 +111,7 @@ main {
   min-height: min(72vh, 760px);
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(180deg, rgba(11, 16, 31, 0.62), rgba(7, 10, 21, 0.4));
+  background: linear-gradient(180deg, rgba(11, 16, 31, 0.5), rgba(7, 10, 21, 0.28));
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(18px);
   border-radius: 28px;
