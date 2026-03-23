@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import BlurText from './BlurText';
 import CardNav from './CardNav';
 import ClickSpark from './ClickSpark';
-import FloatingLines from './FloatingLines';
+import PixelBlast from './PixelBlast';
 import Masonry from './Masonry';
 import RippleGrid from './RippleGrid';
 import gamesData from '../games.json';
@@ -285,17 +285,23 @@ export default function App() {
 
       {showIntro && (
         <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>
-          <div className="intro-overlay" />
-          <FloatingLines
-            enabledWaves={['top', 'middle', 'bottom']}
-            lineCount={[6, 8, 6]}
-            lineDistance={[10, 14, 10]}
-            bendRadius={7}
-            bendStrength={-0.85}
-            interactive
-            parallax
-            linesGradient={['#fc42ff', '#42fcff']}
+          <PixelBlast
+            variant="square"
+            pixelSize={4}
+            color="#B19EEF"
+            patternScale={2}
+            patternDensity={1.05}
+            pixelSizeJitter={1.4}
+            enableRipples
+            rippleSpeed={0.4}
+            rippleThickness={0.12}
+            rippleIntensityScale={1.5}
+            speed={0.5}
+            edgeFade={0.25}
+            transparent
+            className="intro-pixel-blast"
           />
+          <div className="intro-overlay" />
 
           <div className="intro-content">
             <BlurText text="Deblocked" delay={160} animateBy="letters" direction="top" className="hero-title" />

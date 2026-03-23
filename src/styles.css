@@ -18,8 +18,8 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 
 .intro-screen { position: fixed; inset: 0; z-index: 50; opacity: 1; transition: opacity 0.7s ease, visibility 0.7s ease; }
 .intro-screen--exit { opacity: 0; visibility: hidden; pointer-events: none; }
-.intro-overlay, .main-background { position: absolute; inset: 0; width: 100%; height: 100%; }
-.intro-overlay { background: radial-gradient(circle at center, rgba(115, 196, 255, 0.16), transparent 36%), linear-gradient(180deg, rgba(7, 9, 24, 0.22), rgba(3, 4, 10, 0.94)); }
+.intro-overlay, .main-background, .intro-pixel-blast { position: absolute; inset: 0; width: 100%; height: 100%; }
+.intro-overlay { background: radial-gradient(circle at center, rgba(115, 196, 255, 0.1), transparent 36%), linear-gradient(180deg, rgba(7, 9, 24, 0.08), rgba(3, 4, 10, 0.72)); }
 .main-background { opacity: 0.95; }
 .main-background--games { position: fixed; z-index: 0; pointer-events: none; }
 .main-background > * { width: 100%; height: 100%; }
@@ -31,6 +31,7 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
     linear-gradient(180deg, rgba(8, 12, 28, 0.94), rgba(3, 4, 10, 0.98));
 }
 
+.intro-pixel-blast { z-index: 0; }
 .intro-content, .page-shell { position: relative; z-index: 1; }
 .page-shell { z-index: 2; }
 .intro-content { min-height: 100vh; display: grid; place-content: center; padding: 2rem; text-align: center; text-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
