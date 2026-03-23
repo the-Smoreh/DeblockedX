@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import BlurText from './BlurText';
 import CardNav from './CardNav';
 import ClickSpark from './ClickSpark';
@@ -6,19 +6,10 @@ import FloatingLines from './FloatingLines';
 import MagicRings from './MagicRings';
 import Masonry from './Masonry';
 import RippleGrid from './RippleGrid';
+import gamesData from '../games.json';
 
 const INTRO_DURATION_MS = 3200;
 const INTRO_FADE_MS = 700;
-
-const gameItems = [
-  { id: '1', title: 'Retro Run', img: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=900&q=80', url: 'https://example.com/retro-run', height: 520 },
-  { id: '2', title: 'Sky Drift', img: 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=900&q=80', url: 'https://example.com/sky-drift', height: 360 },
-  { id: '3', title: 'Pixel Siege', img: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=900&q=80', url: 'https://example.com/pixel-siege', height: 620 },
-  { id: '4', title: 'Turbo Loop', img: 'https://images.unsplash.com/photo-1511882150382-421056c89033?auto=format&fit=crop&w=900&q=80', url: 'https://example.com/turbo-loop', height: 420 },
-  { id: '5', title: 'Night Shift', img: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80', url: 'https://example.com/night-shift', height: 540 },
-  { id: '6', title: 'Orbital Dash', img: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?auto=format&fit=crop&w=900&q=80', url: 'https://example.com/orbital-dash', height: 390 },
-];
-
 const hacksItems = [
   {
     title: 'Bookmarklets',
@@ -34,10 +25,151 @@ const hacksItems = [
   },
 ];
 
+const formatBatteryLevel = (level) => `${Math.round(level * 100)}%`;
+
+function GameOverlay({ game, onClose }) {
+  const [fps, setFps] = useState(0);
+  const [battery, setBattery] = useState('Unavailable');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const gameShellRef = useRef(null);
+
+  useEffect(() => {
+    let frameCount = 0;
+    let previousTimestamp = performance.now();
+    let animationFrameId;
+
+    const updateFps = (timestamp) => {
+      frameCount += 1;
+      const elapsed = timestamp - previousTimestamp;
+      if (elapsed >= 1000) {
+        setFps(Math.round((frameCount * 1000) / elapsed));
+        frameCount = 0;
+        previousTimestamp = timestamp;
+      }
+      animationFrameId = window.requestAnimationFrame(updateFps);
+    };
+
+    animationFrameId = window.requestAnimationFrame(updateFps);
+    return () => window.cancelAnimationFrame(animationFrameId);
+  }, []);
+
+  useEffect(() => {
+    let batteryManager;
+    let mounted = true;
+
+    const syncBattery = () => {
+      if (!mounted || !batteryManager) return;
+      setBattery(formatBatteryLevel(batteryManager.level));
+    };
+
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then((manager) => {
+        if (!mounted) return;
+        batteryManager = manager;
+        syncBattery();
+        manager.addEventListener('levelchange', syncBattery);
+      }).catch(() => setBattery('Unavailable'));
+    }
+
+    return () => {
+      mounted = false;
+      batteryManager?.removeEventListener('levelchange', syncBattery);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === gameShellRef.current);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && !document.fullscreenElement) {
+        onClose();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
+  const handleToggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement === gameShellRef.current) {
+        await document.exitFullscreen();
+      } else {
+        await gameShellRef.current?.requestFullscreen();
+      }
+    } catch {
+      // Fullscreen can fail on some embeds or browsers.
+    }
+  };
+
+  const handleClose = async () => {
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen();
+      } catch {
+        // Ignore fullscreen exit issues and still close the overlay.
+      }
+    }
+    onClose();
+  };
+
+  return (
+    <div className="game-overlay" role="dialog" aria-modal="true" aria-label={`${game.title} player`}>
+      <div ref={gameShellRef} className={`game-overlay__shell${isFullscreen ? ' game-overlay__shell--fullscreen' : ''}`}>
+        <iframe
+          className="game-overlay__frame"
+          src={game.url}
+          title={game.title}
+          loading="eager"
+          allow="autoplay; fullscreen; gamepad; xr-spatial-tracking"
+          allowFullScreen
+          referrerPolicy="strict-origin-when-cross-origin"
+        />
+
+        <div className="game-overlay__hud game-overlay__hud--top-left">
+          <span className="game-overlay__label">Game</span>
+          <strong>{game.title}</strong>
+        </div>
+
+        <div className="game-overlay__hud game-overlay__hud--top-right game-overlay__hud--actions">
+          <button type="button" className="game-overlay__button" onClick={handleToggleFullscreen}>
+            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          </button>
+          <button type="button" className="game-overlay__button game-overlay__button--danger" onClick={handleClose}>
+            Close
+          </button>
+        </div>
+
+        <div className="game-overlay__hud game-overlay__hud--bottom-left">
+          <span className="game-overlay__label">FPS</span>
+          <strong>{fps || '...'}</strong>
+        </div>
+
+        <div className="game-overlay__hud game-overlay__hud--bottom-right">
+          <span className="game-overlay__label">Battery</span>
+          <strong>{battery}</strong>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [introExiting, setIntroExiting] = useState(false);
   const [activePage, setActivePage] = useState('games');
+  const [activeGame, setActiveGame] = useState(null);
 
   useEffect(() => {
     const exitTimer = setTimeout(() => setIntroExiting(true), INTRO_DURATION_MS - INTRO_FADE_MS);
@@ -48,7 +180,17 @@ export default function App() {
     };
   }, []);
 
-  const masonryItems = useMemo(() => gameItems, []);
+  const masonryItems = useMemo(
+    () => gamesData.map((game, index) => ({
+      id: `${game.title}-${index}`,
+      title: game.title,
+      description: game.description,
+      img: game.game_image_icon,
+      url: game.url,
+      height: game.featured ? 520 : 420 + ((index % 4) * 40),
+    })),
+    [],
+  );
 
   const navItems = useMemo(
     () => [
@@ -133,16 +275,16 @@ export default function App() {
 
             {activePage === 'games' ? (
               <section className="games-page games-page--compact">
+                <div className="games-page__intro games-page__intro--compact">
+                  <p className="eyebrow">Games Library</p>
+                  <h1>{masonryItems.length} live game slots, loaded from your JSON.</h1>
+                  <p className="page-copy">Click any cover to launch that game inside the site. The header stays on top while the game expands across the rest of the page with its own HUD controls.</p>
+                </div>
                 <Masonry
                   items={masonryItems}
-                  ease="elastic.out(1, 0.75)"
-                  duration={0.1}
-                  stagger={0.09}
-                  animateFrom="bottom"
-                  scaleOnHover
-                  hoverScale={0.95}
-                  blurToFocus
-                  colorShiftOnHover={false}
+                  onItemClick={setActiveGame}
+                  stagger={0.05}
+                  hoverScale={0.97}
                 />
               </section>
             ) : (
@@ -168,6 +310,8 @@ export default function App() {
           </section>
         </ClickSpark>
       </section>
+
+      {activeGame && <GameOverlay game={activeGame} onClose={() => setActiveGame(null)} />}
 
       {showIntro && (
         <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>

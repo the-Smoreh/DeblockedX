@@ -38,10 +38,10 @@ const preloadImages = async (urls) => Promise.all(urls.map((src) => new Promise(
   img.onload = img.onerror = () => resolve();
 })));
 
-const Masonry = ({ items, stagger = 0.05, hoverScale = 0.95 }) => {
+const Masonry = ({ items, onItemClick, stagger = 0.05, hoverScale = 0.95 }) => {
   const columns = useMedia(
-    ['(min-width: 1500px)', '(min-width: 1000px)', '(min-width: 600px)', '(min-width: 400px)'],
-    [5, 4, 3, 2],
+    ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'],
+    [6, 5, 4, 3, 2],
     1,
   );
   const [containerRef, { width }] = useMeasure();
@@ -49,6 +49,7 @@ const Masonry = ({ items, stagger = 0.05, hoverScale = 0.95 }) => {
 
   useEffect(() => {
     let active = true;
+    setImagesReady(false);
     preloadImages(items.map((item) => item.img)).then(() => {
       if (active) setImagesReady(true);
     });
@@ -57,6 +58,8 @@ const Masonry = ({ items, stagger = 0.05, hoverScale = 0.95 }) => {
 
   const grid = useMemo(() => {
     if (!width) return [];
+
+    const gutter = 8;
     const colHeights = new Array(columns).fill(0);
     const columnWidth = width / columns;
 
@@ -65,7 +68,7 @@ const Masonry = ({ items, stagger = 0.05, hoverScale = 0.95 }) => {
       const x = columnWidth * column;
       const h = item.height / 2;
       const y = colHeights[column];
-      colHeights[column] += h;
+      colHeights[column] += h + gutter;
       return { ...item, x, y, w: columnWidth, h };
     });
   }, [columns, items, width]);
@@ -75,8 +78,9 @@ const Masonry = ({ items, stagger = 0.05, hoverScale = 0.95 }) => {
   return (
     <div ref={containerRef} className="list" style={{ height: totalHeight }}>
       {grid.map((item, index) => (
-        <div
+        <button
           key={item.id}
+          type="button"
           data-key={item.id}
           className={`item-wrapper ${imagesReady ? 'item-wrapper--ready' : ''}`}
           style={{
@@ -86,14 +90,15 @@ const Masonry = ({ items, stagger = 0.05, hoverScale = 0.95 }) => {
             transitionDelay: `${index * stagger}s`,
             '--hover-scale': hoverScale,
           }}
-          onClick={() => window.open(item.url, '_blank', 'noopener')}
+          onClick={() => onItemClick?.(item)}
         >
           <div className="item-img" style={{ backgroundImage: `url(${item.img})` }}>
             <div className="item-copy">
               <span>{item.title}</span>
+              {item.description ? <small>{item.description}</small> : null}
             </div>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );
