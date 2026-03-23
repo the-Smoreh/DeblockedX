@@ -29,10 +29,11 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .blur-text-segment { display: inline-block; will-change: transform, filter, opacity; }
 
 .main-content { padding: 1.25rem 0 4rem; }
-.page-shell { width: min(1200px, 100%); margin: 0 auto; padding: 0 0.75rem 3rem; }
+.page-shell { width: min(1520px, calc(100vw - 20px)); margin: 0 auto; padding: 0 0.35rem 3rem; }
 .games-page, .hacks-page { margin-top: 2rem; padding: 2rem 0 0; }
 .games-page--compact { padding-top: 0.5rem; }
 .games-page__intro { padding: 1rem 0 2rem; }
+.games-page__intro--compact { padding-inline: 0.5rem; }
 .eyebrow { margin: 0 0 0.6rem; text-transform: uppercase; letter-spacing: 0.24em; font-size: 0.72rem; color: rgba(255,255,255,0.72); }
 .games-page h1, .hacks-page h1 { margin: 0; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.05em; }
 .page-copy { margin: 1rem 0 0; font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.82); max-width: 46rem; }
@@ -45,10 +46,97 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .hacks-card h2 { margin: 0 0 0.8rem; font-size: 1.5rem; }
 .hacks-card p:last-child { margin: 0; color: rgba(255,255,255,0.82); line-height: 1.7; }
 
+.game-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  padding: 6.25rem 1rem 1rem;
+  background: rgba(3, 6, 16, 0.72);
+  backdrop-filter: blur(14px);
+}
+
+.game-overlay__shell {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 7.25rem);
+  border-radius: 28px;
+  overflow: hidden;
+  background: #02050d;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.45);
+}
+
+.game-overlay__shell--fullscreen {
+  border-radius: 0;
+  border: 0;
+}
+
+.game-overlay__frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #02050d;
+}
+
+.game-overlay__hud {
+  position: absolute;
+  z-index: 2;
+  min-width: 130px;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(8, 11, 20, 0.94);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  display: grid;
+  gap: 0.3rem;
+}
+
+.game-overlay__hud--top-left { top: 1rem; left: 1rem; }
+.game-overlay__hud--top-right { top: 1rem; right: 1rem; }
+.game-overlay__hud--bottom-left { bottom: 1rem; left: 1rem; }
+.game-overlay__hud--bottom-right { bottom: 1rem; right: 1rem; }
+.game-overlay__hud--actions {
+  min-width: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.game-overlay__label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(255,255,255,0.62);
+}
+
+.game-overlay__button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.75rem 1rem;
+  background: #ffffff;
+  color: #09101f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.game-overlay__button--danger {
+  background: #ff5c7c;
+  color: #fff;
+}
+
+
 @media (max-width: 768px) {
   .main-content { padding-top: 0.5rem; }
-  .page-shell { padding-inline: 0.5rem; }
+  .page-shell { width: min(100vw - 8px, 1520px); padding-inline: 0.15rem; }
   .games-page { margin-top: 1.5rem; }
   .hacks-page__content { min-height: 560px; }
   .hacks-page__intro, .hacks-grid { padding-inline: 1.5rem; }
+  .game-overlay { padding: 5.5rem 0.55rem 0.55rem; }
+  .game-overlay__shell { height: calc(100vh - 6rem); border-radius: 22px; }
+  .game-overlay__hud { min-width: unset; max-width: calc(100% - 1.5rem); padding: 0.75rem 0.85rem; }
+  .game-overlay__hud--actions { display: grid; grid-template-columns: 1fr 1fr; min-width: unset; }
+  .game-overlay__button { padding: 0.72rem 0.8rem; }
 }
+
