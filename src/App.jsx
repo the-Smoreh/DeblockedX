@@ -3,7 +3,6 @@ import BlurText from './BlurText';
 import CardNav from './CardNav';
 import ClickSpark from './ClickSpark';
 import FloatingLines from './FloatingLines';
-import MagicRings from './MagicRings';
 import Masonry from './Masonry';
 import RippleGrid from './RippleGrid';
 import gamesData from '../games.json';
@@ -222,32 +221,8 @@ export default function App() {
   return (
     <main className={`app-shell app-shell--${activePage}`}>
       <section className="main-content">
-        <div className="main-background">
-          {activePage === 'games' ? (
-            <MagicRings
-              color="#fc42ff"
-              colorTwo="#42fcff"
-              ringCount={4}
-              speed={1.5}
-              attenuation={10}
-              lineThickness={2}
-              baseRadius={0.35}
-              radiusStep={0.1}
-              scaleRate={0.1}
-              opacity={1}
-              blur={0}
-              noiseAmount={0.1}
-              rotation={0}
-              ringGap={1.5}
-              fadeIn={0.7}
-              fadeOut={0.5}
-              followMouse={false}
-              mouseInfluence={0.2}
-              hoverScale={1.2}
-              parallax={0.05}
-              clickBurst={false}
-            />
-          ) : (
+        <div className={`main-background${activePage === 'games' ? ' main-background--games' : ''}`}>
+          {activePage === 'games' ? <div className="games-backdrop" aria-hidden="true" /> : (
             <RippleGrid
               enableRainbow={false}
               gridColor="#ffffff"
@@ -275,11 +250,6 @@ export default function App() {
 
             {activePage === 'games' ? (
               <section className="games-page games-page--compact">
-                <div className="games-page__intro games-page__intro--compact">
-                  <p className="eyebrow">Games Library</p>
-                  <h1>{masonryItems.length} live game slots, loaded from your JSON.</h1>
-                  <p className="page-copy">Click any cover to launch that game inside the site. The header stays on top while the game expands across the rest of the page with its own HUD controls.</p>
-                </div>
                 <Masonry
                   items={masonryItems}
                   onItemClick={setActiveGame}
