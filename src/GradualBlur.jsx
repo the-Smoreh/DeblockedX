@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as math from 'mathjs';
 
+import './GradualBlur.css';
+
 const DEFAULT_CONFIG = {
   position: 'bottom',
   strength: 2,
@@ -227,3 +229,24 @@ GradualBlurMemo.PRESETS = PRESETS;
 GradualBlurMemo.CURVE_FUNCTIONS = CURVE_FUNCTIONS;
 
 export default GradualBlurMemo;
+
+
+const injectStyles = () => {
+  if (typeof document === 'undefined') return;
+
+  const styleId = 'gradual-blur-styles';
+  if (document.getElementById(styleId)) return;
+
+  const styleElement = document.createElement('style');
+  styleElement.id = styleId;
+  styleElement.textContent = `
+  .gradual-blur { pointer-events: none; transition: opacity 0.3s ease-out; }
+  .gradual-blur-parent { overflow: hidden; }
+  .gradual-blur-inner { pointer-events: none; }`;
+
+  document.head.appendChild(styleElement);
+};
+
+if (typeof document !== 'undefined') {
+  injectStyles();
+}
