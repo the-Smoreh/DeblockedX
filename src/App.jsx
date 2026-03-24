@@ -6,11 +6,14 @@ import LineWaves from './LineWaves';
 import Masonry from './Masonry';
 import RippleGrid from './RippleGrid';
 import gamesData from '../games.json';
+import secretData from '../secret.json';
 
 const INTRO_DURATION_MS = 3200;
 const INTRO_FADE_MS = 700;
 const CLOAK_PREF_KEY = 'deblockedx-cloak-on-startup';
 const CLOAK_SESSION_KEY = 'deblockedx-cloak-session-done';
+const SETTINGS_PREF_KEY = 'deblockedx-settings-v2';
+const UNLOCKED_SECRET_KEY = 'deblockedx-secret-unlocked-v1';
 
 const hacksItems = [
   {
@@ -196,6 +199,48 @@ function GameOverlay({ game, onClose }) {
 }
 
 export default function App() {
+  const [settings, setSettings] = useState(() => {
+    if (typeof window === 'undefined') {
+      return {
+        introDurationSec: 3.2,
+        enableIntro: true,
+        enableAnimations: true,
+        enableClickSound: false,
+        enableIntroSound: false,
+        performanceMode: false,
+      };
+    }
+
+    const stored = window.localStorage.getItem(SETTINGS_PREF_KEY);
+    if (!stored) {
+      return {
+        introDurationSec: 3.2,
+        enableIntro: true,
+        enableAnimations: true,
+        enableClickSound: false,
+        enableIntroSound: false,
+        performanceMode: false,
+      };
+    }
+
+    try {
+      return { ...JSON.parse(stored) };
+    } catch {
+      return {
+        introDurationSec: 3.2,
+        enableIntro: true,
+        enableAnimations: true,
+        enableClickSound: false,
+        enableIntroSound: false,
+        performanceMode: false,
+      };
+    }
+  });
+  const [clickSoundDataUrl, setClickSoundDataUrl] = useState(() => (typeof window === 'undefined' ? '' : window.localStorage.getItem('deblockedx-click-sound') || ''));
+  const [introSoundDataUrl, setIntroSoundDataUrl] = useState(() => (typeof window === 'undefined' ? '' : window.localStorage.getItem('deblockedx-intro-sound') || ''));
+  const [secretUnlocked, setSecretUnlocked] = useState(() => (typeof window === 'undefined' ? false : window.localStorage.getItem(UNLOCKED_SECRET_KEY) === '1'));
+  const [codeInput, setCodeInput] = useState('');
+  const [codeStatus, setCodeStatus] = useState('');
   const [showIntro, setShowIntro] = useState(true);
   const [introExiting, setIntroExiting] = useState(false);
   const [activePage, setActivePage] = useState('games');
@@ -206,18 +251,46 @@ export default function App() {
     const stored = window.localStorage.getItem(CLOAK_PREF_KEY);
     return stored === null ? true : stored === 'true';
   });
+  const clickAudioRef = useRef(null);
+  const introAudioRef = useRef(null);
 
   useEffect(() => {
-    const exitTimer = setTimeout(() => setIntroExiting(true), INTRO_DURATION_MS - INTRO_FADE_MS);
+    if (!settings.enableIntro || settings.performanceMode) {
+      setShowIntro(false);
+      setIntroExiting(false);
+      return undefined;
+    }
+
+    const introDurationMs = Math.max(1000, settings.introDurationSec * 1000);
+    const fadeDurationMs = Math.min(INTRO_FADE_MS, introDurationMs - 100);
+    const exitTimer = setTimeout(() => setIntroExiting(true), introDurationMs - fadeDurationMs);
     const hideTimer = setTimeout(() => {
       setShowIntro(false);
       setIntroExiting(false);
-    }, INTRO_DURATION_MS);
+    }, introDurationMs);
+
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(hideTimer);
     };
-  }, []);
+  }, [settings.enableIntro, settings.introDurationSec, settings.performanceMode]);
+
+  useEffect(() => {
+    window.localStorage.setItem(SETTINGS_PREF_KEY, JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    window.localStorage.setItem('deblockedx-click-sound', clickSoundDataUrl);
+  }, [clickSoundDataUrl]);
+
+  useEffect(() => {
+    window.localStorage.setItem('deblockedx-intro-sound', introSoundDataUrl);
+  }, [introSoundDataUrl]);
+
+  useEffect(() => {
+    if (!secretUnlocked) return;
+    window.localStorage.setItem(UNLOCKED_SECRET_KEY, '1');
+  }, [secretUnlocked]);
 
   useEffect(() => {
     window.localStorage.setItem(CLOAK_PREF_KEY, String(cloakOnStartup));
@@ -237,16 +310,36 @@ export default function App() {
     return () => window.clearTimeout(timer);
   }, [cloakOnStartup]);
 
+  useEffect(() => {
+    const handlePointerDown = () => {
+      if (!settings.enableClickSound || !clickAudioRef.current) return;
+      clickAudioRef.current.currentTime = 0;
+      clickAudioRef.current.play().catch(() => {});
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => window.removeEventListener('pointerdown', handlePointerDown);
+  }, [settings.enableClickSound, clickSoundDataUrl]);
+
+  useEffect(() => {
+    if (!showIntro || !settings.enableIntroSound || !introAudioRef.current) return;
+    introAudioRef.current.currentTime = 0;
+    introAudioRef.current.play().catch(() => {});
+  }, [settings.enableIntroSound, showIntro, introSoundDataUrl]);
+
   const masonryItems = useMemo(
-    () => gamesData.map((game, index) => ({
-      id: `${game.title}-${index}`,
-      title: game.title,
-      description: game.description,
-      img: game.game_image_icon,
-      url: game.url,
-      height: game.featured ? 520 : 420 + ((index % 4) * 40),
-    })),
-    [],
+    () => {
+      const completeGames = secretUnlocked ? [...secretData.games, ...gamesData] : gamesData;
+      return completeGames.map((game, index) => ({
+        id: `${game.title}-${index}`,
+        title: game.title,
+        description: game.description,
+        img: game.game_image_icon,
+        url: game.url,
+        height: game.featured ? 520 : 420 + ((index % 4) * 40),
+      }));
+    },
+    [secretUnlocked],
   );
 
   const navItems = useMemo(
@@ -276,12 +369,45 @@ export default function App() {
     [activePage],
   );
 
+  const isAnimationEnabled = settings.enableAnimations && !settings.performanceMode;
+
+  const updateSetting = (key, value) => {
+    setSettings((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleAudioFileUpload = async (event, target) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    if (typeof dataUrl !== 'string') return;
+    if (target === 'click') setClickSoundDataUrl(dataUrl);
+    if (target === 'intro') setIntroSoundDataUrl(dataUrl);
+    event.target.value = '';
+  };
+
+  const handleUnlockCode = () => {
+    if (codeInput.trim() === secretData.code) {
+      setSecretUnlocked(true);
+      setCodeStatus('✅ Code accepted. Secret games unlocked at the top.');
+      return;
+    }
+    setCodeStatus('❌ Invalid code.');
+  };
+
   return (
-    <main className={`app-shell app-shell--${activePage}`}>
+    <main className={`app-shell app-shell--${activePage}${settings.performanceMode ? ' app-shell--performance' : ''}`}>
+      {clickSoundDataUrl && <audio ref={clickAudioRef} src={clickSoundDataUrl} preload="auto" />}
+      {introSoundDataUrl && <audio ref={introAudioRef} src={introSoundDataUrl} preload="auto" />}
       {!activeGame && (
-        <section className="main-content">
+        <section className={`main-content${showIntro ? ' main-content--intro-active' : ' main-content--intro-ready'}`}>
           <div className={`main-background${activePage === 'games' ? ' main-background--games' : ''}`}>
-            {activePage === 'games' ? <div className="games-backdrop" aria-hidden="true" /> : (
+            {activePage === 'games' || !isAnimationEnabled ? <div className="games-backdrop" aria-hidden="true" /> : (
               <RippleGrid
                 enableRainbow={false}
                 gridColor="#ffffff"
@@ -295,7 +421,52 @@ export default function App() {
             )}
           </div>
 
-          <ClickSpark sparkColor="#fff" sparkSize={7} sparkRadius={30} sparkCount={8} duration={400}>
+          {isAnimationEnabled ? (
+            <ClickSpark sparkColor="#fff" sparkSize={7} sparkRadius={30} sparkCount={8} duration={400}>
+              <section className="page-shell">
+                <CardNav
+                  title="deblocked"
+                  items={navItems}
+                  activePage={activePage}
+                  onNavigate={setActivePage}
+                  onOpenSettings={() => setSettingsOpen(true)}
+                  baseColor="rgba(6, 10, 20, 0.92)"
+                  menuColor="#ffffff"
+                  ease="power3.out"
+                />
+
+                {activePage === 'games' ? (
+                  <section className="games-page games-page--compact">
+                    <Masonry
+                      items={masonryItems}
+                      onItemClick={setActiveGame}
+                      stagger={0.05}
+                      hoverScale={0.97}
+                    />
+                  </section>
+                ) : (
+                  <section className="hacks-page">
+                    <div className="hacks-page__content">
+                      <div className="games-page__intro hacks-page__intro">
+                        <p className="eyebrow">Hacks Page</p>
+                        <h1>Separate hacks staging area.</h1>
+                        <p className="page-copy">Bookmarklets, console hacks, and stealth tools now have their own dedicated page instead of sharing the games screen.</p>
+                      </div>
+                      <div className="hacks-grid">
+                        {hacksItems.map((item) => (
+                          <article key={item.title} className="hacks-card">
+                            <p className="eyebrow">Toolset</p>
+                            <h2>{item.title}</h2>
+                            <p>{item.description}</p>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                )}
+              </section>
+            </ClickSpark>
+          ) : (
             <section className="page-shell">
               <CardNav
                 title="deblocked"
@@ -335,10 +506,10 @@ export default function App() {
                       ))}
                     </div>
                   </div>
-                </section>
-              )}
+                  </section>
+                )}
             </section>
-          </ClickSpark>
+          )}
         </section>
       )}
 
@@ -346,21 +517,25 @@ export default function App() {
 
       {showIntro && (
         <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>
-          <LineWaves
-            speed={0.3}
-            innerLineCount={32}
-            outerLineCount={36}
-            warpIntensity={1}
-            rotation={-45}
-            edgeFadeWidth={0}
-            colorCycleSpeed={1}
-            brightness={0.2}
-            color1="#ffffff"
-            color2="#ffffff"
-            color3="#ffffff"
-            enableMouseInteraction
-            mouseInfluence={2}
-          />
+          {isAnimationEnabled ? (
+            <LineWaves
+              speed={0.3}
+              innerLineCount={32}
+              outerLineCount={36}
+              warpIntensity={1}
+              rotation={-45}
+              edgeFadeWidth={0}
+              colorCycleSpeed={1}
+              brightness={0.2}
+              color1="#ffffff"
+              color2="#ffffff"
+              color3="#ffffff"
+              enableMouseInteraction
+              mouseInfluence={2}
+            />
+          ) : (
+            <div className="intro-static" />
+          )}
           <div className="intro-overlay" />
 
           <div className="intro-content">
@@ -371,60 +546,99 @@ export default function App() {
 
       {settingsOpen && (
         <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
-          <div className="settings-modal__panel">
+          <div className={`settings-modal__panel${isAnimationEnabled ? ' settings-modal__panel--animated' : ''}`}>
             <header className="settings-modal__header">
-              <h2>Settings</h2>
+              <h2>Settings UI</h2>
               <button type="button" className="settings-modal__close" onClick={() => setSettingsOpen(false)} aria-label="Close settings">
                 ×
               </button>
             </header>
 
-            <div className="settings-modal__layout">
-              <aside className="settings-sidebar">
-                <p className="eyebrow">Categories</p>
-                <button type="button" className="settings-sidebar__item settings-sidebar__item--active">Appearance</button>
-                <button type="button" className="settings-sidebar__item">Layout & Cards</button>
-                <button type="button" className="settings-sidebar__item">Privacy & Launch</button>
-              </aside>
+            <div className="settings-content settings-content--single">
+              <section className="settings-block">
+                <h3>Flow + Performance</h3>
+                <label className="settings-toggle">
+                  <input type="checkbox" checked={settings.enableAnimations} onChange={(event) => updateSetting('enableAnimations', event.target.checked)} />
+                  <span>Enable animations (default on)</span>
+                </label>
+                <label className="settings-toggle">
+                  <input type="checkbox" checked={settings.performanceMode} onChange={(event) => updateSetting('performanceMode', event.target.checked)} />
+                  <span>Performance mode (turns off all animations)</span>
+                </label>
+                <p className="settings-copy">You can always switch between animated mode and performance mode.</p>
+              </section>
 
-              <div className="settings-content">
-                <section className="settings-block">
-                  <h3>Display</h3>
-                  <p className="settings-copy">Placeholder layout for future visual customization settings.</p>
-                  <div className="settings-chip-row">
-                    <button type="button" className="settings-chip settings-chip--active">Dark</button>
-                    <button type="button" className="settings-chip">Experimental Light</button>
-                  </div>
-                </section>
+              <section className="settings-block">
+                <h3>Intro controls</h3>
+                <label className="settings-toggle">
+                  <input type="checkbox" checked={settings.enableIntro} onChange={(event) => updateSetting('enableIntro', event.target.checked)} />
+                  <span>Show intro screen on launch</span>
+                </label>
+                <label className="settings-range" htmlFor="intro-duration">
+                  <span>Intro duration (seconds): {settings.introDurationSec.toFixed(1)}s</span>
+                  <input
+                    id="intro-duration"
+                    type="range"
+                    min="1"
+                    max="12"
+                    step="0.5"
+                    value={settings.introDurationSec}
+                    onChange={(event) => updateSetting('introDurationSec', Number(event.target.value))}
+                  />
+                </label>
+                <label className="settings-toggle">
+                  <input type="checkbox" checked={settings.enableIntroSound} onChange={(event) => updateSetting('enableIntroSound', event.target.checked)} />
+                  <span>Enable intro sound</span>
+                </label>
+                <label className="settings-upload">
+                  <span>Upload custom intro sound (mp3)</span>
+                  <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'intro')} />
+                </label>
+              </section>
 
-                <section className="settings-block">
-                  <h3>Background</h3>
-                  <p className="settings-copy">Mock controls to show how the settings panel can expand over time.</p>
-                  <div className="settings-chip-row">
-                    <button type="button" className="settings-chip settings-chip--active">Stars</button>
-                    <button type="button" className="settings-chip">Gradient</button>
-                    <button type="button" className="settings-chip">Image</button>
-                  </div>
-                </section>
+              <section className="settings-block">
+                <h3>Click sound controls</h3>
+                <label className="settings-toggle">
+                  <input type="checkbox" checked={settings.enableClickSound} onChange={(event) => updateSetting('enableClickSound', event.target.checked)} />
+                  <span>Allow click sound across the website</span>
+                </label>
+                <label className="settings-upload">
+                  <span>Upload custom click sound (mp3)</span>
+                  <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'click')} />
+                </label>
+              </section>
 
-                <section className="settings-block">
-                  <h3>Stealth Tools</h3>
-                  <label className="settings-toggle" htmlFor="cloak-startup-toggle">
-                    <input
-                      id="cloak-startup-toggle"
-                      type="checkbox"
-                      checked={cloakOnStartup}
-                      onChange={(event) => setCloakOnStartup(event.target.checked)}
-                    />
-                    <span>Enable About:Blank cloaking on startup</span>
-                  </label>
-                  <div className="settings-chip-row">
-                    <button type="button" className="settings-chip settings-chip--cta" onClick={() => launchAboutBlankCloak()}>
-                      Launch About:Blank now
-                    </button>
-                  </div>
-                </section>
-              </div>
+              <section className="settings-block">
+                <h3>Stealth tools + toggles</h3>
+                <label className="settings-toggle" htmlFor="cloak-startup-toggle">
+                  <input
+                    id="cloak-startup-toggle"
+                    type="checkbox"
+                    checked={cloakOnStartup}
+                    onChange={(event) => setCloakOnStartup(event.target.checked)}
+                  />
+                  <span>Enable About:Blank cloaking on startup</span>
+                </label>
+                <button type="button" className="settings-chip settings-chip--cta" onClick={() => launchAboutBlankCloak()}>
+                  Launch About:Blank now
+                </button>
+              </section>
+
+              <section className="settings-block">
+                <h3>Secret game code</h3>
+                <p className="settings-copy">Enter a code to unlock extra games that get pinned to the top of the games page.</p>
+                <div className="settings-code-row">
+                  <input
+                    className="settings-code-input"
+                    type="text"
+                    placeholder="Enter game code"
+                    value={codeInput}
+                    onChange={(event) => setCodeInput(event.target.value)}
+                  />
+                  <button type="button" className="settings-chip settings-chip--active" onClick={handleUnlockCode}>Unlock</button>
+                </div>
+                {codeStatus && <p className="settings-copy">{codeStatus}</p>}
+              </section>
             </div>
           </div>
         </div>
