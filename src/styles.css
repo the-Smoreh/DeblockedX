@@ -38,7 +38,30 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .hero-title { margin: 0; justify-content: center; font-size: clamp(3.4rem, 10vw, 7rem); font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; }
 .blur-text-segment { display: inline-block; will-change: transform, filter, opacity; }
 
-.main-content { padding: 1.25rem 0 4rem; }
+.main-content {
+  position: relative;
+  isolation: isolate;
+  padding: 1.25rem 0 4rem;
+}
+
+.main-content::before {
+  content: '';
+  position: absolute;
+  inset: 0.75rem 0.4rem 1.5rem;
+  border-radius: 28px;
+  border: 1px solid rgba(255,255,255,0.09);
+  background: rgba(6, 10, 20, 0.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.main-content > * {
+  position: relative;
+  z-index: 2;
+}
+
 .page-shell { width: min(1520px, calc(100vw - 20px)); margin: 0 auto; padding: 0 0.35rem 3rem; }
 .games-page, .hacks-page { margin-top: 2rem; padding: 2rem 0 0; }
 .games-page { position: relative; }
@@ -125,10 +148,12 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .game-overlay__button {
   border: 0;
   border-radius: 999px;
-  padding: 0.75rem 1rem;
+  min-width: 140px;
+  padding: 0.75rem 1.25rem;
   background: #ffffff;
   color: #09101f;
   font-weight: 700;
+  text-align: center;
   cursor: pointer;
 }
 
@@ -175,6 +200,10 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
   .game-overlay__shell { height: 100vh; border-radius: 0; }
   .game-overlay__hud { min-width: unset; max-width: calc(100% - 1.5rem); padding: 0.75rem 0.85rem; }
   .game-overlay__hud--actions { display: grid; grid-template-columns: 1fr 1fr; min-width: unset; }
-  .game-overlay__button { padding: 0.72rem 0.8rem; }
+  .game-overlay__button {
+    min-width: 0;
+    width: 100%;
+    padding: 0.72rem 0.8rem;
+  }
 }
 
