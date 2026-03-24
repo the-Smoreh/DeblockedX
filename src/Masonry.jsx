@@ -57,6 +57,12 @@ const Masonry = ({ items, onItemClick, onToggleFavorite, stagger = 0.05, hoverSc
   }, [seenIds]);
 
   useEffect(() => {
+    setVisibleIds(new Set());
+    setSeenIds(new Set());
+    seenIdsRef.current = new Set();
+  }, [items]);
+
+  useEffect(() => {
     let active = true;
     setImagesReady(false);
     preloadImages(items.map((item) => item.img)).then(() => {
