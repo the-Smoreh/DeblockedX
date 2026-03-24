@@ -16,10 +16,21 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .intro-screen,
 .main-content { position: relative; min-height: 100vh; }
 
-.intro-screen { position: fixed; inset: 0; z-index: 50; opacity: 1; transition: opacity 0.7s ease, visibility 0.7s ease; }
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  opacity: 1;
+  background: #000;
+  transition: opacity 0.7s ease, visibility 0.7s ease;
+}
 .intro-screen--exit { opacity: 0; visibility: hidden; pointer-events: none; }
 .intro-overlay, .main-background, .line-waves-container { position: absolute; inset: 0; width: 100%; height: 100%; }
-.intro-overlay { background: radial-gradient(circle at center, rgba(115, 196, 255, 0.1), transparent 36%), linear-gradient(180deg, rgba(7, 9, 24, 0.08), rgba(3, 4, 10, 0.72)); }
+.intro-overlay {
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 36%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.75));
+}
 .main-background { opacity: 0.95; }
 .main-background--games { position: fixed; z-index: 0; pointer-events: none; }
 .main-background > * { width: 100%; height: 100%; }
@@ -130,7 +141,13 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .game-overlay__hud--top-left { top: 0.45rem; left: 0.45rem; }
 .game-overlay__hud--top-right { top: 0.45rem; right: 0.45rem; }
 .game-overlay__hud--bottom-left { bottom: 0.45rem; left: 0.45rem; }
-.game-overlay__hud--bottom-right { bottom: 0.45rem; right: 0.45rem; }
+.game-overlay__hud--bottom-right {
+  bottom: 0.45rem;
+  right: 0.45rem;
+  min-width: clamp(220px, 22vw, 300px);
+  min-height: 74px;
+  padding-block: 0.75rem;
+}
 .game-overlay__hud--actions {
   min-width: 220px;
   min-height: unset;
