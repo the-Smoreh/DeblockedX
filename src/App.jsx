@@ -2,13 +2,16 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import BlurText from './BlurText';
 import CardNav from './CardNav';
 import ClickSpark from './ClickSpark';
-import PrismaticBurst from './PrismaticBurst';
+import LineWaves from './LineWaves';
 import Masonry from './Masonry';
 import RippleGrid from './RippleGrid';
 import gamesData from '../games.json';
 
 const INTRO_DURATION_MS = 3200;
 const INTRO_FADE_MS = 700;
+const CLOAK_PREF_KEY = 'deblockedx-cloak-on-startup';
+const CLOAK_SESSION_KEY = 'deblockedx-cloak-session-done';
+
 const hacksItems = [
   {
     title: 'Bookmarklets',
@@ -25,6 +28,34 @@ const hacksItems = [
 ];
 
 const formatBatteryLevel = (level) => `${Math.round(level * 100)}%`;
+
+function launchAboutBlankCloak() {
+  if (typeof window === 'undefined') return false;
+  if (window.self !== window.top) return false;
+
+  const popup = window.open('about:blank', '_blank');
+  if (!popup) return false;
+
+  popup.document.write(`
+    <!doctype html>
+    <html>
+      <head>
+        <title>Classes</title>
+        <style>
+          html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #111; }
+          iframe { border: 0; width: 100vw; height: 100vh; display: block; }
+        </style>
+      </head>
+      <body>
+        <iframe src="${window.location.href}" allow="fullscreen *"></iframe>
+      </body>
+    </html>
+  `);
+  popup.document.close();
+
+  window.location.replace('https://www.google.com');
+  return true;
+}
 
 function GameOverlay({ game, onClose }) {
   const [fps, setFps] = useState(0);
@@ -169,15 +200,42 @@ export default function App() {
   const [introExiting, setIntroExiting] = useState(false);
   const [activePage, setActivePage] = useState('games');
   const [activeGame, setActiveGame] = useState(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [cloakOnStartup, setCloakOnStartup] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const stored = window.localStorage.getItem(CLOAK_PREF_KEY);
+    return stored === null ? true : stored === 'true';
+  });
 
   useEffect(() => {
     const exitTimer = setTimeout(() => setIntroExiting(true), INTRO_DURATION_MS - INTRO_FADE_MS);
-    const hideTimer = setTimeout(() => setShowIntro(false), INTRO_DURATION_MS);
+    const hideTimer = setTimeout(() => {
+      setShowIntro(false);
+      setIntroExiting(false);
+    }, INTRO_DURATION_MS);
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(hideTimer);
     };
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(CLOAK_PREF_KEY, String(cloakOnStartup));
+  }, [cloakOnStartup]);
+
+  useEffect(() => {
+    if (!cloakOnStartup) return;
+    if (window.sessionStorage.getItem(CLOAK_SESSION_KEY)) return;
+
+    const timer = window.setTimeout(() => {
+      const launched = launchAboutBlankCloak();
+      if (launched) {
+        window.sessionStorage.setItem(CLOAK_SESSION_KEY, '1');
+      }
+    }, 50);
+
+    return () => window.clearTimeout(timer);
+  }, [cloakOnStartup]);
 
   const masonryItems = useMemo(
     () => gamesData.map((game, index) => ({
@@ -220,86 +278,88 @@ export default function App() {
 
   return (
     <main className={`app-shell app-shell--${activePage}`}>
-      <section className="main-content">
-        <div className={`main-background${activePage === 'games' ? ' main-background--games' : ''}`}>
-          {activePage === 'games' ? <div className="games-backdrop" aria-hidden="true" /> : (
-            <RippleGrid
-              enableRainbow={false}
-              gridColor="#ffffff"
-              rippleIntensity={0.05}
-              gridSize={10}
-              gridThickness={15}
-              mouseInteraction
-              mouseInteractionRadius={1.2}
-              opacity={0.8}
-            />
-          )}
-        </div>
-
-        <ClickSpark sparkColor="#fff" sparkSize={7} sparkRadius={30} sparkCount={8} duration={400}>
-          <section className="page-shell">
-            <CardNav
-              title="deblocked"
-              items={navItems}
-              activePage={activePage}
-              onNavigate={setActivePage}
-              baseColor="rgba(6, 10, 20, 0.92)"
-              menuColor="#ffffff"
-              ease="power3.out"
-            />
-
-            {activePage === 'games' ? (
-              <section className="games-page games-page--compact">
-                <Masonry
-                  items={masonryItems}
-                  onItemClick={setActiveGame}
-                  stagger={0.05}
-                  hoverScale={0.97}
-                />
-              </section>
-            ) : (
-              <section className="hacks-page">
-                <div className="hacks-page__content">
-                  <div className="games-page__intro hacks-page__intro">
-                    <p className="eyebrow">Hacks Page</p>
-                    <h1>Separate hacks staging area.</h1>
-                    <p className="page-copy">Bookmarklets, console hacks, and stealth tools now have their own dedicated page instead of sharing the games screen.</p>
-                  </div>
-                  <div className="hacks-grid">
-                    {hacksItems.map((item) => (
-                      <article key={item.title} className="hacks-card">
-                        <p className="eyebrow">Toolset</p>
-                        <h2>{item.title}</h2>
-                        <p>{item.description}</p>
-                      </article>
-                    ))}
-                  </div>
-                </div>
-              </section>
+      {!activeGame && (
+        <section className="main-content">
+          <div className={`main-background${activePage === 'games' ? ' main-background--games' : ''}`}>
+            {activePage === 'games' ? <div className="games-backdrop" aria-hidden="true" /> : (
+              <RippleGrid
+                enableRainbow={false}
+                gridColor="#ffffff"
+                rippleIntensity={0.05}
+                gridSize={10}
+                gridThickness={15}
+                mouseInteraction
+                mouseInteractionRadius={1.2}
+                opacity={0.8}
+              />
             )}
-          </section>
-        </ClickSpark>
-      </section>
+          </div>
+
+          <ClickSpark sparkColor="#fff" sparkSize={7} sparkRadius={30} sparkCount={8} duration={400}>
+            <section className="page-shell">
+              <CardNav
+                title="deblocked"
+                items={navItems}
+                activePage={activePage}
+                onNavigate={setActivePage}
+                onOpenSettings={() => setSettingsOpen(true)}
+                baseColor="rgba(6, 10, 20, 0.92)"
+                menuColor="#ffffff"
+                ease="power3.out"
+              />
+
+              {activePage === 'games' ? (
+                <section className="games-page games-page--compact">
+                  <Masonry
+                    items={masonryItems}
+                    onItemClick={setActiveGame}
+                    stagger={0.05}
+                    hoverScale={0.97}
+                  />
+                </section>
+              ) : (
+                <section className="hacks-page">
+                  <div className="hacks-page__content">
+                    <div className="games-page__intro hacks-page__intro">
+                      <p className="eyebrow">Hacks Page</p>
+                      <h1>Separate hacks staging area.</h1>
+                      <p className="page-copy">Bookmarklets, console hacks, and stealth tools now have their own dedicated page instead of sharing the games screen.</p>
+                    </div>
+                    <div className="hacks-grid">
+                      {hacksItems.map((item) => (
+                        <article key={item.title} className="hacks-card">
+                          <p className="eyebrow">Toolset</p>
+                          <h2>{item.title}</h2>
+                          <p>{item.description}</p>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              )}
+            </section>
+          </ClickSpark>
+        </section>
+      )}
 
       {activeGame && <GameOverlay game={activeGame} onClose={() => setActiveGame(null)} />}
 
       {showIntro && (
         <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>
-          <PrismaticBurst
-            className="intro-prismatic-burst"
-            animationType="rotate3d"
-            intensity={2.3}
-            speed={0.35}
-            distort={5}
-            paused={false}
-            offset={{ x: 0, y: 0 }}
-            hoverDampness={0.25}
-            rayCount={0}
-            mixBlendMode="lighten"
-            colors={["#ff007a", "#4d3dff", "#ffffff"]}
-            color0="#009dff"
-            color1="#00fffb"
-            color2="#ae00ff"
+          <LineWaves
+            speed={0.3}
+            innerLineCount={32}
+            outerLineCount={36}
+            warpIntensity={1}
+            rotation={-45}
+            edgeFadeWidth={0}
+            colorCycleSpeed={1}
+            brightness={0.2}
+            color1="#ffffff"
+            color2="#ffffff"
+            color3="#ffffff"
+            enableMouseInteraction
+            mouseInfluence={2}
           />
           <div className="intro-overlay" />
 
@@ -307,6 +367,29 @@ export default function App() {
             <BlurText text="Deblocked" delay={160} animateBy="letters" direction="top" className="hero-title" />
           </div>
         </section>
+      )}
+
+      {settingsOpen && (
+        <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
+          <div className="settings-modal__panel">
+            <h2>Settings</h2>
+            <label className="settings-toggle" htmlFor="cloak-startup-toggle">
+              <input
+                id="cloak-startup-toggle"
+                type="checkbox"
+                checked={cloakOnStartup}
+                onChange={(event) => setCloakOnStartup(event.target.checked)}
+              />
+              <span>Enable About:Blank cloaking on startup</span>
+            </label>
+            <button type="button" className="game-overlay__button" onClick={() => launchAboutBlankCloak()}>
+              Launch About:Blank now
+            </button>
+            <button type="button" className="game-overlay__button game-overlay__button--danger" onClick={() => setSettingsOpen(false)}>
+              Close settings
+            </button>
+          </div>
+        </div>
       )}
     </main>
   );

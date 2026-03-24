@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import GradualBlur from './GradualBlur';
 import './CardNav.css';
 
 const CardNav = ({
@@ -7,6 +8,7 @@ const CardNav = ({
   className = '',
   activePage = 'games',
   onNavigate,
+  onOpenSettings,
   baseColor = '#fff',
   menuColor,
 }) => {
@@ -48,33 +50,67 @@ const CardNav = ({
             <span className="logo-wordmark">{title}</span>
           </div>
 
+          <button
+            type="button"
+            className="settings-button"
+            onClick={onOpenSettings}
+            aria-label="Open settings"
+          >
+            ⚙
+          </button>
         </div>
 
         <div className="card-nav-content" aria-hidden={!isExpanded}>
-          {(items || []).slice(0, 3).map((item, index) => (
-            <div
-              key={`${item.label}-${index}`}
-              className={`nav-card ${activePage === item.label.toLowerCase() ? 'nav-card--active' : ''}`}
-              style={{ backgroundColor: item.bgColor, color: item.textColor, transitionDelay: `${index * 80}ms` }}
-            >
-              <div className="nav-card-label">{item.label}</div>
-              <div className="nav-card-links">
-                {item.links?.map((link, linkIndex) => (
-                  <button
-                    key={`${link.label}-${linkIndex}`}
-                    type="button"
-                    className="nav-card-link"
-                    aria-label={link.ariaLabel}
-                    onClick={() => handleNavigate(link.page)}
-                  >
-                    <span className="nav-card-link-icon" aria-hidden="true">↗</span>
-                    {link.label}
-                  </button>
-                ))}
+          {(items || []).slice(0, 3).map((item, index) => {
+            const defaultPage = item.links?.[0]?.page;
+            return (
+              <div
+                key={`${item.label}-${index}`}
+                className={`nav-card ${activePage === item.label.toLowerCase() ? 'nav-card--active' : ''}`}
+                style={{ backgroundColor: item.bgColor, color: item.textColor, transitionDelay: `${index * 80}ms` }}
+                role="button"
+                tabIndex={0}
+                onClick={() => handleNavigate(defaultPage)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleNavigate(defaultPage);
+                  }
+                }}
+              >
+                <div className="nav-card-label">{item.label}</div>
+                <div className="nav-card-links">
+                  {item.links?.map((link, linkIndex) => (
+                    <button
+                      key={`${link.label}-${linkIndex}`}
+                      type="button"
+                      className="nav-card-link"
+                      aria-label={link.ariaLabel}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleNavigate(link.page);
+                      }}
+                    >
+                      <span className="nav-card-link-icon" aria-hidden="true">↗</span>
+                      {link.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
+        <GradualBlur
+          target="parent"
+          position="bottom"
+          height="4.5rem"
+          strength={1.8}
+          divCount={5}
+          curve="bezier"
+          exponential
+          opacity={1}
+        />
       </nav>
     </div>
   );
