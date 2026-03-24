@@ -127,7 +127,7 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .game-overlay__hud {
   position: absolute;
   z-index: 2;
-  min-width: 156px;
+  min-width: 220px;
   min-height: 92px;
   padding: 1rem 1.1rem;
   border-radius: 18px;
@@ -140,7 +140,26 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 
 .game-overlay__hud--top-left { top: 0.45rem; left: 0.45rem; }
 .game-overlay__hud--top-right { top: 0.45rem; right: 0.45rem; }
-.game-overlay__hud--bottom-left { bottom: 0.45rem; left: 0.45rem; }
+.game-overlay__hud--top-left {
+  min-width: clamp(240px, 28vw, 420px);
+  width: max-content;
+  max-width: min(520px, calc(100vw - 1rem));
+}
+.game-overlay__hud--top-left strong {
+  font-size: clamp(1.1rem, 1.25vw, 1.45rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.game-overlay__hud--bottom-left {
+  bottom: 0.45rem;
+  left: 0.45rem;
+  min-width: clamp(180px, 20vw, 260px);
+  min-height: 96px;
+}
+.game-overlay__hud--bottom-left strong {
+  font-size: clamp(1.4rem, 2.2vw, 2.1rem);
+  line-height: 1;
+}
 .game-overlay__hud--bottom-right {
   bottom: 0.45rem;
   right: 0.45rem;
@@ -193,13 +212,127 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 }
 
 .settings-modal__panel {
-  width: min(500px, 100%);
+  width: min(1100px, 100%);
+  max-height: min(92vh, 780px);
+  overflow: auto;
   border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 20px;
+  border-radius: 24px;
   background: rgba(9, 14, 28, 0.96);
-  padding: 1.5rem;
+  padding: 1rem;
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
+}
+
+.settings-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.4rem 0 0.4rem;
+}
+
+.settings-modal__header h2 {
+  margin: 0;
+  font-size: clamp(1.7rem, 2vw, 2.1rem);
+}
+
+.settings-modal__close {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  background: rgba(16, 24, 40, 0.92);
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.settings-modal__layout {
+  display: grid;
+  grid-template-columns: minmax(210px, 0.34fr) 1fr;
+  gap: 1rem;
+}
+
+.settings-sidebar {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(9, 18, 34, 0.94), rgba(6, 12, 22, 0.94));
+  padding: 1rem;
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+}
+
+.settings-sidebar .eyebrow {
+  margin: 0 0 0.3rem;
+  color: rgba(120, 188, 255, 0.85);
+}
+
+.settings-sidebar__item {
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 0.75rem 0.8rem;
+  background: rgba(11, 20, 36, 0.88);
+  color: rgba(255,255,255,0.9);
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-sidebar__item--active {
+  border-color: rgba(102, 203, 255, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(102, 203, 255, 0.35);
+}
+
+.settings-content {
+  display: grid;
+  gap: 1rem;
+}
+
+.settings-block {
+  border: 1px solid rgba(255,255,255,0.11);
+  border-radius: 18px;
+  background: rgba(8, 15, 30, 0.8);
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.settings-block h3 {
+  margin: 0;
+  color: rgba(134, 206, 255, 0.95);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 1.02rem;
+}
+
+.settings-copy {
+  margin: 0;
+  color: rgba(255,255,255,0.72);
+}
+
+.settings-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.settings-chip {
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 0.62rem 0.95rem;
+  background: rgba(11, 20, 36, 0.86);
+  color: rgba(255,255,255,0.9);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-chip--active {
+  border-color: rgba(39, 197, 255, 0.8);
+  box-shadow: inset 0 0 0 1px rgba(39, 197, 255, 0.32);
+}
+
+.settings-chip--cta {
+  border-color: rgba(145, 255, 192, 0.65);
 }
 
 .settings-toggle {
@@ -217,11 +350,18 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
   .hacks-page__intro, .hacks-grid { padding-inline: 1.5rem; }
   .game-overlay { padding: 0; }
   .game-overlay__shell { height: 100vh; border-radius: 0; }
-  .game-overlay__hud { min-width: 130px; min-height: 74px; max-width: calc(100% - 1rem); padding: 0.75rem 0.85rem; }
+  .game-overlay__hud { min-width: 150px; min-height: 74px; max-width: calc(100% - 1rem); padding: 0.75rem 0.85rem; }
+  .game-overlay__hud--top-left {
+    min-width: clamp(210px, 70vw, 320px);
+    width: auto;
+    max-width: calc(100% - 1rem);
+  }
+  .game-overlay__hud--bottom-left { min-width: clamp(150px, 48vw, 220px); min-height: 90px; }
   .game-overlay__hud--actions { display: grid; grid-template-columns: 1fr 1fr; min-width: unset; }
   .game-overlay__button {
     min-width: 0;
     width: 100%;
     padding: 0.72rem 0.8rem;
   }
+  .settings-modal__layout { grid-template-columns: 1fr; }
 }

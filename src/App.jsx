@@ -372,22 +372,60 @@ export default function App() {
       {settingsOpen && (
         <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
           <div className="settings-modal__panel">
-            <h2>Settings</h2>
-            <label className="settings-toggle" htmlFor="cloak-startup-toggle">
-              <input
-                id="cloak-startup-toggle"
-                type="checkbox"
-                checked={cloakOnStartup}
-                onChange={(event) => setCloakOnStartup(event.target.checked)}
-              />
-              <span>Enable About:Blank cloaking on startup</span>
-            </label>
-            <button type="button" className="game-overlay__button" onClick={() => launchAboutBlankCloak()}>
-              Launch About:Blank now
-            </button>
-            <button type="button" className="game-overlay__button game-overlay__button--danger" onClick={() => setSettingsOpen(false)}>
-              Close settings
-            </button>
+            <header className="settings-modal__header">
+              <h2>Settings</h2>
+              <button type="button" className="settings-modal__close" onClick={() => setSettingsOpen(false)} aria-label="Close settings">
+                ×
+              </button>
+            </header>
+
+            <div className="settings-modal__layout">
+              <aside className="settings-sidebar">
+                <p className="eyebrow">Categories</p>
+                <button type="button" className="settings-sidebar__item settings-sidebar__item--active">Appearance</button>
+                <button type="button" className="settings-sidebar__item">Layout & Cards</button>
+                <button type="button" className="settings-sidebar__item">Privacy & Launch</button>
+              </aside>
+
+              <div className="settings-content">
+                <section className="settings-block">
+                  <h3>Display</h3>
+                  <p className="settings-copy">Placeholder layout for future visual customization settings.</p>
+                  <div className="settings-chip-row">
+                    <button type="button" className="settings-chip settings-chip--active">Dark</button>
+                    <button type="button" className="settings-chip">Experimental Light</button>
+                  </div>
+                </section>
+
+                <section className="settings-block">
+                  <h3>Background</h3>
+                  <p className="settings-copy">Mock controls to show how the settings panel can expand over time.</p>
+                  <div className="settings-chip-row">
+                    <button type="button" className="settings-chip settings-chip--active">Stars</button>
+                    <button type="button" className="settings-chip">Gradient</button>
+                    <button type="button" className="settings-chip">Image</button>
+                  </div>
+                </section>
+
+                <section className="settings-block">
+                  <h3>Stealth Tools</h3>
+                  <label className="settings-toggle" htmlFor="cloak-startup-toggle">
+                    <input
+                      id="cloak-startup-toggle"
+                      type="checkbox"
+                      checked={cloakOnStartup}
+                      onChange={(event) => setCloakOnStartup(event.target.checked)}
+                    />
+                    <span>Enable About:Blank cloaking on startup</span>
+                  </label>
+                  <div className="settings-chip-row">
+                    <button type="button" className="settings-chip settings-chip--cta" onClick={() => launchAboutBlankCloak()}>
+                      Launch About:Blank now
+                    </button>
+                  </div>
+                </section>
+              </div>
+            </div>
           </div>
         </div>
       )}
