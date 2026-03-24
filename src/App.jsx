@@ -261,6 +261,7 @@ export default function App() {
   const [activePage, setActivePage] = useState('games');
   const [activeGame, setActiveGame] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [lastSettingsChangeAt, setLastSettingsChangeAt] = useState(Date.now());
   const [cloakOnStartup, setCloakOnStartup] = useState(() => {
     const stored = loadStorageValue(CLOAK_PREF_KEY, '');
     return stored === '' ? true : stored === 'true';
@@ -349,10 +350,14 @@ export default function App() {
     () => {
       const completeGames = secretUnlocked ? [...secretData.games, ...gamesData] : gamesData;
       const favoriteRank = new Map(favoriteGameIds.map((id, index) => [id, index]));
+      const idCounts = new Map();
 
       return completeGames
         .map((game, index) => {
-          const id = game.url || `${game.title}-${index}`;
+          const baseId = game.url || game.title || `game-${index}`;
+          const occurrence = idCounts.get(baseId) ?? 0;
+          idCounts.set(baseId, occurrence + 1);
+          const id = `${baseId}::${occurrence}`;
           return {
             id,
             originalIndex: index,
@@ -409,7 +414,26 @@ export default function App() {
   const isAnimationEnabled = settings.enableAnimations && !settings.performanceMode;
 
   const updateSetting = (key, value) => {
-    setSettings((current) => ({ ...current, [key]: value }));
+    setLastSettingsChangeAt(Date.now());
+    setSettings((current) => {
+      if (key === 'performanceMode') {
+        return {
+          ...current,
+          performanceMode: value,
+          enableAnimations: value ? false : current.enableAnimations,
+        };
+      }
+
+      if (key === 'enableAnimations') {
+        return {
+          ...current,
+          enableAnimations: value,
+          performanceMode: value ? false : current.performanceMode,
+        };
+      }
+
+      return { ...current, [key]: value };
+    });
   };
 
   const handleAudioFileUpload = async (event, target) => {
@@ -425,6 +449,7 @@ export default function App() {
     if (typeof dataUrl !== 'string') return;
     if (target === 'click') setClickSoundDataUrl(dataUrl);
     if (target === 'intro') setIntroSoundDataUrl(dataUrl);
+    setLastSettingsChangeAt(Date.now());
     event.target.value = '';
   };
 
@@ -596,7 +621,10 @@ export default function App() {
         <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
           <div className={`settings-modal__panel${isAnimationEnabled ? ' settings-modal__panel--animated' : ''}`}>
             <header className="settings-modal__header">
-              <h2>Settings UI</h2>
+              <div>
+                <h2>Settings UI</h2>
+                <p className="settings-status">Saved automatically · Last change {new Date(lastSettingsChangeAt).toLocaleTimeString()}</p>
+              </div>
               <button type="button" className="settings-modal__close" onClick={() => setSettingsOpen(false)} aria-label="Close settings">
                 ×
               </button>
@@ -605,6 +633,30 @@ export default function App() {
             <div className="settings-content settings-content--single">
               <section className="settings-block">
                 <h3>Flow + Performance</h3>
+                <div className="settings-mode-grid">
+                  <button
+                    type="button"
+                    className={`settings-mode-card${isAnimationEnabled ? ' settings-mode-card--active' : ''}`}
+                    onClick={() => {
+                      updateSetting('enableAnimations', true);
+                      updateSetting('performanceMode', false);
+                    }}
+                  >
+                    <strong>Flow Mode</strong>
+                    <span>Smooth transitions, hover effects, and animated intro.</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`settings-mode-card${settings.performanceMode ? ' settings-mode-card--active' : ''}`}
+                    onClick={() => {
+                      updateSetting('performanceMode', true);
+                      updateSetting('enableAnimations', false);
+                    }}
+                  >
+                    <strong>Performance Mode</strong>
+                    <span>Disables motion for faster rendering and lower battery usage.</span>
+                  </button>
+                </div>
                 <label className="settings-toggle">
                   <input type="checkbox" checked={settings.enableAnimations} onChange={(event) => updateSetting('enableAnimations', event.target.checked)} />
                   <span>Enable animations (default on)</span>
@@ -663,7 +715,10 @@ export default function App() {
                     id="cloak-startup-toggle"
                     type="checkbox"
                     checked={cloakOnStartup}
-                    onChange={(event) => setCloakOnStartup(event.target.checked)}
+                    onChange={(event) => {
+                      setLastSettingsChangeAt(Date.now());
+                      setCloakOnStartup(event.target.checked);
+                    }}
                   />
                   <span>Enable About:Blank cloaking on startup</span>
                 </label>
