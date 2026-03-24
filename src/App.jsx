@@ -354,7 +354,7 @@ export default function App() {
 
       return completeGames
         .map((game, index) => {
-          const baseId = game.url || game.title || `game-${index}`;
+          const baseId = game.url || game.title || game.id || `game-${index}`;
           const occurrence = idCounts.get(baseId) ?? 0;
           idCounts.set(baseId, occurrence + 1);
           const id = `${baseId}::${occurrence}`;
@@ -380,9 +380,8 @@ export default function App() {
           if (bIsFavorite) return 1;
           return a.originalIndex - b.originalIndex;
         });
-    },
-    [secretUnlocked, favoriteGameIds],
-  );
+   }, [secretUnlocked, favoriteGameIds, gamesData, secretData]);
+
 
   const navItems = useMemo(
     () => [
@@ -462,14 +461,21 @@ export default function App() {
     });
   };
 
-  const handleUnlockCode = () => {
-    if (codeInput.trim() === secretData.code) {
-      setSecretUnlocked(true);
-      setCodeStatus('✅ Code accepted. Secret games unlocked at the top.');
-      return;
-    }
-    setCodeStatus('❌ Invalid code.');
-  };
+const handleUnlockCode = () => {
+  if (!secretData) {
+    setCodeStatus('❌ Secret data unavailable.');
+    return;
+  }
+  const ok = codeInput && codeInput.trim().toUpperCase() === (secretData.code || '').trim().toUpperCase();
+  if (ok) {
+    setGames(prev => [...secretData.games, ...prev]);
+    setSecretUnlocked(true);
+    setCodeStatus('✅ Code accepted. Secret games unlocked at the top.');
+    return;
+  }
+  setCodeStatus('❌ Invalid code.');
+};
+
 
   return (
     <main className={`app-shell app-shell--${activePage}${settings.performanceMode ? ' app-shell--performance' : ''}`}>
