@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import GradualBlur from './GradualBlur';
 import './CardNav.css';
 
 const CardNav = ({
@@ -101,16 +100,6 @@ const CardNav = ({
           })}
         </div>
 
-        <GradualBlur
-          target="parent"
-          position="bottom"
-          height="4.5rem"
-          strength={1.8}
-          divCount={5}
-          curve="bezier"
-          exponential
-          opacity={1}
-        />
       </nav>
     </div>
   );
