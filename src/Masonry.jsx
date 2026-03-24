@@ -40,7 +40,7 @@ const preloadImages = async (urls) => Promise.all(urls.map((src) => new Promise(
   img.onload = img.onerror = () => resolve();
 })));
 
-const Masonry = ({ items, onItemClick, stagger = 0.05, hoverScale = 0.95 }) => {
+const Masonry = ({ items, onItemClick, onToggleFavorite, stagger = 0.05, hoverScale = 0.95 }) => {
   const columns = useMedia(
     ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'],
     [6, 5, 4, 3, 2],
@@ -159,9 +159,8 @@ const Masonry = ({ items, onItemClick, stagger = 0.05, hoverScale = 0.95 }) => {
           const shouldAnimateIn = imagesReady && isVisible && !hasBeenSeen;
 
           return (
-            <button
+            <div
               key={item.id}
-              type="button"
               data-key={item.id}
               className={[
                 'item-wrapper',
@@ -176,20 +175,34 @@ const Masonry = ({ items, onItemClick, stagger = 0.05, hoverScale = 0.95 }) => {
                 transitionDelay: shouldAnimateIn ? `${index * stagger}s` : '0s',
                 '--hover-scale': hoverScale,
               }}
-              onClick={() => onItemClick?.(item)}
-              aria-label={`Open ${item.title}`}
             >
-              {shouldRenderCard ? (
-                <div className="item-img" style={{ backgroundImage: `url(${item.img})` }}>
-                  <div className="item-copy">
-                    <span>{item.title}</span>
-                    {item.description ? <small>{item.description}</small> : null}
+              <button
+                type="button"
+                className="item-hitarea"
+                onClick={() => onItemClick?.(item)}
+                aria-label={`Open ${item.title}`}
+              >
+                {shouldRenderCard ? (
+                  <div className="item-img" style={{ backgroundImage: `url(${item.img})` }}>
+                    <div className="item-copy">
+                      <span>{item.title}</span>
+                      {item.description ? <small>{item.description}</small> : null}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="item-img item-img--placeholder" aria-hidden="true" />
-              )}
-            </button>
+                ) : (
+                  <div className="item-img item-img--placeholder" aria-hidden="true" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                className={`favorite-toggle${item.isFavorite ? ' favorite-toggle--active' : ''}`}
+                aria-label={item.isFavorite ? `Unfavorite ${item.title}` : `Favorite ${item.title}`}
+                onClick={() => onToggleFavorite?.(item.id)}
+              >
+                <span aria-hidden="true">☆</span>
+              </button>
+            </div>
           );
         })()
       ))}

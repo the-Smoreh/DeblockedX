@@ -14,6 +14,18 @@ const CLOAK_PREF_KEY = 'deblockedx-cloak-on-startup';
 const CLOAK_SESSION_KEY = 'deblockedx-cloak-session-done';
 const SETTINGS_PREF_KEY = 'deblockedx-settings-v2';
 const UNLOCKED_SECRET_KEY = 'deblockedx-secret-unlocked-v1';
+const CLICK_SOUND_KEY = 'deblockedx-click-sound';
+const INTRO_SOUND_KEY = 'deblockedx-intro-sound';
+const FAVORITE_GAMES_KEY = 'deblockedx-favorite-games-v1';
+
+const DEFAULT_SETTINGS = {
+  introDurationSec: 3.2,
+  enableIntro: true,
+  enableAnimations: true,
+  enableClickSound: false,
+  enableIntroSound: false,
+  performanceMode: false,
+};
 
 const hacksItems = [
   {
@@ -31,6 +43,25 @@ const hacksItems = [
 ];
 
 const formatBatteryLevel = (level) => `${Math.round(level * 100)}%`;
+
+const loadStorageValue = (key, fallback = '') => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const value = window.localStorage.getItem(key);
+    return value ?? fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const saveStorageValue = (key, value) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage quota/private browsing issues so app keeps running.
+  }
+};
 
 function launchAboutBlankCloak() {
   if (typeof window === 'undefined') return false;
@@ -200,45 +231,29 @@ function GameOverlay({ game, onClose }) {
 
 export default function App() {
   const [settings, setSettings] = useState(() => {
-    if (typeof window === 'undefined') {
-      return {
-        introDurationSec: 3.2,
-        enableIntro: true,
-        enableAnimations: true,
-        enableClickSound: false,
-        enableIntroSound: false,
-        performanceMode: false,
-      };
-    }
-
-    const stored = window.localStorage.getItem(SETTINGS_PREF_KEY);
-    if (!stored) {
-      return {
-        introDurationSec: 3.2,
-        enableIntro: true,
-        enableAnimations: true,
-        enableClickSound: false,
-        enableIntroSound: false,
-        performanceMode: false,
-      };
-    }
+    if (typeof window === 'undefined') return DEFAULT_SETTINGS;
+    const stored = loadStorageValue(SETTINGS_PREF_KEY, '');
+    if (!stored) return DEFAULT_SETTINGS;
 
     try {
-      return { ...JSON.parse(stored) };
+      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
     } catch {
-      return {
-        introDurationSec: 3.2,
-        enableIntro: true,
-        enableAnimations: true,
-        enableClickSound: false,
-        enableIntroSound: false,
-        performanceMode: false,
-      };
+      return DEFAULT_SETTINGS;
     }
   });
-  const [clickSoundDataUrl, setClickSoundDataUrl] = useState(() => (typeof window === 'undefined' ? '' : window.localStorage.getItem('deblockedx-click-sound') || ''));
-  const [introSoundDataUrl, setIntroSoundDataUrl] = useState(() => (typeof window === 'undefined' ? '' : window.localStorage.getItem('deblockedx-intro-sound') || ''));
-  const [secretUnlocked, setSecretUnlocked] = useState(() => (typeof window === 'undefined' ? false : window.localStorage.getItem(UNLOCKED_SECRET_KEY) === '1'));
+  const [clickSoundDataUrl, setClickSoundDataUrl] = useState(() => loadStorageValue(CLICK_SOUND_KEY, ''));
+  const [introSoundDataUrl, setIntroSoundDataUrl] = useState(() => loadStorageValue(INTRO_SOUND_KEY, ''));
+  const [secretUnlocked, setSecretUnlocked] = useState(() => loadStorageValue(UNLOCKED_SECRET_KEY, '') === '1');
+  const [favoriteGameIds, setFavoriteGameIds] = useState(() => {
+    const stored = loadStorageValue(FAVORITE_GAMES_KEY, '[]');
+    try {
+      const parsed = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter((id) => typeof id === 'string');
+    } catch {
+      return [];
+    }
+  });
   const [codeInput, setCodeInput] = useState('');
   const [codeStatus, setCodeStatus] = useState('');
   const [showIntro, setShowIntro] = useState(true);
@@ -247,9 +262,8 @@ export default function App() {
   const [activeGame, setActiveGame] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [cloakOnStartup, setCloakOnStartup] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    const stored = window.localStorage.getItem(CLOAK_PREF_KEY);
-    return stored === null ? true : stored === 'true';
+    const stored = loadStorageValue(CLOAK_PREF_KEY, '');
+    return stored === '' ? true : stored === 'true';
   });
   const clickAudioRef = useRef(null);
   const introAudioRef = useRef(null);
@@ -276,24 +290,28 @@ export default function App() {
   }, [settings.enableIntro, settings.introDurationSec, settings.performanceMode]);
 
   useEffect(() => {
-    window.localStorage.setItem(SETTINGS_PREF_KEY, JSON.stringify(settings));
+    saveStorageValue(SETTINGS_PREF_KEY, JSON.stringify(settings));
   }, [settings]);
 
   useEffect(() => {
-    window.localStorage.setItem('deblockedx-click-sound', clickSoundDataUrl);
+    saveStorageValue(CLICK_SOUND_KEY, clickSoundDataUrl);
   }, [clickSoundDataUrl]);
 
   useEffect(() => {
-    window.localStorage.setItem('deblockedx-intro-sound', introSoundDataUrl);
+    saveStorageValue(INTRO_SOUND_KEY, introSoundDataUrl);
   }, [introSoundDataUrl]);
 
   useEffect(() => {
     if (!secretUnlocked) return;
-    window.localStorage.setItem(UNLOCKED_SECRET_KEY, '1');
+    saveStorageValue(UNLOCKED_SECRET_KEY, '1');
   }, [secretUnlocked]);
 
   useEffect(() => {
-    window.localStorage.setItem(CLOAK_PREF_KEY, String(cloakOnStartup));
+    saveStorageValue(FAVORITE_GAMES_KEY, JSON.stringify(favoriteGameIds));
+  }, [favoriteGameIds]);
+
+  useEffect(() => {
+    saveStorageValue(CLOAK_PREF_KEY, String(cloakOnStartup));
   }, [cloakOnStartup]);
 
   useEffect(() => {
@@ -330,16 +348,35 @@ export default function App() {
   const masonryItems = useMemo(
     () => {
       const completeGames = secretUnlocked ? [...secretData.games, ...gamesData] : gamesData;
-      return completeGames.map((game, index) => ({
-        id: `${game.title}-${index}`,
-        title: game.title,
-        description: game.description,
-        img: game.game_image_icon,
-        url: game.url,
-        height: game.featured ? 520 : 420 + ((index % 4) * 40),
-      }));
+      const favoriteRank = new Map(favoriteGameIds.map((id, index) => [id, index]));
+
+      return completeGames
+        .map((game, index) => {
+          const id = game.url || `${game.title}-${index}`;
+          return {
+            id,
+            originalIndex: index,
+            isFavorite: favoriteRank.has(id),
+            title: game.title,
+            description: game.description,
+            img: game.game_image_icon,
+            url: game.url,
+            height: game.featured ? 520 : 420 + ((index % 4) * 40),
+          };
+        })
+        .sort((a, b) => {
+          const aFavoriteIndex = favoriteRank.get(a.id);
+          const bFavoriteIndex = favoriteRank.get(b.id);
+          const aIsFavorite = aFavoriteIndex !== undefined;
+          const bIsFavorite = bFavoriteIndex !== undefined;
+
+          if (aIsFavorite && bIsFavorite) return aFavoriteIndex - bFavoriteIndex;
+          if (aIsFavorite) return -1;
+          if (bIsFavorite) return 1;
+          return a.originalIndex - b.originalIndex;
+        });
     },
-    [secretUnlocked],
+    [secretUnlocked, favoriteGameIds],
   );
 
   const navItems = useMemo(
@@ -391,6 +428,15 @@ export default function App() {
     event.target.value = '';
   };
 
+  const handleToggleFavoriteGame = (gameId) => {
+    setFavoriteGameIds((current) => {
+      if (current.includes(gameId)) {
+        return current.filter((id) => id !== gameId);
+      }
+      return [...current, gameId];
+    });
+  };
+
   const handleUnlockCode = () => {
     if (codeInput.trim() === secretData.code) {
       setSecretUnlocked(true);
@@ -440,6 +486,7 @@ export default function App() {
                     <Masonry
                       items={masonryItems}
                       onItemClick={setActiveGame}
+                      onToggleFavorite={handleToggleFavoriteGame}
                       stagger={0.05}
                       hoverScale={0.97}
                     />
@@ -484,6 +531,7 @@ export default function App() {
                   <Masonry
                     items={masonryItems}
                     onItemClick={setActiveGame}
+                    onToggleFavorite={handleToggleFavoriteGame}
                     stagger={0.05}
                     hoverScale={0.97}
                   />
