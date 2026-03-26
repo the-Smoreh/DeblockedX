@@ -9,7 +9,12 @@ html, body, #root { min-height: 100%; }
 body { margin: 0; }
 main { min-height: 100vh; position: relative; background: linear-gradient(180deg, #050816 0%, #03040a 100%); }
 main {
-  background: linear-gradient(180deg, var(--page-gradient-from, #050816) 0%, var(--page-gradient-to, #03040a) 100%);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--page-gradient-from, #050816), transparent 32%), color-mix(in oklab, var(--page-gradient-to, #03040a), transparent 12%)),
+    var(--page-image, none),
+    linear-gradient(180deg, var(--page-gradient-from, #050816) 0%, var(--page-gradient-to, #03040a) 100%);
+  background-size: cover, cover, cover;
+  background-position: center;
 }
 
 .app-shell--hacks {
@@ -366,9 +371,44 @@ main {
 }
 
 .settings-toggle input[type='checkbox'] {
-  width: 17px;
-  height: 17px;
-  accent-color: var(--accent-color, #54dbff);
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.settings-toggle__track {
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.settings-toggle__thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #fff;
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+
+.settings-toggle input[type='checkbox']:checked + .settings-toggle__track {
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), #0e1a2e 30%);
+  border-color: var(--accent-color, #58d4ff);
+}
+
+.settings-toggle input[type='checkbox']:checked + .settings-toggle__track .settings-toggle__thumb {
+  transform: translateX(18px);
+}
+
+.settings-toggle input[type='checkbox']:focus-visible + .settings-toggle__track {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 50%);
 }
 
 .settings-range {
@@ -391,6 +431,27 @@ main {
   padding: 0.55rem;
   background: rgba(11, 20, 36, 0.86);
   color: rgba(255,255,255,0.92);
+}
+
+.settings-color-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.settings-color-field input[type='color'] {
+  width: 44px;
+  height: 34px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.settings-gradient-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
 }
 
 .settings-code-row {
@@ -464,6 +525,18 @@ main {
 .app-shell--performance *::after {
   animation: none !important;
   transition: none !important;
+}
+
+.app-shell--light {
+  color: #1b2435;
+}
+
+.app-shell--light .eyebrow,
+.app-shell--light .page-copy,
+.app-shell--light .settings-copy,
+.app-shell--light .settings-subsection h4,
+.app-shell--light .settings-mode-card span {
+  color: rgba(29, 39, 58, 0.78);
 }
 
 @keyframes settings-flow {
