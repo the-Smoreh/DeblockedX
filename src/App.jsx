@@ -19,6 +19,11 @@ const INTRO_SOUND_KEY = 'deblockedx-intro-sound';
 const FAVORITE_GAMES_KEY = 'deblockedx-favorite-games-v1';
 const CUSTOM_THEME_IMAGE_KEY = 'deblockedx-custom-theme-image-v1';
 const BACKGROUND_AUDIO_KEY = 'deblockedx-background-audio-v1';
+const ACCOUNTS_KEY = 'deblockedx-accounts-v1';
+const ACTIVE_ACCOUNT_KEY = 'deblockedx-active-account-v1';
+const PARTIES_KEY = 'deblockedx-parties-v1';
+const GLOBAL_CHAT_KEY = 'deblockedx-global-chat-v1';
+const PLAYER_STATUS_KEY = 'deblockedx-player-status-v1';
 
 const DEFAULT_SETTINGS = {
   introDurationSec: 3.2,
@@ -100,6 +105,35 @@ const saveStorageValue = (key, value) => {
   } catch {
     // Ignore storage quota/private browsing issues so app keeps running.
   }
+};
+
+const readJsonStorage = (key, fallback) => {
+  const raw = loadStorageValue(key, '');
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return fallback;
+  }
+};
+
+const makeRandomAvatar = (seed = Math.random().toString(36).slice(2)) => {
+  const palette = ['#5eead4', '#7dd3fc', '#a5b4fc', '#f9a8d4', '#fde68a', '#86efac'];
+  const colorA = palette[Math.floor(Math.random() * palette.length)];
+  const colorB = palette[Math.floor(Math.random() * palette.length)];
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${colorA}" />
+          <stop offset="100%" stop-color="${colorB}" />
+        </linearGradient>
+      </defs>
+      <rect width="100" height="100" fill="url(#g)" rx="50" />
+      <text x="50" y="58" fill="#04101f" font-size="38" text-anchor="middle" font-family="Inter, Arial" font-weight="700">${seed.slice(0, 1).toUpperCase()}</text>
+    </svg>
+  `;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
 function launchAboutBlankCloak() {
@@ -389,6 +423,243 @@ function GameOverlay({ game, onClose }) {
   );
 }
 
+function AuthModal({
+  accounts,
+  activeUser,
+  onClose,
+  onLogin,
+  onCreateAccount,
+  onLogout,
+}) {
+  const [mode, setMode] = useState('login');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [avatar, setAvatar] = useState('');
+  const [status, setStatus] = useState('');
+
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    if (typeof dataUrl === 'string') setAvatar(dataUrl);
+  };
+
+  return (
+    <div className="auth-modal" role="dialog" aria-modal="true" aria-label="Account">
+      <div className="auth-modal__panel">
+        <header className="auth-modal__header">
+          <h2>{activeUser ? 'Account' : 'Log in / Create account'}</h2>
+          <button type="button" onClick={onClose}>×</button>
+        </header>
+        {activeUser && (
+          <div className="auth-active">
+            <img src={activeUser.avatar} alt={`${activeUser.username} avatar`} />
+            <div>
+              <strong>{activeUser.username}</strong>
+              <p>You are currently signed in.</p>
+            </div>
+            <button type="button" className="settings-chip settings-chip--cta" onClick={onLogout}>Log out</button>
+          </div>
+        )}
+        {!activeUser && (
+          <>
+            <div className="settings-chip-row">
+              <button type="button" className={`settings-chip${mode === 'login' ? ' settings-chip--active' : ''}`} onClick={() => setMode('login')}>Log in</button>
+              <button type="button" className={`settings-chip${mode === 'create' ? ' settings-chip--active' : ''}`} onClick={() => setMode('create')}>Create</button>
+            </div>
+            <label className="settings-upload">
+              <span>Username</span>
+              <input value={username} onChange={(event) => setUsername(event.target.value)} type="text" />
+            </label>
+            <label className="settings-upload">
+              <span>Password</span>
+              <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" />
+            </label>
+            {mode === 'create' && (
+              <label className="settings-upload">
+                <span>Optional profile picture</span>
+                <input type="file" accept="image/*" onChange={handleAvatarUpload} />
+              </label>
+            )}
+            <button
+              type="button"
+              className="settings-chip settings-chip--active"
+              onClick={() => {
+                const cleanUser = username.trim();
+                if (!cleanUser || !password.trim()) {
+                  setStatus('Please fill username + password.');
+                  return;
+                }
+                if (mode === 'create') {
+                  const result = onCreateAccount(cleanUser, password, avatar);
+                  setStatus(result);
+                } else {
+                  const result = onLogin(cleanUser, password);
+                  setStatus(result);
+                }
+              }}
+            >
+              {mode === 'create' ? 'Create account' : 'Log in'}
+            </button>
+            {!!accounts.length && <p className="settings-copy">Existing users: {accounts.map((account) => account.username).join(', ')}</p>}
+            {status && <p className="settings-copy">{status}</p>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PartyPanel({
+  user,
+  parties,
+  activeGameTitle,
+  globalChat,
+  statuses,
+  onClose,
+  onCreateParty,
+  onJoinParty,
+  onSendPartyMessage,
+  onSendGlobalMessage,
+}) {
+  const [x, setX] = useState(30);
+  const [y, setY] = useState(100);
+  const [dragging, setDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [minimized, setMinimized] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [privateParty, setPrivateParty] = useState(true);
+  const [partyCode, setPartyCode] = useState('');
+  const [selectedNames, setSelectedNames] = useState('');
+  const [partyMessage, setPartyMessage] = useState('');
+  const [globalMessage, setGlobalMessage] = useState('');
+  const [selectedPartyId, setSelectedPartyId] = useState('');
+  const [view, setView] = useState('parties');
+  const serverTime = new Date().toUTCString();
+  const selectedParty = parties.find((party) => party.id === selectedPartyId) ?? null;
+
+  useEffect(() => {
+    const handleMove = (event) => {
+      if (!dragging) return;
+      setX(event.clientX - dragOffset.x);
+      setY(event.clientY - dragOffset.y);
+    };
+    const handleUp = () => setDragging(false);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMove);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, [dragOffset.x, dragOffset.y, dragging]);
+
+  return (
+    <div className="party-panel" style={{ left: x, top: y }}>
+      <div
+        className="party-panel__bar"
+        onMouseDown={(event) => {
+          setDragging(true);
+          setDragOffset({ x: event.clientX - x, y: event.clientY - y });
+        }}
+      >
+        <strong>Parties · {user.username}</strong>
+        <span className="party-panel__time">Server Time (UTC): {serverTime}</span>
+        <div>
+          <button type="button" onClick={() => setMinimized((current) => !current)}>{minimized ? 'Restore' : 'Minimize'}</button>
+          <button type="button" onClick={onClose}>Close</button>
+        </div>
+      </div>
+      {!minimized && (
+        <div className="party-panel__body">
+          <div className="settings-chip-row">
+            <button type="button" className={`settings-chip${view === 'parties' ? ' settings-chip--active' : ''}`} onClick={() => setView('parties')}>Parties</button>
+            <button type="button" className={`settings-chip${view === 'global' ? ' settings-chip--active' : ''}`} onClick={() => setView('global')}>Global Chat</button>
+          </div>
+
+          {view === 'parties' && (
+            <>
+              <p className="settings-copy">Now playing: <strong>{activeGameTitle || 'Browsing menus'}</strong></p>
+              <button type="button" className="settings-chip settings-chip--active" onClick={() => setIsCreateOpen((current) => !current)}>Create a party</button>
+              {isCreateOpen && (
+                <div className="party-create">
+                  <label>Add usernames (comma separated)</label>
+                  <input value={selectedNames} onChange={(event) => setSelectedNames(event.target.value)} placeholder="friend1, friend2" />
+                  <SettingsToggle id="private-party-toggle" checked={privateParty} onChange={(event) => setPrivateParty(event.target.checked)}>Private party</SettingsToggle>
+                  {privateParty && <input value={partyCode} onChange={(event) => setPartyCode(event.target.value)} placeholder="Party code" />}
+                  <button
+                    type="button"
+                    className="settings-chip settings-chip--active"
+                    onClick={() => {
+                      const names = selectedNames.split(',').map((name) => name.trim()).filter(Boolean);
+                      onCreateParty({ names, privateParty, partyCode });
+                      setIsCreateOpen(false);
+                      setSelectedNames('');
+                      setPartyCode('');
+                    }}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              )}
+
+              <div className="party-list">
+                {parties.map((party) => (
+                  <article key={party.id} className={`party-item${selectedPartyId === party.id ? ' party-item--active' : ''}`}>
+                    <button type="button" onClick={() => setSelectedPartyId(party.id)}>
+                      {party.isPrivate ? 'Private' : 'Public'} · {party.members.length} players
+                    </button>
+                    <div className="party-avatars">
+                      {party.members.map((name) => (
+                        <span key={name} className="party-avatar-badge" title={name}>{name.slice(0, 1).toUpperCase()}</span>
+                      ))}
+                    </div>
+                    {!party.members.includes(user.username) && (
+                      <button type="button" onClick={() => onJoinParty(party.id, prompt('Enter party code if needed') || '')}>Join</button>
+                    )}
+                  </article>
+                ))}
+              </div>
+
+              {selectedParty && (
+                <div className="party-chat">
+                  <h4>Party chat</h4>
+                  <div className="party-chat__messages">
+                    {(selectedParty.messages || []).map((message) => (
+                      <p key={message.id}><strong>{message.author}:</strong> {message.text}</p>
+                    ))}
+                  </div>
+                  <input value={partyMessage} onChange={(event) => setPartyMessage(event.target.value)} placeholder="Type party message..." />
+                  <button type="button" onClick={() => { onSendPartyMessage(selectedParty.id, partyMessage); setPartyMessage(''); }}>Send</button>
+                </div>
+              )}
+              <div className="party-status">
+                <h4>Friends activity</h4>
+                {Object.entries(statuses).map(([name, status]) => <p key={name}>{name}: {status}</p>)}
+              </div>
+            </>
+          )}
+
+          {view === 'global' && (
+            <div className="party-chat">
+              <h4>Global chat</h4>
+              <div className="party-chat__messages">
+                {globalChat.map((message) => <p key={message.id}><strong>{message.author}:</strong> {message.text}</p>)}
+              </div>
+              <input value={globalMessage} onChange={(event) => setGlobalMessage(event.target.value)} placeholder="Type global message..." />
+              <button type="button" onClick={() => { onSendGlobalMessage(globalMessage); setGlobalMessage(''); }}>Send</button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   const [settings, setSettings] = useState(() => {
     if (typeof window === 'undefined') return DEFAULT_SETTINGS;
@@ -423,6 +694,8 @@ export default function App() {
   const [activePage, setActivePage] = useState('games');
   const [activeGame, setActiveGame] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [partyPanelOpen, setPartyPanelOpen] = useState(false);
   const [activeSettingsSection, setActiveSettingsSection] = useState('appearance');
   const [searchQuery, setSearchQuery] = useState('');
   const [lastSettingsChangeAt, setLastSettingsChangeAt] = useState(Date.now());
@@ -430,9 +703,15 @@ export default function App() {
     const stored = loadStorageValue(CLOAK_PREF_KEY, '');
     return stored === '' ? true : stored === 'true';
   });
+  const [accounts, setAccounts] = useState(() => readJsonStorage(ACCOUNTS_KEY, []));
+  const [activeUsername, setActiveUsername] = useState(() => loadStorageValue(ACTIVE_ACCOUNT_KEY, ''));
+  const [parties, setParties] = useState(() => readJsonStorage(PARTIES_KEY, []));
+  const [globalChat, setGlobalChat] = useState(() => readJsonStorage(GLOBAL_CHAT_KEY, []));
+  const [playerStatuses, setPlayerStatuses] = useState(() => readJsonStorage(PLAYER_STATUS_KEY, {}));
   const clickAudioRef = useRef(null);
   const introAudioRef = useRef(null);
   const backgroundAudioRef = useRef(null);
+  const activeUser = accounts.find((account) => account.username === activeUsername) ?? null;
 
   useEffect(() => {
     if (!settings.enableIntro || settings.performanceMode) {
@@ -489,6 +768,38 @@ export default function App() {
   }, [cloakOnStartup]);
 
   useEffect(() => {
+    saveStorageValue(ACCOUNTS_KEY, JSON.stringify(accounts));
+  }, [accounts]);
+
+  useEffect(() => {
+    saveStorageValue(ACTIVE_ACCOUNT_KEY, activeUsername);
+  }, [activeUsername]);
+
+  useEffect(() => {
+    saveStorageValue(PARTIES_KEY, JSON.stringify(parties));
+  }, [parties]);
+
+  useEffect(() => {
+    saveStorageValue(GLOBAL_CHAT_KEY, JSON.stringify(globalChat));
+  }, [globalChat]);
+
+  useEffect(() => {
+    saveStorageValue(PLAYER_STATUS_KEY, JSON.stringify(playerStatuses));
+  }, [playerStatuses]);
+
+  useEffect(() => {
+    const handleStorageSync = () => {
+      setAccounts(readJsonStorage(ACCOUNTS_KEY, []));
+      setParties(readJsonStorage(PARTIES_KEY, []));
+      setGlobalChat(readJsonStorage(GLOBAL_CHAT_KEY, []));
+      setPlayerStatuses(readJsonStorage(PLAYER_STATUS_KEY, {}));
+      setActiveUsername(loadStorageValue(ACTIVE_ACCOUNT_KEY, ''));
+    };
+    window.addEventListener('storage', handleStorageSync);
+    return () => window.removeEventListener('storage', handleStorageSync);
+  }, []);
+
+  useEffect(() => {
     if (!cloakOnStartup) return;
     if (window.sessionStorage.getItem(CLOAK_SESSION_KEY)) return;
 
@@ -537,6 +848,12 @@ export default function App() {
     audio.loop = true;
     audio.play().catch(() => {});
   }, [backgroundAudioDataUrl, settings.enableBackgroundAudio]);
+
+  useEffect(() => {
+    if (!activeUser) return;
+    const status = activeGame?.title ? `Playing ${activeGame.title}` : 'Browsing DeblockedX';
+    setPlayerStatuses((current) => ({ ...current, [activeUser.username]: status }));
+  }, [activeGame?.title, activeUser]);
 
   const masonryItems = useMemo(
     () => {
@@ -714,6 +1031,68 @@ export default function App() {
     setCodeStatus('❌ Invalid code.');
   };
 
+  const handleCreateAccount = (username, password, avatar) => {
+    const exists = accounts.some((account) => account.username.toLowerCase() === username.toLowerCase());
+    if (exists) return 'Username already exists.';
+    const createdAccount = {
+      username,
+      password,
+      avatar: avatar || makeRandomAvatar(username),
+    };
+    setAccounts((current) => [...current, createdAccount]);
+    setActiveUsername(username);
+    return 'Account created and logged in.';
+  };
+
+  const handleLogin = (username, password) => {
+    const matched = accounts.find((account) => account.username === username && account.password === password);
+    if (!matched) return 'Invalid username/password.';
+    setActiveUsername(username);
+    return `Welcome back, ${username}.`;
+  };
+
+  const handleCreateParty = ({ names, privateParty, partyCode }) => {
+    if (!activeUser) return;
+    const validMembers = names.filter((name) => accounts.some((account) => account.username === name));
+    const memberSet = new Set([activeUser.username, ...validMembers]);
+    const created = {
+      id: crypto.randomUUID(),
+      isPrivate: privateParty,
+      code: privateParty ? partyCode.trim() : '',
+      members: Array.from(memberSet),
+      createdAt: new Date().toISOString(),
+      messages: [],
+    };
+    setParties((current) => [created, ...current]);
+  };
+
+  const handleJoinParty = (partyId, code) => {
+    if (!activeUser) return;
+    setParties((current) => current.map((party) => {
+      if (party.id !== partyId) return party;
+      if (party.isPrivate && party.code && party.code !== code) return party;
+      if (party.members.includes(activeUser.username)) return party;
+      return { ...party, members: [...party.members, activeUser.username] };
+    }));
+  };
+
+  const handleSendPartyMessage = (partyId, text) => {
+    if (!activeUser || !text.trim()) return;
+    setParties((current) => current.map((party) => (
+      party.id === partyId
+        ? {
+          ...party,
+          messages: [...(party.messages || []), { id: crypto.randomUUID(), author: activeUser.username, text: text.trim(), createdAt: new Date().toISOString() }],
+        }
+        : party
+    )));
+  };
+
+  const handleSendGlobalMessage = (text) => {
+    if (!activeUser || !text.trim()) return;
+    setGlobalChat((current) => [...current, { id: crypto.randomUUID(), author: activeUser.username, text: text.trim(), createdAt: new Date().toISOString() }].slice(-200));
+  };
+
 
   return (
     <main
@@ -734,15 +1113,6 @@ export default function App() {
       {!activeGame && (
         <section className={`main-content${showIntro ? ' main-content--intro-active' : ' main-content--intro-ready'}`}>
           <div className={`main-background${activePage === 'games' ? ' main-background--games' : ''}`}>
-            {activePage === 'games' && settings.dynamicStarsEnabled && (
-              <DynamicStars
-                enabled={settings.dynamicStarsEnabled}
-                direction={settings.dynamicStarsDirection}
-                origin={settings.dynamicStarsOrigin}
-                size={settings.dynamicStarsSize}
-                connectMode={settings.dynamicStarsConnectMode}
-              />
-            )}
             {activePage === 'games' || !isAnimationEnabled ? <div className="games-backdrop" aria-hidden="true" /> : (
               <RippleGrid
                 enableRainbow={false}
@@ -753,6 +1123,15 @@ export default function App() {
                 mouseInteraction
                 mouseInteractionRadius={1.2}
                 opacity={0.8}
+              />
+            )}
+            {activePage === 'games' && settings.dynamicStarsEnabled && (
+              <DynamicStars
+                enabled={settings.dynamicStarsEnabled}
+                direction={settings.dynamicStarsDirection}
+                origin={settings.dynamicStarsOrigin}
+                size={settings.dynamicStarsSize}
+                connectMode={settings.dynamicStarsConnectMode}
               />
             )}
           </div>
@@ -770,6 +1149,9 @@ export default function App() {
                   onSearchChange={setSearchQuery}
                   searchResultCount={filteredMasonryItems.length}
                   onOpenSettings={() => setSettingsOpen(true)}
+                  onOpenAuth={() => setAuthOpen(true)}
+                  onOpenParties={() => setPartyPanelOpen(true)}
+                  user={activeUser}
                   baseColor="var(--nav-surface)"
                   menuColor="#ffffff"
                   ease="power3.out"
@@ -822,6 +1204,9 @@ export default function App() {
                 onSearchChange={setSearchQuery}
                 searchResultCount={filteredMasonryItems.length}
                 onOpenSettings={() => setSettingsOpen(true)}
+                onOpenAuth={() => setAuthOpen(true)}
+                onOpenParties={() => setPartyPanelOpen(true)}
+                user={activeUser}
                 baseColor="var(--nav-surface)"
                 menuColor="#ffffff"
                 ease="power3.out"
@@ -894,6 +1279,32 @@ export default function App() {
             <BlurText text="Deblocked" delay={160} animateBy="letters" direction="top" className="hero-title" />
           </div>
         </section>
+      )}
+
+      {authOpen && (
+        <AuthModal
+          accounts={accounts}
+          activeUser={activeUser}
+          onClose={() => setAuthOpen(false)}
+          onCreateAccount={handleCreateAccount}
+          onLogin={handleLogin}
+          onLogout={() => setActiveUsername('')}
+        />
+      )}
+
+      {partyPanelOpen && activeUser && (
+        <PartyPanel
+          user={activeUser}
+          parties={parties}
+          activeGameTitle={activeGame?.title}
+          globalChat={globalChat}
+          statuses={playerStatuses}
+          onClose={() => setPartyPanelOpen(false)}
+          onCreateParty={handleCreateParty}
+          onJoinParty={handleJoinParty}
+          onSendPartyMessage={handleSendPartyMessage}
+          onSendGlobalMessage={handleSendGlobalMessage}
+        />
       )}
 
       {settingsOpen && (
