@@ -17,6 +17,7 @@ const UNLOCKED_SECRET_KEY = 'deblockedx-secret-unlocked-v1';
 const CLICK_SOUND_KEY = 'deblockedx-click-sound';
 const INTRO_SOUND_KEY = 'deblockedx-intro-sound';
 const FAVORITE_GAMES_KEY = 'deblockedx-favorite-games-v1';
+const CUSTOM_THEME_IMAGE_KEY = 'deblockedx-custom-theme-image-v1';
 
 const DEFAULT_SETTINGS = {
   introDurationSec: 3.2,
@@ -27,14 +28,24 @@ const DEFAULT_SETTINGS = {
   performanceMode: false,
   themePreset: 'midnight',
   accentPreset: 'cyan',
+  customAccent: '#58d4ff',
+  smoothScroll: true,
+  themeMode: 'preset',
+  customSolidColor: '#101a30',
+  customGradientFrom: '#0f1832',
+  customGradientTo: '#070a14',
   alwaysShowGameTitles: false,
   gameIconShape: 'default',
+  gameCardAspect: 'standard',
 };
 
 const THEME_PRESETS = {
   midnight: { pageFrom: '#050816', pageTo: '#03040a', card: 'rgba(6, 10, 20, 0.92)', panel: 'rgba(9, 14, 28, 0.96)' },
   nebula: { pageFrom: '#1b1035', pageTo: '#0a122d', card: 'rgba(19, 11, 43, 0.92)', panel: 'rgba(19, 15, 46, 0.96)' },
   graphite: { pageFrom: '#10151f', pageTo: '#05070d', card: 'rgba(17, 23, 35, 0.92)', panel: 'rgba(17, 22, 34, 0.96)' },
+  sunset: { pageFrom: '#3f1b2f', pageTo: '#140b20', card: 'rgba(47, 21, 38, 0.92)', panel: 'rgba(44, 17, 38, 0.96)' },
+  ocean: { pageFrom: '#0b2d44', pageTo: '#03131f', card: 'rgba(8, 34, 50, 0.92)', panel: 'rgba(8, 30, 45, 0.96)' },
+  light: { pageFrom: '#eff5ff', pageTo: '#dee8ff', card: 'rgba(255, 255, 255, 0.9)', panel: 'rgba(247, 251, 255, 0.95)' },
 };
 
 const ACCENT_PRESETS = {
@@ -42,6 +53,8 @@ const ACCENT_PRESETS = {
   violet: '#b789ff',
   lime: '#9bf44f',
   rose: '#ff7ba7',
+  amber: '#ffc65c',
+  mint: '#67f0cb',
 };
 
 const hacksItems = [
@@ -106,6 +119,18 @@ function launchAboutBlankCloak() {
 
   window.location.replace('https://www.google.com');
   return true;
+}
+
+function SettingsToggle({ checked, onChange, children, id }) {
+  return (
+    <label className="settings-toggle" htmlFor={id}>
+      <input id={id} type="checkbox" checked={checked} onChange={onChange} />
+      <span className="settings-toggle__track" aria-hidden="true">
+        <span className="settings-toggle__thumb" />
+      </span>
+      <span>{children}</span>
+    </label>
+  );
 }
 
 function GameOverlay({ game, onClose }) {
@@ -260,6 +285,7 @@ export default function App() {
   });
   const [clickSoundDataUrl, setClickSoundDataUrl] = useState(() => loadStorageValue(CLICK_SOUND_KEY, ''));
   const [introSoundDataUrl, setIntroSoundDataUrl] = useState(() => loadStorageValue(INTRO_SOUND_KEY, ''));
+  const [customThemeImage, setCustomThemeImage] = useState(() => loadStorageValue(CUSTOM_THEME_IMAGE_KEY, ''));
   const [secretUnlocked, setSecretUnlocked] = useState(() => loadStorageValue(UNLOCKED_SECRET_KEY, '') === '1');
   const [favoriteGameIds, setFavoriteGameIds] = useState(() => {
     const stored = loadStorageValue(FAVORITE_GAMES_KEY, '[]');
@@ -321,6 +347,10 @@ export default function App() {
   }, [introSoundDataUrl]);
 
   useEffect(() => {
+    saveStorageValue(CUSTOM_THEME_IMAGE_KEY, customThemeImage);
+  }, [customThemeImage]);
+
+  useEffect(() => {
     if (!secretUnlocked) return;
     saveStorageValue(UNLOCKED_SECRET_KEY, '1');
   }, [secretUnlocked]);
@@ -348,6 +378,13 @@ export default function App() {
   }, [cloakOnStartup]);
 
   useEffect(() => {
+    document.documentElement.style.scrollBehavior = settings.smoothScroll ? 'smooth' : 'auto';
+    return () => {
+      document.documentElement.style.scrollBehavior = '';
+    };
+  }, [settings.smoothScroll]);
+
+  useEffect(() => {
     const handlePointerDown = () => {
       if (!settings.enableClickSound || !clickAudioRef.current) return;
       clickAudioRef.current.currentTime = 0;
@@ -369,6 +406,7 @@ export default function App() {
       const completeGames = secretUnlocked ? [...secretData.games, ...gamesData] : gamesData;
       const favoriteRank = new Map(favoriteGameIds.map((id, index) => [id, index]));
       const idCounts = new Map();
+      const aspectMultiplier = settings.gameCardAspect === 'wide' ? 0.72 : settings.gameCardAspect === 'tall' ? 1.24 : 1;
 
       return completeGames
         .map((game, index) => {
@@ -384,7 +422,7 @@ export default function App() {
             description: game.description,
             img: game.game_image_icon,
             url: game.url,
-            height: game.featured ? 520 : 420 + ((index % 4) * 40),
+            height: (game.featured ? 520 : 420 + ((index % 4) * 40)) * aspectMultiplier,
           };
         })
         .sort((a, b) => {
@@ -398,7 +436,7 @@ export default function App() {
           if (bIsFavorite) return 1;
           return a.originalIndex - b.originalIndex;
         });
-   }, [secretUnlocked, favoriteGameIds, gamesData, secretData]);
+   }, [secretUnlocked, favoriteGameIds, gamesData, secretData, settings.gameCardAspect]);
 
 
   const navItems = useMemo(
@@ -429,8 +467,16 @@ export default function App() {
   );
 
   const isAnimationEnabled = settings.enableAnimations && !settings.performanceMode;
-  const activeTheme = THEME_PRESETS[settings.themePreset] ?? THEME_PRESETS.midnight;
-  const activeAccent = ACCENT_PRESETS[settings.accentPreset] ?? ACCENT_PRESETS.cyan;
+  const presetTheme = THEME_PRESETS[settings.themePreset] ?? THEME_PRESETS.midnight;
+  const activeTheme = {
+    pageFrom: settings.themeMode === 'solid' ? settings.customSolidColor : settings.themeMode === 'gradient' ? settings.customGradientFrom : presetTheme.pageFrom,
+    pageTo: settings.themeMode === 'solid' ? settings.customSolidColor : settings.themeMode === 'gradient' ? settings.customGradientTo : presetTheme.pageTo,
+    card: presetTheme.card,
+    panel: presetTheme.panel,
+  };
+  const activeAccent = settings.accentPreset === 'custom'
+    ? settings.customAccent
+    : (ACCENT_PRESETS[settings.accentPreset] ?? ACCENT_PRESETS.cyan);
 
   const filteredMasonryItems = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
@@ -478,6 +524,21 @@ export default function App() {
     event.target.value = '';
   };
 
+  const handleThemeImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    if (typeof dataUrl !== 'string') return;
+    setCustomThemeImage(dataUrl);
+    updateSetting('themeMode', 'image');
+    event.target.value = '';
+  };
+
   const handleToggleFavoriteGame = (gameId) => {
     setFavoriteGameIds((current) => {
       if (current.includes(gameId)) {
@@ -518,10 +579,11 @@ export default function App() {
 
   return (
     <main
-      className={`app-shell app-shell--${activePage}${settings.performanceMode ? ' app-shell--performance' : ''}`}
+      className={`app-shell app-shell--${activePage}${settings.performanceMode ? ' app-shell--performance' : ''}${settings.themePreset === 'light' ? ' app-shell--light' : ''}`}
       style={{
         '--page-gradient-from': activeTheme.pageFrom,
         '--page-gradient-to': activeTheme.pageTo,
+        '--page-image': settings.themeMode === 'image' && customThemeImage ? `url(${customThemeImage})` : 'none',
         '--nav-surface': activeTheme.card,
         '--panel-surface': activeTheme.panel,
         '--accent-color': activeAccent,
@@ -699,9 +761,9 @@ export default function App() {
             <div className="settings-content settings-content--single">
               <section className="settings-block">
                 <h3>Appearance</h3>
-                <p className="settings-copy">Pick a theme style and accent color for the whole app.</p>
+                <p className="settings-copy">Pick a theme style, upload your own background, or create custom colors.</p>
                 <div className="settings-subsection">
-                  <h4>Theme style</h4>
+                  <h4>Theme presets</h4>
                   <div className="settings-chip-row">
                     {Object.keys(THEME_PRESETS).map((themeKey) => (
                       <button key={themeKey} type="button" className={`settings-chip${settings.themePreset === themeKey ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themePreset', themeKey)}>
@@ -711,6 +773,37 @@ export default function App() {
                   </div>
                 </div>
                 <div className="settings-subsection">
+                  <h4>Theme source</h4>
+                  <div className="settings-chip-row">
+                    <button type="button" className={`settings-chip${settings.themeMode === 'preset' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themeMode', 'preset')}>Preset</button>
+                    <button type="button" className={`settings-chip${settings.themeMode === 'solid' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themeMode', 'solid')}>Solid color</button>
+                    <button type="button" className={`settings-chip${settings.themeMode === 'gradient' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themeMode', 'gradient')}>2-color gradient</button>
+                    <button type="button" className={`settings-chip${settings.themeMode === 'image' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themeMode', 'image')}>Image</button>
+                  </div>
+                  {settings.themeMode === 'solid' && (
+                    <label className="settings-color-field">
+                      <span>Solid color</span>
+                      <input type="color" value={settings.customSolidColor} onChange={(event) => updateSetting('customSolidColor', event.target.value)} />
+                    </label>
+                  )}
+                  {settings.themeMode === 'gradient' && (
+                    <div className="settings-gradient-grid">
+                      <label className="settings-color-field">
+                        <span>Gradient color 1</span>
+                        <input type="color" value={settings.customGradientFrom} onChange={(event) => updateSetting('customGradientFrom', event.target.value)} />
+                      </label>
+                      <label className="settings-color-field">
+                        <span>Gradient color 2</span>
+                        <input type="color" value={settings.customGradientTo} onChange={(event) => updateSetting('customGradientTo', event.target.value)} />
+                      </label>
+                    </div>
+                  )}
+                  <label className="settings-upload">
+                    <span>Upload custom theme image</span>
+                    <input type="file" accept="image/*" onChange={handleThemeImageUpload} />
+                  </label>
+                </div>
+                <div className="settings-subsection">
                   <h4>Accent color</h4>
                   <div className="settings-chip-row">
                     {Object.keys(ACCENT_PRESETS).map((accentKey) => (
@@ -718,7 +811,16 @@ export default function App() {
                         {accentKey}
                       </button>
                     ))}
+                    <button type="button" className={`settings-chip${settings.accentPreset === 'custom' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('accentPreset', 'custom')}>
+                      custom
+                    </button>
                   </div>
+                  {settings.accentPreset === 'custom' && (
+                    <label className="settings-color-field">
+                      <span>Custom accent</span>
+                      <input type="color" value={settings.customAccent} onChange={(event) => updateSetting('customAccent', event.target.value)} />
+                    </label>
+                  )}
                 </div>
               </section>
 
@@ -726,16 +828,20 @@ export default function App() {
                 <h3>Games page behavior</h3>
                 <div className="settings-subsection">
                   <h4>Title visibility</h4>
-                  <label className="settings-toggle">
-                    <input type="checkbox" checked={settings.alwaysShowGameTitles} onChange={(event) => updateSetting('alwaysShowGameTitles', event.target.checked)} />
-                    <span>Always show game titles without hovering</span>
-                  </label>
+                  <SettingsToggle
+                    id="always-show-titles-toggle"
+                    checked={settings.alwaysShowGameTitles}
+                    onChange={(event) => updateSetting('alwaysShowGameTitles', event.target.checked)}
+                  >
+                    Always show game titles without hovering
+                  </SettingsToggle>
                 </div>
                 <div className="settings-subsection">
-                  <h4>Game icon shape</h4>
+                  <h4>Game tile shape (not border roundness)</h4>
                   <div className="settings-chip-row">
-                    <button type="button" className={`settings-chip${settings.gameIconShape === 'default' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'default')}>Default</button>
-                    <button type="button" className={`settings-chip${settings.gameIconShape === 'rounded-rect' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'rounded-rect')}>Rectangle-ish circle-ish</button>
+                    <button type="button" className={`settings-chip${settings.gameCardAspect === 'standard' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameCardAspect', 'standard')}>Standard</button>
+                    <button type="button" className={`settings-chip${settings.gameCardAspect === 'wide' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameCardAspect', 'wide')}>Rectangle (wide)</button>
+                    <button type="button" className={`settings-chip${settings.gameCardAspect === 'tall' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameCardAspect', 'tall')}>Tall</button>
                   </div>
                 </div>
               </section>
@@ -766,23 +872,39 @@ export default function App() {
                     <span>Disables motion for faster rendering and lower battery usage.</span>
                   </button>
                 </div>
-                <label className="settings-toggle">
-                  <input type="checkbox" checked={settings.enableAnimations} onChange={(event) => updateSetting('enableAnimations', event.target.checked)} />
-                  <span>Enable animations (default on)</span>
-                </label>
-                <label className="settings-toggle">
-                  <input type="checkbox" checked={settings.performanceMode} onChange={(event) => updateSetting('performanceMode', event.target.checked)} />
-                  <span>Performance mode (turns off all animations)</span>
-                </label>
+                <SettingsToggle
+                  id="enable-animations-toggle"
+                  checked={settings.enableAnimations}
+                  onChange={(event) => updateSetting('enableAnimations', event.target.checked)}
+                >
+                  Enable animations (default on)
+                </SettingsToggle>
+                <SettingsToggle
+                  id="performance-mode-toggle"
+                  checked={settings.performanceMode}
+                  onChange={(event) => updateSetting('performanceMode', event.target.checked)}
+                >
+                  Performance mode (turns off all animations)
+                </SettingsToggle>
+                <SettingsToggle
+                  id="smooth-scroll-toggle"
+                  checked={settings.smoothScroll}
+                  onChange={(event) => updateSetting('smoothScroll', event.target.checked)}
+                >
+                  Smooth scrolling
+                </SettingsToggle>
                 <p className="settings-copy">You can always switch between animated mode and performance mode.</p>
               </section>
 
               <section className="settings-block">
                 <h3>Intro controls</h3>
-                <label className="settings-toggle">
-                  <input type="checkbox" checked={settings.enableIntro} onChange={(event) => updateSetting('enableIntro', event.target.checked)} />
-                  <span>Show intro screen on launch</span>
-                </label>
+                <SettingsToggle
+                  id="show-intro-toggle"
+                  checked={settings.enableIntro}
+                  onChange={(event) => updateSetting('enableIntro', event.target.checked)}
+                >
+                  Show intro screen on launch
+                </SettingsToggle>
                 <label className="settings-range" htmlFor="intro-duration">
                   <span>Intro duration (seconds): {settings.introDurationSec.toFixed(1)}s</span>
                   <input
@@ -795,10 +917,13 @@ export default function App() {
                     onChange={(event) => updateSetting('introDurationSec', Number(event.target.value))}
                   />
                 </label>
-                <label className="settings-toggle">
-                  <input type="checkbox" checked={settings.enableIntroSound} onChange={(event) => updateSetting('enableIntroSound', event.target.checked)} />
-                  <span>Enable intro sound</span>
-                </label>
+                <SettingsToggle
+                  id="enable-intro-sound-toggle"
+                  checked={settings.enableIntroSound}
+                  onChange={(event) => updateSetting('enableIntroSound', event.target.checked)}
+                >
+                  Enable intro sound
+                </SettingsToggle>
                 <label className="settings-upload">
                   <span>Upload custom intro sound (mp3)</span>
                   <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'intro')} />
@@ -807,10 +932,13 @@ export default function App() {
 
               <section className="settings-block">
                 <h3>Click sound controls</h3>
-                <label className="settings-toggle">
-                  <input type="checkbox" checked={settings.enableClickSound} onChange={(event) => updateSetting('enableClickSound', event.target.checked)} />
-                  <span>Allow click sound across the website</span>
-                </label>
+                <SettingsToggle
+                  id="enable-click-sound-toggle"
+                  checked={settings.enableClickSound}
+                  onChange={(event) => updateSetting('enableClickSound', event.target.checked)}
+                >
+                  Allow click sound across the website
+                </SettingsToggle>
                 <label className="settings-upload">
                   <span>Upload custom click sound (mp3)</span>
                   <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'click')} />
@@ -819,18 +947,16 @@ export default function App() {
 
               <section className="settings-block">
                 <h3>Stealth tools + toggles</h3>
-                <label className="settings-toggle" htmlFor="cloak-startup-toggle">
-                  <input
-                    id="cloak-startup-toggle"
-                    type="checkbox"
-                    checked={cloakOnStartup}
-                    onChange={(event) => {
-                      setLastSettingsChangeAt(Date.now());
-                      setCloakOnStartup(event.target.checked);
-                    }}
-                  />
-                  <span>Enable About:Blank cloaking on startup</span>
-                </label>
+                <SettingsToggle
+                  id="cloak-startup-toggle"
+                  checked={cloakOnStartup}
+                  onChange={(event) => {
+                    setLastSettingsChangeAt(Date.now());
+                    setCloakOnStartup(event.target.checked);
+                  }}
+                >
+                  Enable About:Blank cloaking on startup
+                </SettingsToggle>
                 <button type="button" className="settings-chip settings-chip--cta" onClick={() => launchAboutBlankCloak()}>
                   Launch About:Blank now
                 </button>
