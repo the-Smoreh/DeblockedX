@@ -10,9 +10,9 @@ body { margin: 0; }
 main { min-height: 100vh; position: relative; background: linear-gradient(180deg, #050816 0%, #03040a 100%); }
 main {
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--page-gradient-from, #050816), transparent 32%), color-mix(in oklab, var(--page-gradient-to, #03040a), transparent 12%)),
+    linear-gradient(var(--page-gradient-angle, 180deg), color-mix(in oklab, var(--page-gradient-from, #050816), transparent 32%), color-mix(in oklab, var(--page-gradient-to, #03040a), transparent 12%)),
     var(--page-image, none),
-    linear-gradient(180deg, var(--page-gradient-from, #050816) 0%, var(--page-gradient-to, #03040a) 100%);
+    linear-gradient(var(--page-gradient-angle, 180deg), var(--page-gradient-from, #050816) 0%, var(--page-gradient-to, #03040a) 100%);
   background-size: cover, cover, cover;
   background-position: center;
 }
@@ -50,6 +50,12 @@ main {
 .main-background { opacity: 0.95; }
 .main-background--games { position: fixed; z-index: 0; pointer-events: none; }
 .main-background > * { width: 100%; height: 100%; }
+.dynamic-stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
 .games-backdrop {
   background:
     radial-gradient(circle at 20% 20%, rgba(252, 66, 255, 0.18), transparent 28%),
@@ -279,10 +285,15 @@ main {
 }
 
 .settings-modal__header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.3rem 0.4rem 0 0.4rem;
+  background: color-mix(in oklab, var(--panel-surface, rgba(9, 14, 28, 0.96)), transparent 6%);
+  backdrop-filter: blur(10px);
 }
 
 .settings-modal__header h2 {
@@ -314,6 +325,36 @@ main {
 
 .settings-content--single {
   grid-template-columns: 1fr;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 0.9rem;
+  min-height: 0;
+}
+
+.settings-sidebar {
+  position: sticky;
+  top: 4.8rem;
+  align-self: start;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.settings-nav-button {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  background: rgba(11, 20, 36, 0.72);
+  color: rgba(255, 255, 255, 0.85);
+  text-align: left;
+  cursor: pointer;
+}
+
+.settings-nav-button--active {
+  border-color: var(--accent-color, #58d4ff);
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), #101b31 78%);
 }
 
 .settings-block {
@@ -454,6 +495,10 @@ main {
   gap: 0.75rem;
 }
 
+.settings-direction-row {
+  grid-column: 1 / -1;
+}
+
 .settings-code-row {
   display: flex;
   gap: 0.6rem;
@@ -569,4 +614,14 @@ main {
   }
   .settings-code-row { flex-direction: column; }
   .settings-mode-grid { grid-template-columns: 1fr; }
+  .settings-layout { grid-template-columns: 1fr; }
+  .settings-sidebar {
+    position: static;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .settings-nav-button {
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 0.55rem 0.4rem;
+  }
 }
