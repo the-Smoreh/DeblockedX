@@ -24,6 +24,7 @@ const ACTIVE_ACCOUNT_KEY = 'deblockedx-active-account-v1';
 const PARTIES_KEY = 'deblockedx-parties-v1';
 const GLOBAL_CHAT_KEY = 'deblockedx-global-chat-v1';
 const PLAYER_STATUS_KEY = 'deblockedx-player-status-v1';
+const MULTIPLAYER_THING_KEY = 'deblockedx-parties-global-v2';
 
 const DEFAULT_SETTINGS = {
   introDurationSec: 3.2,
@@ -31,7 +32,7 @@ const DEFAULT_SETTINGS = {
   enableAnimations: true,
   enableClickSound: false,
   enableIntroSound: false,
-  performanceMode: false,
+  performanceMode: true,
   themePreset: 'midnight',
   accentPreset: 'cyan',
   customAccent: '#58d4ff',
@@ -45,7 +46,7 @@ const DEFAULT_SETTINGS = {
   gameIconShape: 'default',
   gameIconDensity: 'default',
   gameCardAspect: 'standard',
-  dynamicStarsEnabled: false,
+  dynamicStarsEnabled: true,
   dynamicStarsDirection: 'down',
   dynamicStarsOrigin: 'top',
   dynamicStarsSize: 'medium',
@@ -115,6 +116,29 @@ const readJsonStorage = (key, fallback) => {
   } catch {
     return fallback;
   }
+};
+
+const LOCAL_MULTIPLAYER_SOURCE = typeof crypto !== 'undefined' && crypto.randomUUID
+  ? crypto.randomUUID()
+  : Math.random().toString(36).slice(2);
+
+const readRemoteMultiplayerSnapshot = async () => {
+  const response = await fetch(`https://dweet.io/get/latest/dweet/for/${MULTIPLAYER_THING_KEY}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error('Could not fetch multiplayer snapshot.');
+  const payload = await response.json();
+  const latest = payload?.with?.[0]?.content;
+  if (!latest || typeof latest !== 'object') return null;
+  return latest;
+};
+
+const writeRemoteMultiplayerSnapshot = async (snapshot) => {
+  await fetch(`https://dweet.io/dweet/for/${MULTIPLAYER_THING_KEY}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(snapshot),
+  });
 };
 
 const makeRandomAvatar = (seed = Math.random().toString(36).slice(2)) => {
@@ -708,9 +732,12 @@ export default function App() {
   const [parties, setParties] = useState(() => readJsonStorage(PARTIES_KEY, []));
   const [globalChat, setGlobalChat] = useState(() => readJsonStorage(GLOBAL_CHAT_KEY, []));
   const [playerStatuses, setPlayerStatuses] = useState(() => readJsonStorage(PLAYER_STATUS_KEY, {}));
+  const [multiplayerReady, setMultiplayerReady] = useState(false);
   const clickAudioRef = useRef(null);
   const introAudioRef = useRef(null);
   const backgroundAudioRef = useRef(null);
+  const isApplyingRemoteStateRef = useRef(false);
+  const lastRemoteUpdateAtRef = useRef(0);
   const activeUser = accounts.find((account) => account.username === activeUsername) ?? null;
 
   useEffect(() => {
@@ -798,6 +825,56 @@ export default function App() {
     window.addEventListener('storage', handleStorageSync);
     return () => window.removeEventListener('storage', handleStorageSync);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const pullSnapshot = async () => {
+      try {
+        const remoteSnapshot = await readRemoteMultiplayerSnapshot();
+        if (!remoteSnapshot || cancelled) return;
+        const updatedAt = Number(remoteSnapshot.updatedAt || 0);
+        if (updatedAt <= lastRemoteUpdateAtRef.current) return;
+        lastRemoteUpdateAtRef.current = updatedAt;
+        isApplyingRemoteStateRef.current = true;
+        setParties(Array.isArray(remoteSnapshot.parties) ? remoteSnapshot.parties : []);
+        setGlobalChat(Array.isArray(remoteSnapshot.globalChat) ? remoteSnapshot.globalChat : []);
+        setPlayerStatuses(remoteSnapshot.playerStatuses && typeof remoteSnapshot.playerStatuses === 'object' ? remoteSnapshot.playerStatuses : {});
+      } catch {
+        // Network failures should not break local multiplayer fallback.
+      } finally {
+        isApplyingRemoteStateRef.current = false;
+        if (!cancelled) setMultiplayerReady(true);
+      }
+    };
+
+    pullSnapshot();
+    const intervalId = window.setInterval(pullSnapshot, 5000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!multiplayerReady || isApplyingRemoteStateRef.current) return;
+
+    const timeoutId = window.setTimeout(() => {
+      const snapshot = {
+        source: LOCAL_MULTIPLAYER_SOURCE,
+        updatedAt: Date.now(),
+        parties,
+        globalChat,
+        playerStatuses,
+      };
+      lastRemoteUpdateAtRef.current = snapshot.updatedAt;
+      writeRemoteMultiplayerSnapshot(snapshot).catch(() => {
+        // Local storage remains source of truth if remote sync fails.
+      });
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [globalChat, multiplayerReady, parties, playerStatuses]);
 
   useEffect(() => {
     if (!cloakOnStartup) return;
