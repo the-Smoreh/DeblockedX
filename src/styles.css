@@ -51,11 +51,12 @@ main {
 .main-background--games { position: fixed; z-index: 0; pointer-events: none; }
 .main-background > * { width: 100%; height: 100%; }
 .dynamic-stars {
-  position: absolute;
+  position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 2;
+  z-index: 1;
+  pointer-events: none;
 }
 .games-backdrop {
   background:
@@ -173,11 +174,14 @@ main {
 .party-panel {
   position: fixed;
   z-index: 42;
-  width: min(480px, calc(100vw - 20px));
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
+  width: min(560px, calc(100vw - 20px));
+  border: 1px solid rgba(88, 212, 255, 0.28);
+  border-radius: 20px;
   overflow: hidden;
-  background: rgba(7, 12, 25, 0.95);
+  background:
+    radial-gradient(circle at top right, rgba(88, 212, 255, 0.22), transparent 40%),
+    linear-gradient(180deg, rgba(6, 12, 26, 0.98), rgba(5, 8, 18, 0.95));
+  box-shadow: 0 22px 45px rgba(0, 0, 0, 0.4);
 }
 
 .party-panel__bar {
@@ -186,8 +190,9 @@ main {
   align-items: center;
   gap: 0.5rem;
   justify-content: space-between;
-  padding: 0.55rem 0.7rem;
-  background: rgba(11, 19, 36, 0.96);
+  padding: 0.75rem 0.85rem;
+  background: rgba(11, 19, 36, 0.75);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .party-panel__bar button {
@@ -200,9 +205,43 @@ main {
 }
 
 .party-panel__body {
-  padding: 0.75rem;
+  padding: 0.9rem;
   max-height: 72vh;
   overflow: auto;
+}
+
+.party-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.party-panel__stats article {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 0.55rem;
+  background: rgba(9, 17, 34, 0.8);
+  display: grid;
+  gap: 0.2rem;
+}
+
+.party-panel__stats strong {
+  font-size: 1.15rem;
+}
+
+.party-panel__stats span {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.party-panel__nav {
+  margin-top: 0.55rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgba(6, 10, 22, 0.8);
+  backdrop-filter: blur(8px);
+  padding-block: 0.4rem;
 }
 
 .party-create,
@@ -218,12 +257,16 @@ main {
 .party-item {
   display: grid;
   gap: 0.35rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.45rem 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.55rem;
+  margin-top: 0.5rem;
+  background: rgba(11, 18, 33, 0.6);
 }
 
 .party-item--active {
-  background: rgba(88, 212, 255, 0.12);
+  background: linear-gradient(180deg, rgba(88, 212, 255, 0.18), rgba(88, 212, 255, 0.09));
+  border-color: rgba(88, 212, 255, 0.34);
 }
 
 .party-avatars {
@@ -243,6 +286,9 @@ main {
 .party-chat__messages {
   max-height: 180px;
   overflow: auto;
+  border-radius: 10px;
+  background: rgba(3, 6, 14, 0.55);
+  padding: 0.45rem;
 }
 
 .game-overlay {
@@ -322,7 +368,7 @@ main {
   padding-block: 0.75rem;
 }
 .game-overlay__hud--actions {
-  min-width: 220px;
+  min-width: 320px;
   min-height: unset;
   display: flex;
   align-items: center;
@@ -726,7 +772,8 @@ main {
     max-width: calc(100% - 1rem);
   }
   .game-overlay__hud--bottom-left { min-width: clamp(150px, 48vw, 220px); min-height: 90px; }
-  .game-overlay__hud--actions { display: grid; grid-template-columns: 1fr 1fr; min-width: unset; }
+  .game-overlay__hud--actions { display: grid; grid-template-columns: 1fr 1fr 1fr; min-width: unset; }
+  .party-panel__stats { grid-template-columns: 1fr; }
   .game-overlay__button {
     min-width: 0;
     width: 100%;

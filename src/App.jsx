@@ -24,7 +24,7 @@ const ACTIVE_ACCOUNT_KEY = 'deblockedx-active-account-v1';
 const PARTIES_KEY = 'deblockedx-parties-v1';
 const GLOBAL_CHAT_KEY = 'deblockedx-global-chat-v1';
 const PLAYER_STATUS_KEY = 'deblockedx-player-status-v1';
-const MULTIPLAYER_THING_KEY = 'deblockedx-parties-global-v2';
+const MULTIPLAYER_THING_KEY = 'deblockedx-parties-global-v3';
 
 const DEFAULT_SETTINGS = {
   introDurationSec: 3.2,
@@ -139,6 +139,60 @@ const writeRemoteMultiplayerSnapshot = async (snapshot) => {
     },
     body: JSON.stringify(snapshot),
   });
+};
+
+const mergeAccounts = (localAccounts, remoteAccounts) => {
+  const merged = new Map();
+  [...(Array.isArray(localAccounts) ? localAccounts : []), ...(Array.isArray(remoteAccounts) ? remoteAccounts : [])]
+    .forEach((account) => {
+      if (!account || typeof account.username !== 'string') return;
+      const key = account.username.toLowerCase();
+      if (!merged.has(key)) {
+        merged.set(key, {
+          username: account.username,
+          password: account.password || '',
+          avatar: account.avatar || makeRandomAvatar(account.username),
+        });
+      }
+    });
+  return Array.from(merged.values());
+};
+
+const mergeMessages = (currentMessages, incomingMessages) => {
+  const mapped = new Map();
+  [...(Array.isArray(currentMessages) ? currentMessages : []), ...(Array.isArray(incomingMessages) ? incomingMessages : [])]
+    .forEach((message) => {
+      if (!message?.id) return;
+      mapped.set(message.id, message);
+    });
+  return Array.from(mapped.values())
+    .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
+    .slice(-300);
+};
+
+const mergeParties = (localParties, remoteParties) => {
+  const merged = new Map();
+  [...(Array.isArray(localParties) ? localParties : []), ...(Array.isArray(remoteParties) ? remoteParties : [])]
+    .forEach((party) => {
+      if (!party?.id) return;
+      const existing = merged.get(party.id);
+      if (!existing) {
+        merged.set(party.id, {
+          ...party,
+          members: Array.from(new Set(Array.isArray(party.members) ? party.members : [])),
+          messages: Array.isArray(party.messages) ? party.messages : [],
+        });
+        return;
+      }
+      merged.set(party.id, {
+        ...existing,
+        ...party,
+        members: Array.from(new Set([...(existing.members || []), ...((Array.isArray(party.members) ? party.members : []))])),
+        messages: mergeMessages(existing.messages, party.messages),
+      });
+    });
+  return Array.from(merged.values())
+    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
 };
 
 const makeRandomAvatar = (seed = Math.random().toString(36).slice(2)) => {
@@ -309,7 +363,7 @@ function DynamicStars({
   return <canvas ref={canvasRef} className="dynamic-stars" aria-hidden="true" />;
 }
 
-function GameOverlay({ game, onClose }) {
+function GameOverlay({ game, onClose, onOpenParties }) {
   const [fps, setFps] = useState(0);
   const [battery, setBattery] = useState('Unavailable');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -406,6 +460,17 @@ function GameOverlay({ game, onClose }) {
     onClose();
   };
 
+  const handleOpenParties = async () => {
+    if (document.fullscreenElement === gameShellRef.current) {
+      try {
+        await document.exitFullscreen();
+      } catch {
+        // Continue even if fullscreen cannot be exited.
+      }
+    }
+    onOpenParties();
+  };
+
   return (
     <div className="game-overlay" role="dialog" aria-modal="true" aria-label={`${game.title} player`}>
       <div ref={gameShellRef} className={`game-overlay__shell${isFullscreen ? ' game-overlay__shell--fullscreen' : ''}`}>
@@ -425,6 +490,9 @@ function GameOverlay({ game, onClose }) {
         </div>
 
         <div className="game-overlay__hud game-overlay__hud--top-right game-overlay__hud--actions">
+          <button type="button" className="game-overlay__button" onClick={handleOpenParties}>
+            Parties
+          </button>
           <button type="button" className="game-overlay__button" onClick={handleToggleFullscreen}>
             {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           </button>
@@ -566,6 +634,7 @@ function PartyPanel({
   const [view, setView] = useState('parties');
   const serverTime = new Date().toUTCString();
   const selectedParty = parties.find((party) => party.id === selectedPartyId) ?? null;
+  const myPartyCount = parties.filter((party) => party.members.includes(user.username)).length;
 
   useEffect(() => {
     const handleMove = (event) => {
@@ -600,7 +669,21 @@ function PartyPanel({
       </div>
       {!minimized && (
         <div className="party-panel__body">
-          <div className="settings-chip-row">
+          <div className="party-panel__stats">
+            <article>
+              <strong>{parties.length}</strong>
+              <span>Active parties</span>
+            </article>
+            <article>
+              <strong>{myPartyCount}</strong>
+              <span>Your groups</span>
+            </article>
+            <article>
+              <strong>{globalChat.length}</strong>
+              <span>Global messages</span>
+            </article>
+          </div>
+          <div className="settings-chip-row party-panel__nav">
             <button type="button" className={`settings-chip${view === 'parties' ? ' settings-chip--active' : ''}`} onClick={() => setView('parties')}>Parties</button>
             <button type="button" className={`settings-chip${view === 'global' ? ' settings-chip--active' : ''}`} onClick={() => setView('global')}>Global Chat</button>
           </div>
@@ -635,8 +718,9 @@ function PartyPanel({
                 {parties.map((party) => (
                   <article key={party.id} className={`party-item${selectedPartyId === party.id ? ' party-item--active' : ''}`}>
                     <button type="button" onClick={() => setSelectedPartyId(party.id)}>
-                      {party.isPrivate ? 'Private' : 'Public'} · {party.members.length} players
+                      {party.isPrivate ? '🔒 Private' : '🌍 Public'} · {party.members.length} players
                     </button>
+                    <small className="settings-copy">Created {new Date(party.createdAt || Date.now()).toLocaleString()}</small>
                     <div className="party-avatars">
                       {party.members.map((name) => (
                         <span key={name} className="party-avatar-badge" title={name}>{name.slice(0, 1).toUpperCase()}</span>
@@ -837,9 +921,13 @@ export default function App() {
         if (updatedAt <= lastRemoteUpdateAtRef.current) return;
         lastRemoteUpdateAtRef.current = updatedAt;
         isApplyingRemoteStateRef.current = true;
-        setParties(Array.isArray(remoteSnapshot.parties) ? remoteSnapshot.parties : []);
-        setGlobalChat(Array.isArray(remoteSnapshot.globalChat) ? remoteSnapshot.globalChat : []);
-        setPlayerStatuses(remoteSnapshot.playerStatuses && typeof remoteSnapshot.playerStatuses === 'object' ? remoteSnapshot.playerStatuses : {});
+        setAccounts((current) => mergeAccounts(current, remoteSnapshot.accounts));
+        setParties((current) => mergeParties(current, remoteSnapshot.parties));
+        setGlobalChat((current) => mergeMessages(current, remoteSnapshot.globalChat));
+        setPlayerStatuses((current) => ({
+          ...current,
+          ...(remoteSnapshot.playerStatuses && typeof remoteSnapshot.playerStatuses === 'object' ? remoteSnapshot.playerStatuses : {}),
+        }));
       } catch {
         // Network failures should not break local multiplayer fallback.
       } finally {
@@ -863,6 +951,7 @@ export default function App() {
       const snapshot = {
         source: LOCAL_MULTIPLAYER_SOURCE,
         updatedAt: Date.now(),
+        accounts,
         parties,
         globalChat,
         playerStatuses,
@@ -874,7 +963,7 @@ export default function App() {
     }, 250);
 
     return () => window.clearTimeout(timeoutId);
-  }, [globalChat, multiplayerReady, parties, playerStatuses]);
+  }, [accounts, globalChat, multiplayerReady, parties, playerStatuses]);
 
   useEffect(() => {
     if (!cloakOnStartup) return;
@@ -1187,6 +1276,15 @@ export default function App() {
       {clickSoundDataUrl && <audio ref={clickAudioRef} src={clickSoundDataUrl} preload="auto" />}
       {introSoundDataUrl && <audio ref={introAudioRef} src={introSoundDataUrl} preload="auto" />}
       {backgroundAudioDataUrl && <audio ref={backgroundAudioRef} src={backgroundAudioDataUrl} preload="auto" />}
+      {settings.dynamicStarsEnabled && (
+        <DynamicStars
+          enabled={settings.dynamicStarsEnabled}
+          direction={settings.dynamicStarsDirection}
+          origin={settings.dynamicStarsOrigin}
+          size={settings.dynamicStarsSize}
+          connectMode={settings.dynamicStarsConnectMode}
+        />
+      )}
       {!activeGame && (
         <section className={`main-content${showIntro ? ' main-content--intro-active' : ' main-content--intro-ready'}`}>
           <div className={`main-background${activePage === 'games' ? ' main-background--games' : ''}`}>
@@ -1200,15 +1298,6 @@ export default function App() {
                 mouseInteraction
                 mouseInteractionRadius={1.2}
                 opacity={0.8}
-              />
-            )}
-            {activePage === 'games' && settings.dynamicStarsEnabled && (
-              <DynamicStars
-                enabled={settings.dynamicStarsEnabled}
-                direction={settings.dynamicStarsDirection}
-                origin={settings.dynamicStarsOrigin}
-                size={settings.dynamicStarsSize}
-                connectMode={settings.dynamicStarsConnectMode}
               />
             )}
           </div>
@@ -1327,7 +1416,7 @@ export default function App() {
         </section>
       )}
 
-      {activeGame && <GameOverlay game={activeGame} onClose={() => setActiveGame(null)} />}
+      {activeGame && <GameOverlay game={activeGame} onClose={() => setActiveGame(null)} onOpenParties={() => setPartyPanelOpen(true)} />}
 
       {showIntro && (
         <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>
