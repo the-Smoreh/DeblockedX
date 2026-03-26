@@ -35,6 +35,10 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.item-img--rounded-rect {
+  border-radius: 28px;
+}
+
 .item-img::after {
   content: '';
   position: absolute;
@@ -58,6 +62,11 @@
   transform: translateY(10px);
   transition: opacity 0.2s ease, transform 0.2s ease;
   pointer-events: none;
+}
+
+.item-copy--always-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .item-copy small {

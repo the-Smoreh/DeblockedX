@@ -8,6 +8,9 @@
 html, body, #root { min-height: 100%; }
 body { margin: 0; }
 main { min-height: 100vh; position: relative; background: linear-gradient(180deg, #050816 0%, #03040a 100%); }
+main {
+  background: linear-gradient(180deg, var(--page-gradient-from, #050816) 0%, var(--page-gradient-to, #03040a) 100%);
+}
 
 .app-shell--hacks {
   background: linear-gradient(180deg, #050816 0%, #03040a 100%);
@@ -240,7 +243,7 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
   scrollbar-width: none;
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: 24px;
-  background: rgba(9, 14, 28, 0.96);
+  background: var(--panel-surface, rgba(9, 14, 28, 0.96));
   padding: 1rem;
   display: grid;
   gap: 1rem;
@@ -285,7 +288,7 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .settings-status {
   margin: 0;
   font-size: 0.84rem;
-  color: rgba(175, 235, 255, 0.92);
+  color: var(--accent-color, rgba(175, 235, 255, 0.92));
 }
 
 .settings-modal__close {
@@ -319,7 +322,7 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 
 .settings-block h3 {
   margin: 0;
-  color: rgba(134, 206, 255, 0.95);
+  color: var(--accent-color, rgba(134, 206, 255, 0.95));
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 1.02rem;
@@ -347,8 +350,8 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 }
 
 .settings-chip--active {
-  border-color: rgba(39, 197, 255, 0.8);
-  box-shadow: inset 0 0 0 1px rgba(39, 197, 255, 0.32);
+  border-color: var(--accent-color, rgba(39, 197, 255, 0.8));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 60%);
 }
 
 .settings-chip--cta {
@@ -365,7 +368,7 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 .settings-toggle input[type='checkbox'] {
   width: 17px;
   height: 17px;
-  accent-color: #54dbff;
+  accent-color: var(--accent-color, #54dbff);
 }
 
 .settings-range {
@@ -434,9 +437,26 @@ main { min-height: 100vh; position: relative; background: linear-gradient(180deg
 }
 
 .settings-mode-card--active {
-  border-color: rgba(87, 229, 255, 0.95);
+  border-color: var(--accent-color, rgba(87, 229, 255, 0.95));
   background: linear-gradient(180deg, rgba(35, 89, 122, 0.55), rgba(10, 18, 36, 0.82));
-  box-shadow: inset 0 0 0 1px rgba(70, 208, 255, 0.42);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 55%);
+}
+
+.settings-subsection {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.settings-subsection h4 {
+  margin: 0;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .app-shell--performance *,

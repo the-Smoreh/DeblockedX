@@ -40,7 +40,15 @@ const preloadImages = async (urls) => Promise.all(urls.map((src) => new Promise(
   img.onload = img.onerror = () => resolve();
 })));
 
-const Masonry = ({ items, onItemClick, onToggleFavorite, stagger = 0.05, hoverScale = 0.95 }) => {
+const Masonry = ({
+  items,
+  onItemClick,
+  onToggleFavorite,
+  stagger = 0.05,
+  hoverScale = 0.95,
+  alwaysShowTitles = false,
+  iconShape = 'default',
+}) => {
   const columns = useMedia(
     ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'],
     [6, 5, 4, 3, 2],
@@ -189,14 +197,14 @@ const Masonry = ({ items, onItemClick, onToggleFavorite, stagger = 0.05, hoverSc
                 aria-label={`Open ${item.title}`}
               >
                 {shouldRenderCard ? (
-                  <div className="item-img" style={{ backgroundImage: `url(${item.img})` }}>
-                    <div className="item-copy">
+                  <div className={`item-img item-img--${iconShape}`} style={{ backgroundImage: `url(${item.img})` }}>
+                    <div className={`item-copy${alwaysShowTitles ? ' item-copy--always-visible' : ''}`}>
                       <span>{item.title}</span>
                       {item.description ? <small>{item.description}</small> : null}
                     </div>
                   </div>
                 ) : (
-                  <div className="item-img item-img--placeholder" aria-hidden="true" />
+                  <div className={`item-img item-img--placeholder item-img--${iconShape}`} aria-hidden="true" />
                 )}
               </button>
 

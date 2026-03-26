@@ -25,6 +25,23 @@ const DEFAULT_SETTINGS = {
   enableClickSound: false,
   enableIntroSound: false,
   performanceMode: false,
+  themePreset: 'midnight',
+  accentPreset: 'cyan',
+  alwaysShowGameTitles: false,
+  gameIconShape: 'default',
+};
+
+const THEME_PRESETS = {
+  midnight: { pageFrom: '#050816', pageTo: '#03040a', card: 'rgba(6, 10, 20, 0.92)', panel: 'rgba(9, 14, 28, 0.96)' },
+  nebula: { pageFrom: '#1b1035', pageTo: '#0a122d', card: 'rgba(19, 11, 43, 0.92)', panel: 'rgba(19, 15, 46, 0.96)' },
+  graphite: { pageFrom: '#10151f', pageTo: '#05070d', card: 'rgba(17, 23, 35, 0.92)', panel: 'rgba(17, 22, 34, 0.96)' },
+};
+
+const ACCENT_PRESETS = {
+  cyan: '#58d4ff',
+  violet: '#b789ff',
+  lime: '#9bf44f',
+  rose: '#ff7ba7',
 };
 
 const hacksItems = [
@@ -261,6 +278,7 @@ export default function App() {
   const [activePage, setActivePage] = useState('games');
   const [activeGame, setActiveGame] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [lastSettingsChangeAt, setLastSettingsChangeAt] = useState(Date.now());
   const [cloakOnStartup, setCloakOnStartup] = useState(() => {
     const stored = loadStorageValue(CLOAK_PREF_KEY, '');
@@ -411,6 +429,14 @@ export default function App() {
   );
 
   const isAnimationEnabled = settings.enableAnimations && !settings.performanceMode;
+  const activeTheme = THEME_PRESETS[settings.themePreset] ?? THEME_PRESETS.midnight;
+  const activeAccent = ACCENT_PRESETS[settings.accentPreset] ?? ACCENT_PRESETS.cyan;
+
+  const filteredMasonryItems = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+    if (!normalizedSearch) return masonryItems;
+    return masonryItems.filter((item) => item.title?.toLowerCase().includes(normalizedSearch));
+  }, [masonryItems, searchQuery]);
 
   const updateSetting = (key, value) => {
     setLastSettingsChangeAt(Date.now());
@@ -491,7 +517,16 @@ export default function App() {
 
 
   return (
-    <main className={`app-shell app-shell--${activePage}${settings.performanceMode ? ' app-shell--performance' : ''}`}>
+    <main
+      className={`app-shell app-shell--${activePage}${settings.performanceMode ? ' app-shell--performance' : ''}`}
+      style={{
+        '--page-gradient-from': activeTheme.pageFrom,
+        '--page-gradient-to': activeTheme.pageTo,
+        '--nav-surface': activeTheme.card,
+        '--panel-surface': activeTheme.panel,
+        '--accent-color': activeAccent,
+      }}
+    >
       {clickSoundDataUrl && <audio ref={clickAudioRef} src={clickSoundDataUrl} preload="auto" />}
       {introSoundDataUrl && <audio ref={introAudioRef} src={introSoundDataUrl} preload="auto" />}
       {!activeGame && (
@@ -519,8 +554,12 @@ export default function App() {
                   items={navItems}
                   activePage={activePage}
                   onNavigate={setActivePage}
+                  showCompactSearch={activePage === 'games'}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  searchResultCount={filteredMasonryItems.length}
                   onOpenSettings={() => setSettingsOpen(true)}
-                  baseColor="rgba(6, 10, 20, 0.92)"
+                  baseColor="var(--nav-surface)"
                   menuColor="#ffffff"
                   ease="power3.out"
                 />
@@ -528,11 +567,13 @@ export default function App() {
                 {activePage === 'games' ? (
                   <section className="games-page games-page--compact">
                     <Masonry
-                      items={masonryItems}
+                      items={filteredMasonryItems}
                       onItemClick={setActiveGame}
                       onToggleFavorite={handleToggleFavoriteGame}
                       stagger={0.05}
                       hoverScale={0.97}
+                      alwaysShowTitles={settings.alwaysShowGameTitles}
+                      iconShape={settings.gameIconShape}
                     />
                   </section>
                 ) : (
@@ -564,8 +605,12 @@ export default function App() {
                 items={navItems}
                 activePage={activePage}
                 onNavigate={setActivePage}
+                showCompactSearch={activePage === 'games'}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchResultCount={filteredMasonryItems.length}
                 onOpenSettings={() => setSettingsOpen(true)}
-                baseColor="rgba(6, 10, 20, 0.92)"
+                baseColor="var(--nav-surface)"
                 menuColor="#ffffff"
                 ease="power3.out"
               />
@@ -573,11 +618,13 @@ export default function App() {
               {activePage === 'games' ? (
                 <section className="games-page games-page--compact">
                   <Masonry
-                    items={masonryItems}
+                    items={filteredMasonryItems}
                     onItemClick={setActiveGame}
                     onToggleFavorite={handleToggleFavoriteGame}
                     stagger={0.05}
                     hoverScale={0.97}
+                    alwaysShowTitles={settings.alwaysShowGameTitles}
+                    iconShape={settings.gameIconShape}
                   />
                 </section>
               ) : (
@@ -650,6 +697,49 @@ export default function App() {
             </header>
 
             <div className="settings-content settings-content--single">
+              <section className="settings-block">
+                <h3>Appearance</h3>
+                <p className="settings-copy">Pick a theme style and accent color for the whole app.</p>
+                <div className="settings-subsection">
+                  <h4>Theme style</h4>
+                  <div className="settings-chip-row">
+                    {Object.keys(THEME_PRESETS).map((themeKey) => (
+                      <button key={themeKey} type="button" className={`settings-chip${settings.themePreset === themeKey ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themePreset', themeKey)}>
+                        {themeKey}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="settings-subsection">
+                  <h4>Accent color</h4>
+                  <div className="settings-chip-row">
+                    {Object.keys(ACCENT_PRESETS).map((accentKey) => (
+                      <button key={accentKey} type="button" className={`settings-chip${settings.accentPreset === accentKey ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('accentPreset', accentKey)}>
+                        {accentKey}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              <section className="settings-block">
+                <h3>Games page behavior</h3>
+                <div className="settings-subsection">
+                  <h4>Title visibility</h4>
+                  <label className="settings-toggle">
+                    <input type="checkbox" checked={settings.alwaysShowGameTitles} onChange={(event) => updateSetting('alwaysShowGameTitles', event.target.checked)} />
+                    <span>Always show game titles without hovering</span>
+                  </label>
+                </div>
+                <div className="settings-subsection">
+                  <h4>Game icon shape</h4>
+                  <div className="settings-chip-row">
+                    <button type="button" className={`settings-chip${settings.gameIconShape === 'default' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'default')}>Default</button>
+                    <button type="button" className={`settings-chip${settings.gameIconShape === 'rounded-rect' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'rounded-rect')}>Rectangle-ish circle-ish</button>
+                  </div>
+                </div>
+              </section>
+
               <section className="settings-block">
                 <h3>Flow + Performance</h3>
                 <div className="settings-mode-grid">
