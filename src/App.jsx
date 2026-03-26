@@ -461,20 +461,33 @@ export default function App() {
     });
   };
 
-const handleUnlockCode = () => {
-  if (!secretData) {
-    setCodeStatus('❌ Secret data unavailable.');
-    return;
-  }
-  const ok = codeInput && codeInput.trim().toUpperCase() === (secretData.code || '').trim().toUpperCase();
-  if (ok) {
-    setGames(prev => [...secretData.games, ...prev]);
-    setSecretUnlocked(true);
-    setCodeStatus('✅ Code accepted. Secret games unlocked at the top.');
-    return;
-  }
-  setCodeStatus('❌ Invalid code.');
-};
+  const handleUnlockCode = () => {
+    if (!secretData?.code) {
+      setCodeStatus('❌ Secret data unavailable.');
+      return;
+    }
+
+    if (secretUnlocked) {
+      setCodeStatus('✅ Secret games are already unlocked.');
+      return;
+    }
+
+    const submittedCode = codeInput.trim().toUpperCase();
+    if (!submittedCode) {
+      setCodeStatus('❌ Enter a code first.');
+      return;
+    }
+
+    const expectedCode = secretData.code.trim().toUpperCase();
+    if (submittedCode === expectedCode) {
+      setSecretUnlocked(true);
+      setCodeStatus('✅ Code accepted. Secret games unlocked at the top.');
+      setCodeInput('');
+      return;
+    }
+
+    setCodeStatus('❌ Invalid code.');
+  };
 
 
   return (
