@@ -8,6 +8,11 @@ const CardNav = ({
   activePage = 'games',
   onNavigate,
   onOpenSettings,
+  showCompactSearch = false,
+  searchQuery = '',
+  onSearchChange,
+  searchPlaceholder = 'Search games...',
+  searchResultCount,
   baseColor = '#fff',
   menuColor,
 }) => {
@@ -46,7 +51,19 @@ const CardNav = ({
           </div>
 
           <div className="logo-container">
-            <span className="logo-wordmark">{title}</span>
+            {!isExpanded && showCompactSearch ? (
+              <label className="compact-search" aria-label="Search games">
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => onSearchChange?.(event.target.value)}
+                  placeholder={searchPlaceholder}
+                />
+                <span className="compact-search__count">{searchResultCount ?? 0}</span>
+              </label>
+            ) : (
+              <span className="logo-wordmark">{title}</span>
+            )}
           </div>
 
           <button
