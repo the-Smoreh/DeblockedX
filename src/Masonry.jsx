@@ -48,6 +48,7 @@ const Masonry = ({
   hoverScale = 0.95,
   alwaysShowTitles = false,
   iconShape = 'default',
+  iconDensity = 'default',
 }) => {
   const columns = useMedia(
     ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'],
@@ -178,6 +179,7 @@ const Masonry = ({
               data-key={item.id}
               className={[
                 'item-wrapper',
+                `item-wrapper--density-${iconDensity}`,
                 imagesReady ? 'item-wrapper--hydrated' : '',
                 shouldRenderCard ? 'item-wrapper--ready' : 'item-wrapper--culled',
                 shouldAnimateIn ? 'item-wrapper--entering' : '',

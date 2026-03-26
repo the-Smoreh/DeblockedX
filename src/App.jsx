@@ -18,6 +18,7 @@ const CLICK_SOUND_KEY = 'deblockedx-click-sound';
 const INTRO_SOUND_KEY = 'deblockedx-intro-sound';
 const FAVORITE_GAMES_KEY = 'deblockedx-favorite-games-v1';
 const CUSTOM_THEME_IMAGE_KEY = 'deblockedx-custom-theme-image-v1';
+const BACKGROUND_AUDIO_KEY = 'deblockedx-background-audio-v1';
 
 const DEFAULT_SETTINGS = {
   introDurationSec: 3.2,
@@ -34,9 +35,17 @@ const DEFAULT_SETTINGS = {
   customSolidColor: '#101a30',
   customGradientFrom: '#0f1832',
   customGradientTo: '#070a14',
+  gradientDirection: 'vertical',
   alwaysShowGameTitles: false,
   gameIconShape: 'default',
+  gameIconDensity: 'default',
   gameCardAspect: 'standard',
+  dynamicStarsEnabled: false,
+  dynamicStarsDirection: 'down',
+  dynamicStarsOrigin: 'top',
+  dynamicStarsSize: 'medium',
+  dynamicStarsConnectMode: false,
+  enableBackgroundAudio: false,
 };
 
 const THEME_PRESETS = {
@@ -131,6 +140,115 @@ function SettingsToggle({ checked, onChange, children, id }) {
       <span>{children}</span>
     </label>
   );
+}
+
+function DynamicStars({
+  enabled,
+  direction = 'down',
+  origin = 'top',
+  size = 'medium',
+  connectMode = false,
+}) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+    const context = canvas.getContext('2d');
+    if (!context) return undefined;
+
+    const stars = [];
+    const sizeMultiplier = size === 'small' ? 0.65 : size === 'large' ? 1.5 : 1;
+    let animationFrameId;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      const starCount = Math.max(80, Math.floor((canvas.width * canvas.height) / 22000));
+      stars.length = 0;
+
+      for (let index = 0; index < starCount; index += 1) {
+        const radius = (Math.random() * 1.8 + 0.7) * sizeMultiplier;
+        const speed = (Math.random() * 0.8 + 0.3) * sizeMultiplier;
+        let x = Math.random() * canvas.width;
+        let y = Math.random() * canvas.height;
+        if (origin === 'top') y = -Math.random() * canvas.height;
+        if (origin === 'bottom') y = canvas.height + Math.random() * canvas.height;
+        if (origin === 'left') x = -Math.random() * canvas.width;
+        if (origin === 'right') x = canvas.width + Math.random() * canvas.width;
+        stars.push({ x, y, radius, speed });
+      }
+    };
+
+    const resetStar = (star) => {
+      if (direction === 'down') {
+        star.y = -20;
+        star.x = Math.random() * canvas.width;
+      } else if (direction === 'up') {
+        star.y = canvas.height + 20;
+        star.x = Math.random() * canvas.width;
+      } else if (direction === 'left') {
+        star.x = canvas.width + 20;
+        star.y = Math.random() * canvas.height;
+      } else {
+        star.x = -20;
+        star.y = Math.random() * canvas.height;
+      }
+    };
+
+    const render = () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      stars.forEach((star) => {
+        if (direction === 'down') star.y += star.speed;
+        if (direction === 'up') star.y -= star.speed;
+        if (direction === 'left') star.x -= star.speed;
+        if (direction === 'right') star.x += star.speed;
+
+        if (star.x < -30 || star.x > canvas.width + 30 || star.y < -30 || star.y > canvas.height + 30) {
+          resetStar(star);
+        }
+
+        context.beginPath();
+        context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+        context.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        context.fill();
+      });
+
+      if (connectMode) {
+        const maxDistance = 120;
+        context.strokeStyle = 'rgba(185, 225, 255, 0.2)';
+        context.lineWidth = 0.75;
+        for (let i = 0; i < stars.length; i += 1) {
+          for (let j = i + 1; j < stars.length; j += 1) {
+            const distance = Math.hypot(stars[i].x - stars[j].x, stars[i].y - stars[j].y);
+            if (distance < maxDistance) {
+              context.globalAlpha = 1 - (distance / maxDistance);
+              context.beginPath();
+              context.moveTo(stars[i].x, stars[i].y);
+              context.lineTo(stars[j].x, stars[j].y);
+              context.stroke();
+            }
+          }
+        }
+        context.globalAlpha = 1;
+      }
+
+      animationFrameId = window.requestAnimationFrame(render);
+    };
+
+    resize();
+    window.addEventListener('resize', resize);
+    animationFrameId = window.requestAnimationFrame(render);
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, [connectMode, direction, enabled, origin, size]);
+
+  return <canvas ref={canvasRef} className="dynamic-stars" aria-hidden="true" />;
 }
 
 function GameOverlay({ game, onClose }) {
@@ -286,6 +404,7 @@ export default function App() {
   const [clickSoundDataUrl, setClickSoundDataUrl] = useState(() => loadStorageValue(CLICK_SOUND_KEY, ''));
   const [introSoundDataUrl, setIntroSoundDataUrl] = useState(() => loadStorageValue(INTRO_SOUND_KEY, ''));
   const [customThemeImage, setCustomThemeImage] = useState(() => loadStorageValue(CUSTOM_THEME_IMAGE_KEY, ''));
+  const [backgroundAudioDataUrl, setBackgroundAudioDataUrl] = useState(() => loadStorageValue(BACKGROUND_AUDIO_KEY, ''));
   const [secretUnlocked, setSecretUnlocked] = useState(() => loadStorageValue(UNLOCKED_SECRET_KEY, '') === '1');
   const [favoriteGameIds, setFavoriteGameIds] = useState(() => {
     const stored = loadStorageValue(FAVORITE_GAMES_KEY, '[]');
@@ -304,6 +423,7 @@ export default function App() {
   const [activePage, setActivePage] = useState('games');
   const [activeGame, setActiveGame] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [activeSettingsSection, setActiveSettingsSection] = useState('appearance');
   const [searchQuery, setSearchQuery] = useState('');
   const [lastSettingsChangeAt, setLastSettingsChangeAt] = useState(Date.now());
   const [cloakOnStartup, setCloakOnStartup] = useState(() => {
@@ -312,6 +432,7 @@ export default function App() {
   });
   const clickAudioRef = useRef(null);
   const introAudioRef = useRef(null);
+  const backgroundAudioRef = useRef(null);
 
   useEffect(() => {
     if (!settings.enableIntro || settings.performanceMode) {
@@ -349,6 +470,10 @@ export default function App() {
   useEffect(() => {
     saveStorageValue(CUSTOM_THEME_IMAGE_KEY, customThemeImage);
   }, [customThemeImage]);
+
+  useEffect(() => {
+    saveStorageValue(BACKGROUND_AUDIO_KEY, backgroundAudioDataUrl);
+  }, [backgroundAudioDataUrl]);
 
   useEffect(() => {
     if (!secretUnlocked) return;
@@ -400,6 +525,18 @@ export default function App() {
     introAudioRef.current.currentTime = 0;
     introAudioRef.current.play().catch(() => {});
   }, [settings.enableIntroSound, showIntro, introSoundDataUrl]);
+
+  useEffect(() => {
+    const audio = backgroundAudioRef.current;
+    if (!audio || !backgroundAudioDataUrl) return;
+    if (!settings.enableBackgroundAudio) {
+      audio.pause();
+      audio.currentTime = 0;
+      return;
+    }
+    audio.loop = true;
+    audio.play().catch(() => {});
+  }, [backgroundAudioDataUrl, settings.enableBackgroundAudio]);
 
   const masonryItems = useMemo(
     () => {
@@ -520,6 +657,7 @@ export default function App() {
     if (typeof dataUrl !== 'string') return;
     if (target === 'click') setClickSoundDataUrl(dataUrl);
     if (target === 'intro') setIntroSoundDataUrl(dataUrl);
+    if (target === 'background') setBackgroundAudioDataUrl(dataUrl);
     setLastSettingsChangeAt(Date.now());
     event.target.value = '';
   };
@@ -583,6 +721,7 @@ export default function App() {
       style={{
         '--page-gradient-from': activeTheme.pageFrom,
         '--page-gradient-to': activeTheme.pageTo,
+        '--page-gradient-angle': settings.gradientDirection === 'horizontal' ? '90deg' : '180deg',
         '--page-image': settings.themeMode === 'image' && customThemeImage ? `url(${customThemeImage})` : 'none',
         '--nav-surface': activeTheme.card,
         '--panel-surface': activeTheme.panel,
@@ -591,9 +730,19 @@ export default function App() {
     >
       {clickSoundDataUrl && <audio ref={clickAudioRef} src={clickSoundDataUrl} preload="auto" />}
       {introSoundDataUrl && <audio ref={introAudioRef} src={introSoundDataUrl} preload="auto" />}
+      {backgroundAudioDataUrl && <audio ref={backgroundAudioRef} src={backgroundAudioDataUrl} preload="auto" />}
       {!activeGame && (
         <section className={`main-content${showIntro ? ' main-content--intro-active' : ' main-content--intro-ready'}`}>
           <div className={`main-background${activePage === 'games' ? ' main-background--games' : ''}`}>
+            {activePage === 'games' && settings.dynamicStarsEnabled && (
+              <DynamicStars
+                enabled={settings.dynamicStarsEnabled}
+                direction={settings.dynamicStarsDirection}
+                origin={settings.dynamicStarsOrigin}
+                size={settings.dynamicStarsSize}
+                connectMode={settings.dynamicStarsConnectMode}
+              />
+            )}
             {activePage === 'games' || !isAnimationEnabled ? <div className="games-backdrop" aria-hidden="true" /> : (
               <RippleGrid
                 enableRainbow={false}
@@ -636,6 +785,7 @@ export default function App() {
                       hoverScale={0.97}
                       alwaysShowTitles={settings.alwaysShowGameTitles}
                       iconShape={settings.gameIconShape}
+                      iconDensity={settings.gameIconDensity}
                     />
                   </section>
                 ) : (
@@ -687,6 +837,7 @@ export default function App() {
                     hoverScale={0.97}
                     alwaysShowTitles={settings.alwaysShowGameTitles}
                     iconShape={settings.gameIconShape}
+                    iconDensity={settings.gameIconDensity}
                   />
                 </section>
               ) : (
@@ -758,8 +909,31 @@ export default function App() {
               </button>
             </header>
 
-            <div className="settings-content settings-content--single">
-              <section className="settings-block">
+            <div className="settings-layout">
+              <aside className="settings-sidebar">
+                {[
+                  ['appearance', 'Themes'],
+                  ['games', 'Games'],
+                  ['flow', 'Flow'],
+                  ['audio', 'Audio'],
+                  ['intro', 'Intro'],
+                  ['stealth', 'Stealth'],
+                  ['secret', 'Secret'],
+                ].map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`settings-nav-button${activeSettingsSection === id ? ' settings-nav-button--active' : ''}`}
+                    onClick={() => setActiveSettingsSection(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </aside>
+
+              <div className="settings-content settings-content--single">
+              {activeSettingsSection === 'appearance' && (
+                <section className="settings-block">
                 <h3>Appearance</h3>
                 <p className="settings-copy">Pick a theme style, upload your own background, or create custom colors.</p>
                 <div className="settings-subsection">
@@ -796,6 +970,13 @@ export default function App() {
                         <span>Gradient color 2</span>
                         <input type="color" value={settings.customGradientTo} onChange={(event) => updateSetting('customGradientTo', event.target.value)} />
                       </label>
+                      <div className="settings-direction-row">
+                        <span>Gradient direction</span>
+                        <div className="settings-chip-row">
+                          <button type="button" className={`settings-chip${settings.gradientDirection === 'vertical' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gradientDirection', 'vertical')}>Vertical</button>
+                          <button type="button" className={`settings-chip${settings.gradientDirection === 'horizontal' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gradientDirection', 'horizontal')}>Horizontal</button>
+                        </div>
+                      </div>
                     </div>
                   )}
                   <label className="settings-upload">
@@ -822,9 +1003,49 @@ export default function App() {
                     </label>
                   )}
                 </div>
+                <div className="settings-subsection">
+                  <h4>Dynamic stars</h4>
+                  <SettingsToggle
+                    id="dynamic-stars-toggle"
+                    checked={settings.dynamicStarsEnabled}
+                    onChange={(event) => updateSetting('dynamicStarsEnabled', event.target.checked)}
+                  >
+                    Enable falling stars overlay
+                  </SettingsToggle>
+                  <div className="settings-chip-row">
+                    {['down', 'up', 'left', 'right'].map((direction) => (
+                      <button key={direction} type="button" className={`settings-chip${settings.dynamicStarsDirection === direction ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('dynamicStarsDirection', direction)}>
+                        {direction}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="settings-chip-row">
+                    {['top', 'bottom', 'left', 'right'].map((side) => (
+                      <button key={side} type="button" className={`settings-chip${settings.dynamicStarsOrigin === side ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('dynamicStarsOrigin', side)}>
+                        From {side}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="settings-chip-row">
+                    {['small', 'medium', 'large'].map((starSize) => (
+                      <button key={starSize} type="button" className={`settings-chip${settings.dynamicStarsSize === starSize ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('dynamicStarsSize', starSize)}>
+                        {starSize}
+                      </button>
+                    ))}
+                  </div>
+                  <SettingsToggle
+                    id="dynamic-stars-lines-toggle"
+                    checked={settings.dynamicStarsConnectMode}
+                    onChange={(event) => updateSetting('dynamicStarsConnectMode', event.target.checked)}
+                  >
+                    Connect nearby stars with thin lines
+                  </SettingsToggle>
+                </div>
               </section>
+              )}
 
-              <section className="settings-block">
+              {activeSettingsSection === 'games' && (
+                <section className="settings-block">
                 <h3>Games page behavior</h3>
                 <div className="settings-subsection">
                   <h4>Title visibility</h4>
@@ -837,6 +1058,24 @@ export default function App() {
                   </SettingsToggle>
                 </div>
                 <div className="settings-subsection">
+                  <h4>Game icon shape</h4>
+                  <div className="settings-chip-row">
+                    <button type="button" className={`settings-chip${settings.gameIconShape === 'default' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'default')}>Default</button>
+                    <button type="button" className={`settings-chip${settings.gameIconShape === 'rounded-rect' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'rounded-rect')}>Rounded Rect</button>
+                    <button type="button" className={`settings-chip${settings.gameIconShape === 'circle' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'circle')}>Circle</button>
+                    <button type="button" className={`settings-chip${settings.gameIconShape === 'diamond' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'diamond')}>Diamond</button>
+                    <button type="button" className={`settings-chip${settings.gameIconShape === 'hex' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'hex')}>Hex</button>
+                  </div>
+                </div>
+                <div className="settings-subsection">
+                  <h4>Game icon spacing mode</h4>
+                  <div className="settings-chip-row">
+                    <button type="button" className={`settings-chip${settings.gameIconDensity === 'default' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconDensity', 'default')}>Default</button>
+                    <button type="button" className={`settings-chip${settings.gameIconDensity === 'compact' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconDensity', 'compact')}>Compact</button>
+                    <button type="button" className={`settings-chip${settings.gameIconDensity === 'cozy' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconDensity', 'cozy')}>Cozy</button>
+                  </div>
+                </div>
+                <div className="settings-subsection">
                   <h4>Game tile shape (not border roundness)</h4>
                   <div className="settings-chip-row">
                     <button type="button" className={`settings-chip${settings.gameCardAspect === 'standard' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameCardAspect', 'standard')}>Standard</button>
@@ -845,8 +1084,10 @@ export default function App() {
                   </div>
                 </div>
               </section>
+              )}
 
-              <section className="settings-block">
+              {activeSettingsSection === 'flow' && (
+                <section className="settings-block">
                 <h3>Flow + Performance</h3>
                 <div className="settings-mode-grid">
                   <button
@@ -895,8 +1136,39 @@ export default function App() {
                 </SettingsToggle>
                 <p className="settings-copy">You can always switch between animated mode and performance mode.</p>
               </section>
+              )}
 
-              <section className="settings-block">
+              {activeSettingsSection === 'audio' && (
+                <section className="settings-block">
+                <h3>Click sound controls</h3>
+                <SettingsToggle
+                  id="enable-click-sound-toggle"
+                  checked={settings.enableClickSound}
+                  onChange={(event) => updateSetting('enableClickSound', event.target.checked)}
+                >
+                  Allow click sound across the website
+                </SettingsToggle>
+                <label className="settings-upload">
+                  <span>Upload custom click sound (mp3)</span>
+                  <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'click')} />
+                </label>
+                <h3>Background looping audio</h3>
+                <SettingsToggle
+                  id="enable-background-audio-toggle"
+                  checked={settings.enableBackgroundAudio}
+                  onChange={(event) => updateSetting('enableBackgroundAudio', event.target.checked)}
+                >
+                  Enable looping background audio
+                </SettingsToggle>
+                <label className="settings-upload">
+                  <span>Upload background audio (mp3)</span>
+                  <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'background')} />
+                </label>
+              </section>
+              )}
+
+              {activeSettingsSection === 'intro' && (
+                <section className="settings-block">
                 <h3>Intro controls</h3>
                 <SettingsToggle
                   id="show-intro-toggle"
@@ -929,23 +1201,10 @@ export default function App() {
                   <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'intro')} />
                 </label>
               </section>
+              )}
 
-              <section className="settings-block">
-                <h3>Click sound controls</h3>
-                <SettingsToggle
-                  id="enable-click-sound-toggle"
-                  checked={settings.enableClickSound}
-                  onChange={(event) => updateSetting('enableClickSound', event.target.checked)}
-                >
-                  Allow click sound across the website
-                </SettingsToggle>
-                <label className="settings-upload">
-                  <span>Upload custom click sound (mp3)</span>
-                  <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'click')} />
-                </label>
-              </section>
-
-              <section className="settings-block">
+              {activeSettingsSection === 'stealth' && (
+                <section className="settings-block">
                 <h3>Stealth tools + toggles</h3>
                 <SettingsToggle
                   id="cloak-startup-toggle"
@@ -961,8 +1220,10 @@ export default function App() {
                   Launch About:Blank now
                 </button>
               </section>
+              )}
 
-              <section className="settings-block">
+              {activeSettingsSection === 'secret' && (
+                <section className="settings-block">
                 <h3>Secret game code</h3>
                 <p className="settings-copy">Enter a code to unlock extra games that get pinned to the top of the games page.</p>
                 <div className="settings-code-row">
@@ -977,6 +1238,8 @@ export default function App() {
                 </div>
                 {codeStatus && <p className="settings-copy">{codeStatus}</p>}
               </section>
+              )}
+              </div>
             </div>
           </div>
         </div>
