@@ -55,6 +55,7 @@ main {
   inset: 0;
   width: 100%;
   height: 100%;
+  z-index: 2;
 }
 .games-backdrop {
   background:
@@ -62,6 +63,8 @@ main {
     radial-gradient(circle at 80% 12%, rgba(66, 252, 255, 0.16), transparent 24%),
     radial-gradient(circle at 50% 75%, rgba(83, 103, 255, 0.16), transparent 30%),
     linear-gradient(180deg, rgba(8, 12, 28, 0.94), rgba(3, 4, 10, 0.98));
+  position: relative;
+  z-index: 1;
 }
 
 .line-waves-container { z-index: 0; }
@@ -124,6 +127,123 @@ main {
 .hacks-card { border: 1px solid rgba(255,255,255,0.14); border-radius: 22px; padding: 1.5rem; background: rgba(8, 12, 24, 0.82); backdrop-filter: blur(8px); }
 .hacks-card h2 { margin: 0 0 0.8rem; font-size: 1.5rem; }
 .hacks-card p:last-child { margin: 0; color: rgba(255,255,255,0.82); line-height: 1.7; }
+
+.auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: rgba(2, 6, 16, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.auth-modal__panel {
+  width: min(560px, 95vw);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  background: rgba(8, 14, 26, 0.97);
+  padding: 1.2rem;
+}
+
+.auth-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auth-modal__header button {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+}
+
+.auth-active {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.auth-active img {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+}
+
+.party-panel {
+  position: fixed;
+  z-index: 42;
+  width: min(480px, calc(100vw - 20px));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(7, 12, 25, 0.95);
+}
+
+.party-panel__bar {
+  cursor: move;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0.55rem 0.7rem;
+  background: rgba(11, 19, 36, 0.96);
+}
+
+.party-panel__bar button {
+  margin-left: 0.4rem;
+}
+
+.party-panel__time {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.party-panel__body {
+  padding: 0.75rem;
+  max-height: 72vh;
+  overflow: auto;
+}
+
+.party-create,
+.party-chat,
+.party-status,
+.party-list {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.6rem;
+  margin-top: 0.55rem;
+}
+
+.party-item {
+  display: grid;
+  gap: 0.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.45rem 0;
+}
+
+.party-item--active {
+  background: rgba(88, 212, 255, 0.12);
+}
+
+.party-avatars {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.party-avatar-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(88, 212, 255, 0.24);
+}
+
+.party-chat__messages {
+  max-height: 180px;
+  overflow: auto;
+}
 
 .game-overlay {
   position: fixed;
