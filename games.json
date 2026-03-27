@@ -90,6 +90,15 @@
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/repo/index.html"
     },
+      {
+        "title": "2048",
+        "description": "Cool Board Game",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTdXgpqDJNhyHTfk7Gf4cchux_m4gtbOvMFPw&s",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/2048/index.html"
+    },
      {
         "title": "Amanda the Adventurer",
         "description": "If it fails to load, just refresh like 5 times, and it will load, takes a bit tho",
@@ -452,6 +461,24 @@
         "tags": [],
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/achieveunlocked2/index.html"
+    },
+     {
+        "title": "Achievement Unlocked 3",
+        "description": "No description available yet.",
+        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/achieveunlocked3/icon.png",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/achievementunlocked3/index.html"
+    },
+         {
+        "title": "Achiles",
+        "description": "No description available yet.",
+        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/achiles/cover.png",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/achilles/index.html"
     },
     {
         "title": "Adventure",
