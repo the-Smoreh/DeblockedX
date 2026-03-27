@@ -354,6 +354,24 @@
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/badpiggies/index.html"
     },
+     {
+        "title": "2D Backrooms",
+        "description": "A sample game from Deblocked, test your skills in this interactive scenario!",
+        "game_image_icon": "https://play-lh.googleusercontent.com/qsajZ3WxItUCjA08_AaZyxbmRpPT87uHiYOyDU-e5444ALBZe23nPZYi7pTU5nFCOPk",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/2d/index.html"
+    },
+    {
+        "title": "Altered Beast",
+        "description": "A sample game from Deblocked, test your skills in this interactive scenario!",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7C5QGtf-tJ3Hjw4odGzgAEkUorWxwxfK7hQ&s",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/alteredbeast/index.html"
+    },
     {
         "title": "1 on 1 Soccer",
         "description": "No description available yet.",
@@ -488,6 +506,42 @@
         "tags": [],
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/adventure/index.html"
+    },
+    {
+        "title": "Advance Wars",
+        "description": "No description available yet.",
+        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/advancewars/cover.png",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/advancewars/index.html"
+    },
+        {
+        "title": "Advance Wars 2",
+        "description": "No description available yet.",
+        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/advancewars2/cover.png",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/advancewars2/index.html"
+    },
+     {
+        "title": "Advance Wars 3",
+        "description": "No description available yet.",
+        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/advancewars3/cover.png",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/advancewars3/index.html"
+    },
+     {
+        "title": "Advance Wars: Days of Ruin",
+        "description": "No description available yet.",
+        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/advancewarsdaysofruin/cover.png",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/advancewarsdaysofruin/index.html"
     },
     {
         "title": "Adventure Capitalist",
