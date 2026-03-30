@@ -372,15 +372,6 @@
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/badpiggies/index.html"
     },
-     {
-        "title": "2D Backrooms",
-        "description": "A sample game from Deblocked, test your skills in this interactive scenario!",
-        "game_image_icon": "https://play-lh.googleusercontent.com/qsajZ3WxItUCjA08_AaZyxbmRpPT87uHiYOyDU-e5444ALBZe23nPZYi7pTU5nFCOPk",
-        "category": "Arcade",
-        "tags": [],
-        "featured": false,
-        "url": "https://edu.nfilatova.ru/resources/semag/2d/index.html"
-    },
     {
         "title": "Altered Beast",
         "description": "A sample game from Deblocked, test your skills in this interactive scenario!",
@@ -681,7 +672,7 @@
      {
         "title": "Anti Matter Dimensions",
         "description": "No description available yet.",
-        "game_image_icon": "https://static.wikia.nocookie.net/antimatter-dimensions/images/3/3f/AD-Vis-Logo-unfiltered.png/revision/latest/scale-to-width-down/985?cb=20250202020947",
+        "game_image_icon": "https://i.ytimg.com/vi/WYmdg5xMy4Y/maxresdefault.jpg",
         "category": "Arcade",
         "tags": [],
         "featured": false,
@@ -794,6 +785,15 @@
         "tags": [],
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/balatro/index.html"
+    },
+    {
+        "title": "Baldur's Gate",
+        "description": "No description available yet.",
+        "game_image_icon": "https://upload.wikimedia.org/wikipedia/en/8/89/Balatro_cover.jpg",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://upload.wikimedia.org/wikipedia/en/d/d0/Baldur%27s_Gate_box.PNG"
     },
     {
         "title": "Banjo Kazooie",
