@@ -193,7 +193,7 @@
     {
         "title": "Classic Deblocked",
         "description": "Navigate a ball through a twisting 3D tunnel, avoiding obstacles in this fast-paced game!",
-        "game_image_icon": "https://i.fbcd.co/products/resized/resized-750-500/ts-logo-designs-2-6603f6781f57863834bc4d6e773acb063a2b8e87c9b73995f7b9ebc0f11a77bf.jpg",
+        "game_image_icon": "https://m.media-amazon.com/images/I/61mJeUOYsnL._AC_UF894,1000_QL80_.jpg",
         "category": "Arcade",
         "tags": [],
         "featured": false,
@@ -326,6 +326,24 @@
         "tags": [],
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/baldis-basics/index.html"
+    },
+    {
+        "title": "Baldi's Basics Plus+",
+        "description": "A sample game from Deblocked, test your skills in this interactive scenario!",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbODgVzOpYAU_O3P2Ulumze3xr6dR3suEvoA&s",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/baldi-plus/index.html"
+    },
+     {
+        "title": "Baldi's Basics Remastered",
+        "description": "A sample game from Deblocked, test your skills in this interactive scenario!",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7hk_-Bp_APA4P3QBIazul3h_gYt8dVRlSAw&s",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/loader.html?title=Baldi%27s%20Basics%20Classic%20Remastered&dir=baldi-remaster&img=logo.png&type=g"
     },
     {
         "title": "Death Run 3D",
@@ -609,7 +627,7 @@
      {
         "title": "American Racing",
         "description": "No description available yet.",
-        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/amazing-rope-police/splash.jpeg",
+        "game_image_icon": "https://store-images.s-microsoft.com/image/apps.12944.13630543070149701.43925b12-4d18-473e-a5bf-ed30e68b1b5e.c2c94298-cf51-4ca4-8aa1-c6824b52951a",
         "category": "Arcade",
         "tags": [],
         "featured": false,
@@ -714,6 +732,24 @@
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/awesometanks/index.html"
     },
+     {
+        "title": "Backrooms 2D",
+        "description": "No description available yet.",
+        "game_image_icon": "https://lh3.googleusercontent.com/hB4J2lV7GR5iAUmYZN8ZNJxqOogjW2kR-mN4P6Qt-2zl-FApRY-PXXLWTfKmSRHXgaRX6nKV1DYmdMeGpj-D5ki0qC54I1eH_xk=h200",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/2d/index.html"
+    },
+     {
+        "title": "Bacon May Fry",
+        "description": "No description available yet.",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlgNyBQroC5JSJh1gOrStxprpzi0u95828vA&s",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/baconmaydie/index.html"
+    },
     {
         "title": "Bad Ice Cream",
         "description": "No description available yet.",
@@ -750,14 +786,14 @@
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/badtimesimulator/index.html"
     },
-    {
-        "title": "Bal",
+     {
+        "title": "balatro",
         "description": "No description available yet.",
-        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/bal/cover.png",
+        "game_image_icon": "https://upload.wikimedia.org/wikipedia/en/8/89/Balatro_cover.jpg",
         "category": "Arcade",
         "tags": [],
         "featured": false,
-        "url": "https://edu.nfilatova.ru/resources/semag/bal/index.html"
+        "url": "https://edu.nfilatova.ru/resources/semag/balatro/index.html"
     },
     {
         "title": "Banjo Kazooie",
