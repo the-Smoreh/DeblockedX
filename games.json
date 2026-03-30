@@ -483,7 +483,7 @@
      {
         "title": "Achievement Unlocked 3",
         "description": "No description available yet.",
-        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/achieveunlocked3/icon.png",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7jn9xnTOWb7fteD6O5VOjCyHZPq06YSdRfA&s",
         "category": "Arcade",
         "tags": [],
         "featured": false,
@@ -492,7 +492,7 @@
          {
         "title": "Achiles",
         "description": "No description available yet.",
-        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/achiles/cover.png",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbgrB35pnpfxq6yMIijx974biOlci8iA8ytg&s",
         "category": "Arcade",
         "tags": [],
         "featured": false,
@@ -510,7 +510,7 @@
     {
         "title": "Advance Wars",
         "description": "No description available yet.",
-        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/advancewars/cover.png",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNUxCA5GTgdln6K2d0Vt60fNXDhthkfFPJhw&s",
         "category": "Arcade",
         "tags": [],
         "featured": false,
@@ -519,7 +519,7 @@
         {
         "title": "Advance Wars 2",
         "description": "No description available yet.",
-        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/advancewars2/cover.png",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT0891qTQyfucTrsDpfkPdILbl1Nx415MZjbg&s",
         "category": "Arcade",
         "tags": [],
         "featured": false,
@@ -528,7 +528,7 @@
      {
         "title": "Advance Wars 3",
         "description": "No description available yet.",
-        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/advancewars3/cover.png",
+        "game_image_icon": "https://i.ytimg.com/vi/Xg12ypmeE2k/hqdefault.jpg",
         "category": "Arcade",
         "tags": [],
         "featured": false,
@@ -537,7 +537,7 @@
      {
         "title": "Advance Wars: Days of Ruin",
         "description": "No description available yet.",
-        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/advancewarsdaysofruin/cover.png",
+        "game_image_icon": "https://assets-prd.ignimgs.com/2022/01/18/advancewarsdaysofruin-sq-1642535645783.jpg",
         "category": "Arcade",
         "tags": [],
         "featured": false,
@@ -551,6 +551,24 @@
         "tags": [],
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/adventure-capitalist/index.html"
+    },
+    {
+        "title": "Adventure Time: Hey Ice King",
+        "description": "No description available yet.",
+        "game_image_icon": "https://assets-prd.ignimgs.com/2022/04/01/adventuretimegarbage-1648840055876.jpg",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/adventuretime/index.html"
+    },
+    {
+        "title": "Agar.io",
+        "description": "No description available yet.",
+        "game_image_icon": "https://i.ytimg.com/vi/eiANtr94Fo4/maxresdefault.jpg",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/agariolite/index.html"
     },
     {
         "title": "Age of War",
@@ -570,6 +588,15 @@
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/aow2/index.html"
     },
+     {
+        "title": "SEGA: Altered Beast",
+        "description": "No description available yet.",
+        "game_image_icon": "https://ih1.redbubble.net/image.3191790174.3378/bg,f8f8f8-flat,750x,075,f-pad,750x1000,f8f8f8.jpg",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/alteredbeast/index.html"
+    },
     {
         "title": "Amazing Rope Police",
         "description": "No description available yet.",
@@ -578,6 +605,24 @@
         "tags": [],
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/amazing-rope-police/index.html"
+    },
+     {
+        "title": "American Racing",
+        "description": "No description available yet.",
+        "game_image_icon": "https://edu.nfilatova.ru/resources/semag/amazing-rope-police/splash.jpeg",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://store-images.s-microsoft.com/image/apps.12944.13630543070149701.43925b12-4d18-473e-a5bf-ed30e68b1b5e.c2c94298-cf51-4ca4-8aa1-c6824b52951a"
+    },
+     {
+        "title": "American Racing 2",
+        "description": "No description available yet.",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYic2-MQOSeNuNYOBQ53fvVRq6R3nwREDz2Q&s",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/americanracing2/index.html"
     },
     {
         "title": "Among Us (Classic)",
@@ -597,6 +642,15 @@
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/amongusnew/index.html"
     },
+     {
+        "title": "Amoprhous",
+        "description": "No description available yet.",
+        "game_image_icon": "https://f4.bcbits.com/img/a2978714572_5.jpg",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/amorphous/index.html"
+    },
     {
         "title": "Animal Crossing Wild World",
         "description": "No description available yet.",
@@ -605,6 +659,42 @@
         "tags": [],
         "featured": false,
         "url": "https://edu.nfilatova.ru/resources/semag/animalcrossingwildworld/index.html"
+    },
+     {
+        "title": "Anti Matter Dimensions",
+        "description": "No description available yet.",
+        "game_image_icon": "https://static.wikia.nocookie.net/antimatter-dimensions/images/3/3f/AD-Vis-Logo-unfiltered.png/revision/latest/scale-to-width-down/985?cb=20250202020947",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/antimatterdimensions/index.html"
+    },
+     {
+        "title": "Anton Blast",
+        "description": "No description available yet.",
+        "game_image_icon": "https://upload.wikimedia.org/wikipedia/en/2/2e/Antonblast_Steam_Banner_Dec_2024.png",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/antonblast/index.html"
+    },
+     {
+        "title": "Apes Vs Helium",
+        "description": "No description available yet.",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRl2PRrmVkKxuLqZ5865F49nBa_yNGWIHHxSg&s",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/apesvshelium/index.html"
+    },
+    {
+        "title": "Aqua Park Slides (HORRID)",
+        "description": "THIS IS ABSOLUTLEY HORRID",
+        "game_image_icon": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRmo8ES8aTt6maTZ27TrRqwkYxYi9ZmgpgfQA&s",
+        "category": "Arcade",
+        "tags": [],
+        "featured": false,
+        "url": "https://edu.nfilatova.ru/resources/semag/aquaparkslides/index.html"
     },
     {
         "title": "Avalanche",
