@@ -89,6 +89,16 @@ const hacksItems = [
 
 const formatBatteryLevel = (level) => `${Math.round(level * 100)}%`;
 
+const normalizeSecretConfig = (rawSecretData) => {
+  if (Array.isArray(rawSecretData)) {
+    return rawSecretData[0] ?? {};
+  }
+  if (rawSecretData && typeof rawSecretData === 'object') {
+    return rawSecretData;
+  }
+  return {};
+};
+
 const loadStorageValue = (key, fallback = '') => {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -779,6 +789,7 @@ function PartyPanel({
 }
 
 export default function App() {
+  const secretConfig = useMemo(() => normalizeSecretConfig(secretData), []);
   const [settings, setSettings] = useState(() => {
     if (typeof window === 'undefined') return DEFAULT_SETTINGS;
     const stored = loadStorageValue(SETTINGS_PREF_KEY, '');
@@ -1033,7 +1044,8 @@ export default function App() {
 
   const masonryItems = useMemo(
     () => {
-      const completeGames = secretUnlocked ? [...secretData.games, ...gamesData] : gamesData;
+      const secretGames = Array.isArray(secretConfig.games) ? secretConfig.games : [];
+      const completeGames = secretUnlocked ? [...secretGames, ...gamesData] : gamesData;
       const favoriteRank = new Map(favoriteGameIds.map((id, index) => [id, index]));
       const idCounts = new Map();
       const aspectMultiplier = settings.gameCardAspect === 'wide' ? 0.72 : settings.gameCardAspect === 'tall' ? 1.24 : 1;
@@ -1066,7 +1078,7 @@ export default function App() {
           if (bIsFavorite) return 1;
           return a.originalIndex - b.originalIndex;
         });
-   }, [secretUnlocked, favoriteGameIds, gamesData, secretData, settings.gameCardAspect]);
+   }, [secretUnlocked, favoriteGameIds, gamesData, secretConfig, settings.gameCardAspect]);
 
 
   const navItems = useMemo(
@@ -1180,7 +1192,7 @@ export default function App() {
   };
 
   const handleUnlockCode = () => {
-    if (!secretData?.code) {
+    if (!secretConfig?.code) {
       setCodeStatus('❌ Secret data unavailable.');
       return;
     }
@@ -1196,7 +1208,7 @@ export default function App() {
       return;
     }
 
-    const expectedCode = secretData.code.trim().toUpperCase();
+    const expectedCode = secretConfig.code.trim().toUpperCase();
     if (submittedCode === expectedCode) {
       setSecretUnlocked(true);
       setCodeStatus('✅ Code accepted. Secret games unlocked at the top.');
