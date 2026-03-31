@@ -354,7 +354,7 @@ main {
   bottom: 0.45rem;
   left: 0.45rem;
   min-width: clamp(180px, 20vw, 260px);
-  min-height: 96px;
+  min-height: 80px;
 }
 .game-overlay__hud--bottom-left strong {
   font-size: clamp(1.4rem, 2.2vw, 2.1rem);
