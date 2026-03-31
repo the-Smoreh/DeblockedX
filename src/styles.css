@@ -341,12 +341,12 @@ main {
 .game-overlay__hud--top-left { top: 0.45rem; left: 0.45rem; }
 .game-overlay__hud--top-right { top: 0.45rem; right: 0.45rem; }
 .game-overlay__hud--top-left {
-  min-width: clamp(240px, 28vw, 420px);
+  min-width: clamp(140px, 18vw, 220px);
   width: max-content;
-  max-width: min(520px, calc(100vw - 1rem));
+  max-width: min(220px, calc(600vw - 1rem));
 }
 .game-overlay__hud--top-left strong {
-  font-size: clamp(1.1rem, 1.25vw, 1.45rem);
+  font-size: clamp(0.85rem, 0.9vw, 1rem);
   line-height: 1.2;
   overflow-wrap: anywhere;
 }
@@ -357,7 +357,7 @@ main {
   min-height: 60px;
 }
 .game-overlay__hud--bottom-left strong {
-  font-size: clamp(1.4rem, 2.2vw, 2.1rem);
+  font-size: clamp(0.6rem, 1.7vw, 0.7rem);
   line-height: 1;
 }
 .game-overlay__hud--bottom-right {
