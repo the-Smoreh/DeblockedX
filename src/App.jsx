@@ -118,6 +118,16 @@ const readJsonStorage = (key, fallback) => {
   }
 };
 
+const readArrayStorage = (key) => {
+  const parsed = readJsonStorage(key, []);
+  return Array.isArray(parsed) ? parsed : [];
+};
+
+const readObjectStorage = (key) => {
+  const parsed = readJsonStorage(key, {});
+  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+};
+
 const LOCAL_MULTIPLAYER_SOURCE = typeof crypto !== 'undefined' && crypto.randomUUID
   ? crypto.randomUUID()
   : Math.random().toString(36).slice(2);
@@ -811,11 +821,11 @@ export default function App() {
     const stored = loadStorageValue(CLOAK_PREF_KEY, '');
     return stored === '' ? true : stored === 'true';
   });
-  const [accounts, setAccounts] = useState(() => readJsonStorage(ACCOUNTS_KEY, []));
+  const [accounts, setAccounts] = useState(() => readArrayStorage(ACCOUNTS_KEY));
   const [activeUsername, setActiveUsername] = useState(() => loadStorageValue(ACTIVE_ACCOUNT_KEY, ''));
-  const [parties, setParties] = useState(() => readJsonStorage(PARTIES_KEY, []));
-  const [globalChat, setGlobalChat] = useState(() => readJsonStorage(GLOBAL_CHAT_KEY, []));
-  const [playerStatuses, setPlayerStatuses] = useState(() => readJsonStorage(PLAYER_STATUS_KEY, {}));
+  const [parties, setParties] = useState(() => readArrayStorage(PARTIES_KEY));
+  const [globalChat, setGlobalChat] = useState(() => readArrayStorage(GLOBAL_CHAT_KEY));
+  const [playerStatuses, setPlayerStatuses] = useState(() => readObjectStorage(PLAYER_STATUS_KEY));
   const [multiplayerReady, setMultiplayerReady] = useState(false);
   const clickAudioRef = useRef(null);
   const introAudioRef = useRef(null);
@@ -900,10 +910,10 @@ export default function App() {
 
   useEffect(() => {
     const handleStorageSync = () => {
-      setAccounts(readJsonStorage(ACCOUNTS_KEY, []));
-      setParties(readJsonStorage(PARTIES_KEY, []));
-      setGlobalChat(readJsonStorage(GLOBAL_CHAT_KEY, []));
-      setPlayerStatuses(readJsonStorage(PLAYER_STATUS_KEY, {}));
+      setAccounts(readArrayStorage(ACCOUNTS_KEY));
+      setParties(readArrayStorage(PARTIES_KEY));
+      setGlobalChat(readArrayStorage(GLOBAL_CHAT_KEY));
+      setPlayerStatuses(readObjectStorage(PLAYER_STATUS_KEY));
       setActiveUsername(loadStorageValue(ACTIVE_ACCOUNT_KEY, ''));
     };
     window.addEventListener('storage', handleStorageSync);
