@@ -383,7 +383,7 @@ function DynamicStars({
   return <canvas ref={canvasRef} className="dynamic-stars" aria-hidden="true" />;
 }
 
-function GameOverlay({ game, onClose, onOpenParties }) {
+function GameOverlay({ game, onClose }) {
   const [fps, setFps] = useState(0);
   const [battery, setBattery] = useState('Unavailable');
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -480,17 +480,6 @@ function GameOverlay({ game, onClose, onOpenParties }) {
     onClose();
   };
 
-  const handleOpenParties = async () => {
-    if (document.fullscreenElement === gameShellRef.current) {
-      try {
-        await document.exitFullscreen();
-      } catch {
-        // Continue even if fullscreen cannot be exited.
-      }
-    }
-    onOpenParties();
-  };
-
   return (
     <div className="game-overlay" role="dialog" aria-modal="true" aria-label={`${game.title} player`}>
       <div ref={gameShellRef} className={`game-overlay__shell${isFullscreen ? ' game-overlay__shell--fullscreen' : ''}`}>
@@ -510,9 +499,6 @@ function GameOverlay({ game, onClose, onOpenParties }) {
         </div>
 
         <div className="game-overlay__hud game-overlay__hud--top-right game-overlay__hud--actions">
-          <button type="button" className="game-overlay__button" onClick={handleOpenParties}>
-            Parties
-          </button>
           <button type="button" className="game-overlay__button" onClick={handleToggleFullscreen}>
             {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           </button>
@@ -1438,7 +1424,7 @@ export default function App() {
         </section>
       )}
 
-      {activeGame && <GameOverlay game={activeGame} onClose={() => setActiveGame(null)} onOpenParties={() => setPartyPanelOpen(true)} />}
+      {activeGame && <GameOverlay game={activeGame} onClose={() => setActiveGame(null)} />}
 
       {showIntro && (
         <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>

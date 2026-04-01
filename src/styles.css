@@ -351,7 +351,6 @@ main {
   padding-block: 0.7rem; /* Reduces inner top/bottom gap to fit the new height */
 }
 
-}
 .game-overlay__hud--top-left strong {
   font-size: clamp(0.85rem, 0.9vw, 1rem);
   line-height: 1.2;
@@ -375,12 +374,16 @@ main {
   padding-block: 0.75rem;
 }
 .game-overlay__hud--actions {
-  min-width: 320px;
-  min-height: unset;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.75rem;
+  min-width: clamp(180px, 20vw, 260px);
+  min-height: 60px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.game-overlay__hud--actions .game-overlay__button {
+  min-width: 0;
+  width: 100%;
 }
 
 .game-overlay__label {
@@ -779,7 +782,7 @@ main {
     max-width: calc(100% - 1rem);
   }
   .game-overlay__hud--bottom-left { min-width: clamp(150px, 48vw, 220px); min-height: 90px; }
-  .game-overlay__hud--actions { display: grid; grid-template-columns: 1fr 1fr 1fr; min-width: unset; }
+  .game-overlay__hud--actions { grid-template-columns: 1fr; min-width: clamp(150px, 48vw, 220px); min-height: 90px; }
   .party-panel__stats { grid-template-columns: 1fr; }
   .game-overlay__button {
     min-width: 0;
