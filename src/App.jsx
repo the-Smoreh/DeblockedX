@@ -499,11 +499,23 @@ function GameOverlay({ game, onClose }) {
         </div>
 
         <div className="game-overlay__hud game-overlay__hud--top-right game-overlay__hud--actions">
-          <button type="button" className="game-overlay__button" onClick={handleToggleFullscreen}>
-            {isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+          <button
+            type="button"
+            className="game-overlay__button game-overlay__button--icon"
+            onClick={handleToggleFullscreen}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          >
+            {isFullscreen ? '🗗' : '⛶'}
           </button>
-          <button type="button" className="game-overlay__button game-overlay__button--danger" onClick={handleClose}>
-            Close
+          <button
+            type="button"
+            className="game-overlay__button game-overlay__button--danger game-overlay__button--icon"
+            onClick={handleClose}
+            aria-label="Close game"
+            title="Close game"
+          >
+            ✕
           </button>
         </div>
 
