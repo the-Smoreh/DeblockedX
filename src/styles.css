@@ -327,12 +327,12 @@ main {
 .game-overlay__hud {
   position: absolute;
   z-index: 2;
-  width: min(253px, calc(100vw - 1rem));
-  min-width: min(253px, calc(100vw - 1rem));
-  max-width: min(253px, calc(100vw - 1rem));
-  height: 87px;
-  min-height: 87px;
-  max-height: 87px;
+  width: min(227.7px, calc(100vw - 1rem));
+  min-width: min(227.7px, calc(100vw - 1rem));
+  max-width: min(227.7px, calc(100vw - 1rem));
+  height: 78.3px;
+  min-height: 78.3px;
+  max-height: 78.3px;
   padding: 0.72rem 1.1rem;
   border-radius: 18px;
   background: rgba(8, 11, 20, 0.94);
@@ -784,8 +784,8 @@ main {
 
 @media (max-width: 768px) {
   :root {
-    --mobile-hud-width: clamp(164px, 50.6vw, 278px);
-    --mobile-hud-height: 115px;
+    --mobile-hud-width: clamp(147.6px, 45.54vw, 250.2px);
+    --mobile-hud-height: 103.5px;
   }
   .main-content { padding-top: 0.5rem; }
   .page-shell { width: min(100vw - 8px, 1520px); padding-inline: 0.15rem; }
