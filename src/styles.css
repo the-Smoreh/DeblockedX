@@ -328,14 +328,14 @@ main {
   position: absolute;
   z-index: 2;
   min-width: 220px;
-  min-height: 92px;
-  padding: 1rem 1.1rem;
+  min-height: 76px;
+  padding: 0.72rem 1.1rem;
   border-radius: 18px;
   background: rgba(8, 11, 20, 0.94);
   border: 1px solid rgba(255,255,255,0.12);
   box-shadow: 0 12px 40px rgba(0,0,0,0.35);
   display: grid;
-  gap: 0.3rem;
+  gap: 0.24rem;
 }
 
 .game-overlay__hud--top-right { top: 0.45rem; right: 0.45rem; }
@@ -345,12 +345,12 @@ main {
   width: clamp(170px, 22vw, 260px);
   max-width: min(260px, calc(100vw - 1rem));
   min-height: 78px;
-  padding-block: 0.7rem;
+  padding-block: 0.72rem;
 }
 
 .game-overlay__hud--top-left strong {
   font-size: clamp(0.85rem, 0.9vw, 1rem);
-  line-height: 1.2;
+  line-height: 1.15;
   overflow-wrap: anywhere;
 }
 .game-overlay__hud--bottom-left {
@@ -367,8 +367,19 @@ main {
   bottom: 0.45rem;
   right: 0.45rem;
   min-width: clamp(190px, 18vw, 260px);
-  min-height: 74px;
-  padding-block: 0.75rem;
+  min-height: 66px;
+  padding-block: 0.6rem;
+  gap: 0.18rem;
+}
+
+.game-overlay__hud--bottom-right .game-overlay__label {
+  font-size: clamp(0.64rem, 0.68vw, 0.72rem);
+  line-height: 1;
+}
+
+.game-overlay__hud--bottom-right strong {
+  font-size: clamp(0.78rem, 0.84vw, 0.92rem);
+  line-height: 1.06;
 }
 .game-overlay__hud--actions {
   min-width: clamp(180px, 20vw, 260px);
@@ -380,10 +391,15 @@ main {
 }
 
 .game-overlay__label {
-  font-size: 0.72rem;
+  font-size: clamp(0.66rem, 0.72vw, 0.74rem);
   text-transform: uppercase;
   letter-spacing: 0.18em;
+  line-height: 1.05;
   color: rgba(255,255,255,0.62);
+}
+
+.game-overlay__hud strong {
+  line-height: 1.1;
 }
 
 .game-overlay__button {
