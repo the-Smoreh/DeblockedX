@@ -338,17 +338,14 @@ main {
   gap: 0.3rem;
 }
 
-.game-overlay__hud--top-left { top: 0.45rem; left: 0.45rem; }
 .game-overlay__hud--top-right { top: 0.45rem; right: 0.45rem; }
 .game-overlay__hud--top-left {
-  /* 1. Making width slightly bigger (increased by ~20%) */
-  min-width: clamp(170px, 22vw, 260px); 
-  width: max-content;
-  max-width: min(260px, calc(100vw - 1rem)); /* Fixed your 600vw typo to 100vw */
-
-  /* 2. Making height 15% smaller */
-  min-height: 78px; 
-  padding-block: 0.7rem; /* Reduces inner top/bottom gap to fit the new height */
+  top: 0.45rem;
+  left: 0.45rem;
+  width: clamp(170px, 22vw, 260px);
+  max-width: min(260px, calc(100vw - 1rem));
+  min-height: 78px;
+  padding-block: 0.7rem;
 }
 
 .game-overlay__hud--top-left strong {
