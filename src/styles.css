@@ -327,9 +327,9 @@ main {
 .game-overlay__hud {
   position: absolute;
   z-index: 2;
-  width: min(227.7px, calc(100vw - 1rem));
-  min-width: min(227.7px, calc(100vw - 1rem));
-  max-width: min(227.7px, calc(100vw - 1rem));
+  width: min(229.977px, calc(100vw - 1rem));
+  min-width: min(229.977px, calc(100vw - 1rem));
+  max-width: min(229.977px, calc(100vw - 1rem));
   height: 78.3px;
   min-height: 78.3px;
   max-height: 78.3px;
@@ -784,7 +784,7 @@ main {
 
 @media (max-width: 768px) {
   :root {
-    --mobile-hud-width: clamp(147.6px, 45.54vw, 250.2px);
+    --mobile-hud-width: clamp(149.076px, 45.9954vw, 252.702px);
     --mobile-hud-height: 103.5px;
   }
   .main-content { padding-top: 0.5rem; }
