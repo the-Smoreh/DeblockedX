@@ -779,19 +779,48 @@ main {
   .hacks-page__intro, .hacks-grid { padding-inline: 1.5rem; }
   .game-overlay { padding: 0; }
   .game-overlay__shell { height: 100vh; border-radius: 0; }
-  .game-overlay__hud { min-width: 120px; min-height: 70px; max-width: calc(100% - 1rem); padding: 0.75rem 0.85rem; }
-  .game-overlay__hud--top-left {
-    min-width: clamp(210px, 70vw, 320px);
-    width: auto;
-    max-width: calc(100% - 1rem);
+  .game-overlay__hud,
+  .game-overlay__hud--top-left,
+  .game-overlay__hud--top-right,
+  .game-overlay__hud--bottom-left,
+  .game-overlay__hud--bottom-right,
+  .game-overlay__hud--actions {
+    width: clamp(130px, 40vw, 220px);
+    min-width: clamp(130px, 40vw, 220px);
+    max-width: clamp(130px, 40vw, 220px);
+    height: 90px;
+    min-height: 90px;
+    max-height: 90px;
+    padding: 0.5rem 0.55rem;
+    gap: 0.22rem;
+    overflow: hidden;
   }
-  .game-overlay__hud--bottom-left { min-width: clamp(130px, 40vw, 220px); min-height: 90px; }
-  .game-overlay__hud--actions { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: clamp(150px, 48vw, 220px); min-height: 90px; }
+
+  .game-overlay__hud--actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 0.3rem;
+  }
+
+  .game-overlay__hud strong {
+    font-size: clamp(0.58rem, 2.2vw, 0.72rem);
+    line-height: 1.05;
+  }
+
+  .game-overlay__label {
+    font-size: clamp(0.5rem, 1.8vw, 0.62rem);
+    letter-spacing: 0.1em;
+  }
+
   .party-panel__stats { grid-template-columns: 1fr; }
   .game-overlay__button {
     min-width: 0;
     width: 100%;
-    padding: 0.72rem 0.8rem;
+    min-height: 0;
+    height: 100%;
+    padding: 0.35rem 0.45rem;
+    font-size: clamp(0.58rem, 2vw, 0.7rem);
+    line-height: 1;
   }
   .settings-code-row { flex-direction: column; }
   .settings-mode-grid { grid-template-columns: 1fr; }
