@@ -330,9 +330,9 @@ main {
   width: min(229.977px, calc(100vw - 1rem));
   min-width: min(229.977px, calc(100vw - 1rem));
   max-width: min(229.977px, calc(100vw - 1rem));
-  height: 62.64px;
-  min-height: 62.64px;
-  max-height: 62.64px;
+  height: 67.65px;
+  min-height: 67.65px;
+  max-height: 67.65px;
   padding: 0.58rem 1.1rem;
   border-radius: 18px;
   background: rgba(8, 11, 20, 0.94);
@@ -785,7 +785,7 @@ main {
 @media (max-width: 768px) {
   :root {
     --mobile-hud-width: clamp(149.076px, 45.9954vw, 252.702px);
-    --mobile-hud-height: 82.8px;
+    --mobile-hud-height: 89.42px;
   }
   .main-content { padding-top: 0.5rem; }
   .page-shell { width: min(100vw - 8px, 1520px); padding-inline: 0.15rem; }
