@@ -779,7 +779,7 @@ main {
   .hacks-page__intro, .hacks-grid { padding-inline: 1.5rem; }
   .game-overlay { padding: 0; }
   .game-overlay__shell { height: 100vh; border-radius: 0; }
-  .game-overlay__hud { min-width: 150px; min-height: 74px; max-width: calc(100% - 1rem); padding: 0.75rem 0.85rem; }
+  .game-overlay__hud { min-width: 120px; min-height: 70px; max-width: calc(100% - 1rem); padding: 0.75rem 0.85rem; }
   .game-overlay__hud--top-left {
     min-width: clamp(210px, 70vw, 320px);
     width: auto;
