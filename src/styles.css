@@ -366,7 +366,7 @@ main {
 .game-overlay__hud--bottom-right {
   bottom: 0.45rem;
   right: 0.45rem;
-  min-width: clamp(220px, 22vw, 300px);
+  min-width: clamp(190px, 18vw, 260px);
   min-height: 74px;
   padding-block: 0.75rem;
 }
