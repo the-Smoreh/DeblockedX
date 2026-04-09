@@ -37,6 +37,15 @@
         "url": "https://learning.realisation.org/resources/semag/cookieclicker/index.html"
     },
      {
+        "title": "Voicemod Soundboard",
+        "description": "If it fails to load, just refresh like 5 times, and it will load, takes a bit tho",
+        "game_image_icon": "https://mp-cdn.elgato.com/media/ec172e17-7e9a-43a5-841f-2d91a87589d5/10932f38-27ba-4e15-9f89-53cc25d8a188/Voicemod-preview-optimized-d286e918-bd1b-43a0-ba3d-1df333c176f8.jpeg",
+        "category": "Arcade",
+        "tags": [],
+        "featured": true,
+        "url": "https://tuna.voicemod.net/sounds/"
+    },
+     {
         "title": "Slender",
         "description": "If it fails to load, just refresh like 5 times, and it will load, takes a bit tho",
         "game_image_icon": "https://static.tvtropes.org/pmwiki/pub/images/slender.png",
