@@ -121,6 +121,31 @@ main {
 .games-page h1, .hacks-page h1 { margin: 0; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.05em; }
 .page-copy { margin: 1rem 0 0; font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.82); max-width: 46rem; }
 
+
+.second-library {
+  margin-top: 1.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  padding: 0.7rem 0.85rem 1rem;
+  background: rgba(7, 10, 21, 0.55);
+}
+
+.second-library h2 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+}
+
+.second-library__embed {
+  min-height: 860px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(4, 8, 18, 0.8);
+}
+
+.second-library__error {
+  margin: 0.7rem 0 0;
+  color: #ffb3b3;
+}
 .hacks-page { position: relative; min-height: 680px; border: 1px solid rgba(255,255,255,0.12); border-radius: 28px; overflow: hidden; background: rgba(7, 10, 21, 0.38); }
 .hacks-page__content { position: relative; z-index: 1; min-height: 680px; padding: 0 0 3rem; background: linear-gradient(180deg, rgba(5, 8, 22, 0.58), rgba(5, 8, 22, 0.28)); }
 .hacks-page__intro { padding: 3rem 3rem 1.5rem; }
