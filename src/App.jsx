@@ -242,20 +242,37 @@ function SecondLibraryGames() {
   useEffect(() => {
     let isActive = true;
 
+    const getLuminClient = () => window.Lumin || window.Lumen || null;
+
     const ensureLuminLoaded = () => new Promise((resolve, reject) => {
       if (typeof window === 'undefined') {
         reject(new Error('Window is unavailable.'));
         return;
       }
 
-      if (window.Lumin) {
-        resolve(window.Lumin);
+      const activeClient = getLuminClient();
+      if (activeClient) {
+        resolve(activeClient);
         return;
       }
 
+      const resolveWhenReady = () => {
+        const luminClient = getLuminClient();
+        if (luminClient) {
+          resolve(luminClient);
+          return;
+        }
+        reject(new Error('Lumin client was not found on window after script load.'));
+      };
+
       const existingScript = document.querySelector('script[data-lumin-sdk="true"]');
       if (existingScript) {
-        existingScript.addEventListener('load', () => resolve(window.Lumin), { once: true });
+        if (existingScript.dataset.loaded === 'true') {
+          resolveWhenReady();
+          return;
+        }
+
+        existingScript.addEventListener('load', resolveWhenReady, { once: true });
         existingScript.addEventListener('error', () => reject(new Error('Could not load Lumin SDK script.')), { once: true });
         return;
       }
@@ -264,7 +281,10 @@ function SecondLibraryGames() {
       script.src = 'https://cdn.jsdelivr.net/gh/luminsdk/script@latest/lumin.min.js';
       script.async = true;
       script.dataset.luminSdk = 'true';
-      script.onload = () => resolve(window.Lumin);
+      script.onload = () => {
+        script.dataset.loaded = 'true';
+        resolveWhenReady();
+      };
       script.onerror = () => reject(new Error('Could not load Lumin SDK script.'));
       document.body.appendChild(script);
     });
@@ -273,9 +293,14 @@ function SecondLibraryGames() {
       try {
         const lumin = await ensureLuminLoaded();
         if (!isActive || !containerRef.current) return;
+
+        if (!containerRef.current.id) {
+          containerRef.current.id = 'second-library-games-root';
+        }
+
         containerRef.current.innerHTML = '';
         lumin.init({
-          container: containerRef.current,
+          container: `#${containerRef.current.id}`,
           theme: 'dark',
           gamesPerPage: 1000,
         });
