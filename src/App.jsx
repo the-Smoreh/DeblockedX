@@ -1174,6 +1174,8 @@ export default function App() {
    }, [secretUnlocked, favoriteGameIds, gamesData, secretConfig, settings.gameCardAspect]);
 
 
+  const totalGameAmount = filteredMasonryItems.length + 1000;
+
   const navItems = useMemo(
     () => [
       {
@@ -1428,7 +1430,7 @@ export default function App() {
                   showCompactSearch={activePage === 'games'}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
-                  searchResultCount={filteredMasonryItems.length}
+                  searchResultCount={totalGameAmount}
                   onOpenSettings={() => setSettingsOpen(true)}
                   onOpenAuth={() => setAuthOpen(true)}
                   onOpenParties={() => setPartyPanelOpen(true)}
@@ -1484,7 +1486,7 @@ export default function App() {
                 showCompactSearch={activePage === 'games'}
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
-                searchResultCount={filteredMasonryItems.length}
+                searchResultCount={totalGameAmount}
                 onOpenSettings={() => setSettingsOpen(true)}
                 onOpenAuth={() => setAuthOpen(true)}
                 onOpenParties={() => setPartyPanelOpen(true)}
