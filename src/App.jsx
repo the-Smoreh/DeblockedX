@@ -234,6 +234,76 @@ const makeRandomAvatar = (seed = Math.random().toString(36).slice(2)) => {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
+
+function SecondLibraryGames() {
+  const containerRef = useRef(null);
+  const [embedError, setEmbedError] = useState('');
+
+  useEffect(() => {
+    let isActive = true;
+
+    const ensureLuminLoaded = () => new Promise((resolve, reject) => {
+      if (typeof window === 'undefined') {
+        reject(new Error('Window is unavailable.'));
+        return;
+      }
+
+      if (window.Lumin) {
+        resolve(window.Lumin);
+        return;
+      }
+
+      const existingScript = document.querySelector('script[data-lumin-sdk="true"]');
+      if (existingScript) {
+        existingScript.addEventListener('load', () => resolve(window.Lumin), { once: true });
+        existingScript.addEventListener('error', () => reject(new Error('Could not load Lumin SDK script.')), { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/gh/luminsdk/script@latest/lumin.min.js';
+      script.async = true;
+      script.dataset.luminSdk = 'true';
+      script.onload = () => resolve(window.Lumin);
+      script.onerror = () => reject(new Error('Could not load Lumin SDK script.'));
+      document.body.appendChild(script);
+    });
+
+    const initLibrary = async () => {
+      try {
+        const lumin = await ensureLuminLoaded();
+        if (!isActive || !containerRef.current) return;
+        containerRef.current.innerHTML = '';
+        lumin.init({
+          container: containerRef.current,
+          theme: 'dark',
+          gamesPerPage: 1000,
+        });
+      } catch {
+        if (!isActive) return;
+        setEmbedError('Could not load the second game library right now.');
+      }
+    };
+
+    initLibrary();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  return (
+    <section className="second-library" aria-label="Second Library of Games">
+      <div className="games-page__intro games-page__intro--compact">
+        <p className="eyebrow">Second Library of Games</p>
+        <h2>Second Library of Games</h2>
+      </div>
+      <div ref={containerRef} className="second-library__embed" />
+      {embedError && <p className="second-library__error">{embedError}</p>}
+    </section>
+  );
+}
+
 function launchAboutBlankCloak() {
   if (typeof window === 'undefined') return false;
   if (window.self !== window.top) return false;
@@ -1355,6 +1425,7 @@ export default function App() {
                       iconShape={settings.gameIconShape}
                       iconDensity={settings.gameIconDensity}
                     />
+                    <SecondLibraryGames />
                   </section>
                 ) : (
                   <section className="hacks-page">
@@ -1410,6 +1481,7 @@ export default function App() {
                     iconShape={settings.gameIconShape}
                     iconDensity={settings.gameIconDensity}
                   />
+                  <SecondLibraryGames />
                 </section>
               ) : (
                 <section className="hacks-page">
