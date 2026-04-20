@@ -1174,8 +1174,6 @@ export default function App() {
    }, [secretUnlocked, favoriteGameIds, gamesData, secretConfig, settings.gameCardAspect]);
 
 
-  const totalGameAmount = filteredMasonryItems.length + 1000;
-
   const navItems = useMemo(
     () => [
       {
@@ -1220,6 +1218,8 @@ export default function App() {
     if (!normalizedSearch) return masonryItems;
     return masonryItems.filter((item) => item.title?.toLowerCase().includes(normalizedSearch));
   }, [masonryItems, searchQuery]);
+
+  const totalGameAmount = filteredMasonryItems.length + 1000;
 
   const updateSetting = (key, value) => {
     setLastSettingsChangeAt(Date.now());
