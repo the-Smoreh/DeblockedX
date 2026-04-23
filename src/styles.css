@@ -52,26 +52,31 @@ main {
   position: absolute;
   inset: -35%;
   pointer-events: none;
-  will-change: transform, filter;
+  will-change: transform, background-position, filter;
   mix-blend-mode: screen;
+  background-size: 130% 130%;
 }
 
 .intro-wave::before {
   background:
-    radial-gradient(circle at 15% 15%, rgba(66, 189, 255, 0.45) 0, rgba(66, 189, 255, 0) 44%),
-    radial-gradient(circle at 86% 80%, rgba(178, 94, 255, 0.38) 0, rgba(178, 94, 255, 0) 43%),
-    radial-gradient(circle at 72% 18%, rgba(61, 255, 231, 0.22) 0, rgba(61, 255, 231, 0) 40%);
+    radial-gradient(circle at 15% 15%, rgba(66, 189, 255, 0.52) 0, rgba(66, 189, 255, 0) 44%),
+    radial-gradient(circle at 86% 80%, rgba(178, 94, 255, 0.46) 0, rgba(178, 94, 255, 0) 43%),
+    radial-gradient(circle at 72% 18%, rgba(61, 255, 231, 0.3) 0, rgba(61, 255, 231, 0) 40%);
   filter: blur(36px);
-  animation: introWaveSwayA 20s cubic-bezier(0.42, 0, 0.58, 1) infinite alternate;
+  animation:
+    introWaveSwayA 26s linear infinite,
+    introWaveColorFlowA 18s ease-in-out infinite;
 }
 
 .intro-wave::after {
   background:
-    radial-gradient(circle at 22% 85%, rgba(86, 132, 255, 0.35) 0, rgba(86, 132, 255, 0) 44%),
-    radial-gradient(circle at 94% 12%, rgba(250, 116, 255, 0.26) 0, rgba(250, 116, 255, 0) 38%),
-    radial-gradient(circle at 52% 42%, rgba(67, 255, 210, 0.2) 0, rgba(67, 255, 210, 0) 42%);
+    radial-gradient(circle at 22% 85%, rgba(86, 132, 255, 0.42) 0, rgba(86, 132, 255, 0) 44%),
+    radial-gradient(circle at 94% 12%, rgba(250, 116, 255, 0.34) 0, rgba(250, 116, 255, 0) 38%),
+    radial-gradient(circle at 52% 42%, rgba(67, 255, 210, 0.26) 0, rgba(67, 255, 210, 0) 42%);
   filter: blur(56px);
-  animation: introWaveSwayB 24s cubic-bezier(0.42, 0, 0.58, 1) infinite alternate;
+  animation:
+    introWaveSwayB 30s linear infinite,
+    introWaveColorFlowB 22s ease-in-out infinite;
 }
 
 .intro-wave--still::before,
@@ -122,6 +127,7 @@ main {
     0 0 10px rgba(100, 229, 255, 0.8),
     0 0 24px rgba(87, 170, 255, 0.55),
     0 0 48px rgba(137, 82, 255, 0.35);
+  animation: introTextRise 1.25s ease-out both, introTextGlow 3.8s ease-in-out infinite 1.25s;
 }
 .intro-subtitle {
   margin: 0.8rem 0 0;
@@ -129,6 +135,7 @@ main {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: rgba(228, 246, 255, 0.88);
+  animation: introTextRise 1.5s ease-out both 0.15s, introSubtitlePulse 4s ease-in-out infinite 1.6s;
 }
 .intro-play-button {
   margin: 1.5rem auto 0;
@@ -145,6 +152,7 @@ main {
   cursor: pointer;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
   box-shadow: 0 0 18px rgba(109, 208, 255, 0.3), inset 0 0 14px rgba(120, 87, 255, 0.18);
+  animation: introTextRise 1.8s ease-out both 0.25s;
 }
 .intro-play-button:hover {
   transform: translateY(-1px) scale(1.02);
@@ -157,17 +165,48 @@ main {
 .blur-text-segment { display: inline-block; will-change: transform, filter, opacity; }
 
 @keyframes introWaveSwayA {
-  0% { transform: translate3d(24%, -26%, 0) rotate(-8deg); }
-  33% { transform: translate3d(36%, 18%, 0) rotate(6deg); }
-  66% { transform: translate3d(-28%, -16%, 0) rotate(-5deg); }
-  100% { transform: translate3d(18%, 26%, 0) rotate(8deg); }
+  0% { transform: translate3d(26%, -24%, 0) rotate(-6deg); }
+  25% { transform: translate3d(34%, 18%, 0) rotate(5deg); }
+  50% { transform: translate3d(-20%, -18%, 0) rotate(-4deg); }
+  75% { transform: translate3d(22%, 30%, 0) rotate(6deg); }
+  100% { transform: translate3d(26%, -24%, 0) rotate(-6deg); }
 }
 
 @keyframes introWaveSwayB {
-  0% { transform: translate3d(-26%, 24%, 0) rotate(7deg) scale(1.03); }
-  33% { transform: translate3d(28%, -22%, 0) rotate(-8deg) scale(1.05); }
-  66% { transform: translate3d(-16%, -30%, 0) rotate(5deg) scale(1.01); }
-  100% { transform: translate3d(24%, 20%, 0) rotate(-6deg) scale(1.04); }
+  0% { transform: translate3d(-24%, 28%, 0) rotate(6deg) scale(1.04); }
+  25% { transform: translate3d(22%, -20%, 0) rotate(-7deg) scale(1.07); }
+  50% { transform: translate3d(-18%, -28%, 0) rotate(4deg) scale(1.02); }
+  75% { transform: translate3d(28%, 20%, 0) rotate(-6deg) scale(1.05); }
+  100% { transform: translate3d(-24%, 28%, 0) rotate(6deg) scale(1.04); }
+}
+
+@keyframes introWaveColorFlowA {
+  0%, 100% { background-position: 0% 8%, 100% 94%, 68% 10%; filter: blur(36px) hue-rotate(0deg) saturate(1.1); }
+  50% { background-position: 12% 24%, 86% 76%, 74% 28%; filter: blur(40px) hue-rotate(35deg) saturate(1.25); }
+}
+
+@keyframes introWaveColorFlowB {
+  0%, 100% { background-position: 18% 90%, 96% 8%, 50% 40%; filter: blur(56px) hue-rotate(0deg) saturate(1.15); }
+  50% { background-position: 6% 72%, 84% 22%, 62% 58%; filter: blur(62px) hue-rotate(-25deg) saturate(1.3); }
+}
+
+@keyframes introTextRise {
+  0% { opacity: 0; transform: translateY(24px) scale(0.98); filter: blur(6px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes introTextGlow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(100, 229, 255, 0.8), 0 0 24px rgba(87, 170, 255, 0.55), 0 0 48px rgba(137, 82, 255, 0.35);
+  }
+  50% {
+    text-shadow: 0 0 16px rgba(122, 238, 255, 0.92), 0 0 40px rgba(92, 194, 255, 0.75), 0 0 70px rgba(154, 118, 255, 0.5);
+  }
+}
+
+@keyframes introSubtitlePulse {
+  0%, 100% { opacity: 0.85; text-shadow: 0 0 10px rgba(100, 191, 255, 0.28); }
+  50% { opacity: 1; text-shadow: 0 0 18px rgba(128, 217, 255, 0.45); }
 }
 
 .main-content {
