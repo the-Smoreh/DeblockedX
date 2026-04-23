@@ -1547,7 +1547,7 @@ export default function App() {
 
           <div className="intro-content">
             <h1 className="hero-title">DEBLOCKED</h1>
-            <p className="intro-subtitle">7000 Games, Proxies, Hacks.</p>
+            <p className="intro-subtitle"> 1452 Games(7000 Soon), Proxies, Hacks.</p>
             <button type="button" className="intro-play-button" onClick={handlePlayIntro}>
               Play
             </button>
