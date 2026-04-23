@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './CardNav.css';
 
 const CardNav = ({
@@ -20,6 +20,7 @@ const CardNav = ({
   menuColor,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [animatedSearchCount, setAnimatedSearchCount] = useState(0);
 
   const height = isExpanded ? 260 : 72;
 
@@ -30,6 +31,26 @@ const CardNav = ({
     }
     setIsExpanded(false);
   };
+
+  useEffect(() => {
+    const targetCount = Number.isFinite(Number(searchResultCount)) ? Math.max(0, Number(searchResultCount)) : 0;
+    let frameId;
+    let startTime;
+    const animationDuration = 320;
+
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / animationDuration, 1);
+      setAnimatedSearchCount(Math.round(targetCount * progress));
+      if (progress < 1) frameId = window.requestAnimationFrame(step);
+    };
+
+    setAnimatedSearchCount(0);
+    frameId = window.requestAnimationFrame(step);
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [searchResultCount]);
 
   return (
     <div className={`card-nav-container ${className}`}>
@@ -62,7 +83,7 @@ const CardNav = ({
                   onChange={(event) => onSearchChange?.(event.target.value)}
                   placeholder={searchPlaceholder}
                 />
-                <span className="compact-search__count">{searchResultCount ?? 0}</span>
+                <span className="compact-search__count">{animatedSearchCount}</span>
               </label>
             ) : (
               <span className="logo-wordmark">{title}</span>
