@@ -952,22 +952,11 @@ export default function App() {
     if (!settings.enableIntro || settings.performanceMode) {
       setShowIntro(false);
       setIntroExiting(false);
-      return undefined;
+      return;
     }
-
-    const introDurationMs = Math.max(1000, settings.introDurationSec * 1000);
-    const fadeDurationMs = Math.min(INTRO_FADE_MS, introDurationMs - 100);
-    const exitTimer = setTimeout(() => setIntroExiting(true), introDurationMs - fadeDurationMs);
-    const hideTimer = setTimeout(() => {
-      setShowIntro(false);
-      setIntroExiting(false);
-    }, introDurationMs);
-
-    return () => {
-      clearTimeout(exitTimer);
-      clearTimeout(hideTimer);
-    };
-  }, [settings.enableIntro, settings.introDurationSec, settings.performanceMode]);
+    setShowIntro(true);
+    setIntroExiting(false);
+  }, [settings.enableIntro, settings.performanceMode]);
 
   useEffect(() => () => {
     if (introDismissTimeoutRef.current) clearTimeout(introDismissTimeoutRef.current);
