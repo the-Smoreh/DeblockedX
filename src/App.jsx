@@ -1183,7 +1183,7 @@ export default function App() {
         label: 'Games',
         bgColor: activePage === 'games' ? '#1a2235' : '#111827',
         textColor: '#fff',
-        links: [{ label: 'Open game page', ariaLabel: 'Open game page', page: 'games' }],
+        links: [{ label: 'Tip: to make the Peformance Buttons in games smaller, you can Always press CTRL SHIFT MINUS/PLUS ', ariaLabel: 'Tip: to make the Peformance Buttons in games smaller, you can Always press CTRL SHIFT MINUS/PLUS', page: 'games' }],
       },
       {
         label: 'Hacks',
