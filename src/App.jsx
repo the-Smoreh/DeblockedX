@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import BlurText from './BlurText';
 import CardNav from './CardNav';
 import ClickSpark from './ClickSpark';
-import LineWaves from './LineWaves';
 import Masonry from './Masonry';
 import RippleGrid from './RippleGrid';
 import gamesData from '../games.json';
@@ -934,9 +932,21 @@ export default function App() {
   const clickAudioRef = useRef(null);
   const introAudioRef = useRef(null);
   const backgroundAudioRef = useRef(null);
+  const introDismissTimeoutRef = useRef(null);
   const isApplyingRemoteStateRef = useRef(false);
   const lastRemoteUpdateAtRef = useRef(0);
   const activeUser = accounts.find((account) => account.username === activeUsername) ?? null;
+
+  const handlePlayIntro = () => {
+    if (!showIntro) return;
+    setIntroExiting(true);
+    if (introDismissTimeoutRef.current) clearTimeout(introDismissTimeoutRef.current);
+    introDismissTimeoutRef.current = setTimeout(() => {
+      setShowIntro(false);
+      setIntroExiting(false);
+      introDismissTimeoutRef.current = null;
+    }, INTRO_FADE_MS);
+  };
 
   useEffect(() => {
     if (!settings.enableIntro || settings.performanceMode) {
@@ -958,6 +968,10 @@ export default function App() {
       clearTimeout(hideTimer);
     };
   }, [settings.enableIntro, settings.introDurationSec, settings.performanceMode]);
+
+  useEffect(() => () => {
+    if (introDismissTimeoutRef.current) clearTimeout(introDismissTimeoutRef.current);
+  }, []);
 
   useEffect(() => {
     saveStorageValue(SETTINGS_PREF_KEY, JSON.stringify(settings));
@@ -1539,29 +1553,15 @@ export default function App() {
 
       {showIntro && (
         <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>
-          {isAnimationEnabled ? (
-            <LineWaves
-              speed={0.3}
-              innerLineCount={32}
-              outerLineCount={36}
-              warpIntensity={1}
-              rotation={-45}
-              edgeFadeWidth={0}
-              colorCycleSpeed={1}
-              brightness={0.2}
-              color1="#ffffff"
-              color2="#ffffff"
-              color3="#ffffff"
-              enableMouseInteraction
-              mouseInfluence={2}
-            />
-          ) : (
-            <div className="intro-static" />
-          )}
-          <div className="intro-overlay" />
+          <div className={`intro-wave${isAnimationEnabled ? '' : ' intro-wave--still'}`} />
+          <div className="intro-grid-fade" />
 
           <div className="intro-content">
-            <BlurText text="Deblocked" delay={160} animateBy="letters" direction="top" className="hero-title" />
+            <h1 className="hero-title">DEBLOCKED</h1>
+            <p className="intro-subtitle">7000 Games, Proxies, Hacks.</p>
+            <button type="button" className="intro-play-button" onClick={handlePlayIntro}>
+              Play
+            </button>
           </div>
         </section>
       )}

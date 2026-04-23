@@ -31,21 +31,58 @@ main {
   opacity: 1;
   background: #000;
   transition: opacity 0.7s ease, visibility 0.7s ease;
+  overflow: hidden;
 }
 .intro-screen--exit { opacity: 0; visibility: hidden; pointer-events: none; }
-.intro-static {
+.intro-wave,
+.intro-grid-fade,
+.intro-overlay,
+.main-background,
+.line-waves-container { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.intro-wave {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(96, 132, 255, 0.35), transparent 35%),
-    radial-gradient(circle at 80% 70%, rgba(204, 97, 255, 0.28), transparent 40%),
-    #000;
+  background: #000;
 }
-.intro-overlay, .main-background, .line-waves-container { position: absolute; inset: 0; width: 100%; height: 100%; }
-.intro-overlay {
+
+.intro-wave::before,
+.intro-wave::after {
+  content: '';
+  position: absolute;
+  inset: -35%;
+  pointer-events: none;
+  will-change: transform, filter;
+  mix-blend-mode: screen;
+}
+
+.intro-wave::before {
   background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 36%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.75));
+    radial-gradient(circle at 15% 15%, rgba(66, 189, 255, 0.45) 0, rgba(66, 189, 255, 0) 44%),
+    radial-gradient(circle at 86% 80%, rgba(178, 94, 255, 0.38) 0, rgba(178, 94, 255, 0) 43%),
+    radial-gradient(circle at 72% 18%, rgba(61, 255, 231, 0.22) 0, rgba(61, 255, 231, 0) 40%);
+  filter: blur(36px);
+  animation: introWaveSwayA 20s cubic-bezier(0.42, 0, 0.58, 1) infinite alternate;
+}
+
+.intro-wave::after {
+  background:
+    radial-gradient(circle at 22% 85%, rgba(86, 132, 255, 0.35) 0, rgba(86, 132, 255, 0) 44%),
+    radial-gradient(circle at 94% 12%, rgba(250, 116, 255, 0.26) 0, rgba(250, 116, 255, 0) 38%),
+    radial-gradient(circle at 52% 42%, rgba(67, 255, 210, 0.2) 0, rgba(67, 255, 210, 0) 42%);
+  filter: blur(56px);
+  animation: introWaveSwayB 24s cubic-bezier(0.42, 0, 0.58, 1) infinite alternate;
+}
+
+.intro-wave--still::before,
+.intro-wave--still::after {
+  animation-play-state: paused;
+}
+
+.intro-grid-fade {
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.09), transparent 44%),
+    linear-gradient(130deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.18) 35%, rgba(0, 0, 0, 0.82));
 }
 .main-background { opacity: 0.95; }
 .main-background--games { position: fixed; z-index: 0; pointer-events: none; }
@@ -72,8 +109,66 @@ main {
 .intro-content, .page-shell { position: relative; z-index: 1; }
 .page-shell { z-index: 2; }
 .intro-content { min-height: 100vh; display: grid; place-content: center; padding: 2rem; text-align: center; text-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
-.hero-title { margin: 0; justify-content: center; font-size: clamp(3.4rem, 10vw, 7rem); font-weight: 800; letter-spacing: -0.05em; line-height: 0.95; }
+.hero-title {
+  margin: 0;
+  justify-content: center;
+  font-size: clamp(3.3rem, 10vw, 7rem);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: #e8fbff;
+  text-shadow:
+    0 0 10px rgba(100, 229, 255, 0.8),
+    0 0 24px rgba(87, 170, 255, 0.55),
+    0 0 48px rgba(137, 82, 255, 0.35);
+}
+.intro-subtitle {
+  margin: 0.8rem 0 0;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(228, 246, 255, 0.88);
+}
+.intro-play-button {
+  margin: 1.5rem auto 0;
+  min-width: 150px;
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(122, 226, 255, 0.62);
+  background: linear-gradient(135deg, rgba(47, 120, 232, 0.22), rgba(136, 70, 255, 0.2));
+  color: #e9fbff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  box-shadow: 0 0 18px rgba(109, 208, 255, 0.3), inset 0 0 14px rgba(120, 87, 255, 0.18);
+}
+.intro-play-button:hover {
+  transform: translateY(-1px) scale(1.02);
+  border-color: rgba(140, 239, 255, 0.85);
+  box-shadow: 0 0 24px rgba(128, 223, 255, 0.45), inset 0 0 20px rgba(129, 95, 255, 0.24);
+}
+.intro-play-button:active {
+  transform: translateY(0) scale(0.99);
+}
 .blur-text-segment { display: inline-block; will-change: transform, filter, opacity; }
+
+@keyframes introWaveSwayA {
+  0% { transform: translate3d(24%, -26%, 0) rotate(-8deg); }
+  33% { transform: translate3d(36%, 18%, 0) rotate(6deg); }
+  66% { transform: translate3d(-28%, -16%, 0) rotate(-5deg); }
+  100% { transform: translate3d(18%, 26%, 0) rotate(8deg); }
+}
+
+@keyframes introWaveSwayB {
+  0% { transform: translate3d(-26%, 24%, 0) rotate(7deg) scale(1.03); }
+  33% { transform: translate3d(28%, -22%, 0) rotate(-8deg) scale(1.05); }
+  66% { transform: translate3d(-16%, -30%, 0) rotate(5deg) scale(1.01); }
+  100% { transform: translate3d(24%, 20%, 0) rotate(-6deg) scale(1.04); }
+}
 
 .main-content {
   position: relative;
