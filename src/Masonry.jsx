@@ -2,34 +2,14 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import './Masonry.css';
 
 const CULLING_OVERSCAN_PX = 900;
-const MASONRY_BREAKPOINTS = ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'];
-const MASONRY_COLUMNS = [9, 7, 5, 4, 3];
-const DEFAULT_COLUMNS = 2;
-const GUTTER_PX = 6;
-const DESIGN_COLUMN_WIDTH = 280;
-const MIN_CARD_HEIGHT = 96;
 
 const useMedia = (queries, values, defaultValue) => {
-  const getValue = () => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return defaultValue;
-    }
-
-    const matchedIndex = queries.findIndex((query) => window.matchMedia(query).matches);
-    return values[matchedIndex] ?? defaultValue;
-  };
-
+  const getValue = () => values[queries.findIndex((query) => matchMedia(query).matches)] ?? defaultValue;
   const [value, setValue] = useState(getValue);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return undefined;
-    }
-
-    const mediaQueries = queries.map((query) => window.matchMedia(query));
+    const mediaQueries = queries.map((query) => matchMedia(query));
     const handler = () => setValue(getValue());
-
-    handler();
     mediaQueries.forEach((mediaQuery) => mediaQuery.addEventListener('change', handler));
     return () => mediaQueries.forEach((mediaQuery) => mediaQuery.removeEventListener('change', handler));
   }, [defaultValue, queries, values]);
@@ -43,20 +23,6 @@ const useMeasure = () => {
 
   useLayoutEffect(() => {
     if (!ref.current) return undefined;
-
-    const updateSize = () => {
-      if (!ref.current) return;
-      const { width, height } = ref.current.getBoundingClientRect();
-      setSize({ width, height });
-    };
-
-    updateSize();
-
-    if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', updateSize);
-      return () => window.removeEventListener('resize', updateSize);
-    }
-
     const observer = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
       setSize({ width, height });
@@ -68,6 +34,12 @@ const useMeasure = () => {
   return [ref, size];
 };
 
+const preloadImages = async (urls) => Promise.all(urls.map((src) => new Promise((resolve) => {
+  const img = new Image();
+  img.src = src;
+  img.onload = img.onerror = () => resolve();
+})));
+
 const Masonry = ({
   items,
   onItemClick,
@@ -78,8 +50,13 @@ const Masonry = ({
   iconShape = 'default',
   iconDensity = 'default',
 }) => {
-  const columns = useMedia(MASONRY_BREAKPOINTS, MASONRY_COLUMNS, DEFAULT_COLUMNS);
+  const columns = useMedia(
+    ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'],
+    [6, 5, 4, 3, 2],
+    1,
+  );
   const [containerRef, { width }] = useMeasure();
+  const [imagesReady, setImagesReady] = useState(false);
   const [visibleIds, setVisibleIds] = useState(() => new Set());
   const [seenIds, setSeenIds] = useState(() => new Set());
   const seenIdsRef = useRef(new Set());
@@ -94,19 +71,28 @@ const Masonry = ({
     seenIdsRef.current = new Set();
   }, [items]);
 
+  useEffect(() => {
+    let active = true;
+    setImagesReady(false);
+    preloadImages(items.map((item) => item.img)).then(() => {
+      if (active) setImagesReady(true);
+    });
+    return () => { active = false; };
+  }, [items]);
+
   const grid = useMemo(() => {
     if (!width) return [];
 
+    const gutter = 8;
     const colHeights = new Array(columns).fill(0);
     const columnWidth = width / columns;
-    const heightScale = columnWidth / DESIGN_COLUMN_WIDTH;
 
     return items.map((item) => {
       const column = colHeights.indexOf(Math.min(...colHeights));
       const x = columnWidth * column;
-      const h = Math.max(MIN_CARD_HEIGHT, (item.height / 2) * heightScale);
+      const h = item.height / 2;
       const y = colHeights[column];
-      colHeights[column] += h + GUTTER_PX;
+      colHeights[column] += h + gutter;
       return { ...item, x, y, w: columnWidth, h };
     });
   }, [columns, items, width]);
@@ -185,7 +171,7 @@ const Masonry = ({
           const isVisible = visibleIds.has(item.id);
           const hasBeenSeen = seenIds.has(item.id);
           const shouldRenderCard = isVisible || hasBeenSeen;
-          const shouldAnimateIn = isVisible && !hasBeenSeen;
+          const shouldAnimateIn = imagesReady && isVisible && !hasBeenSeen;
 
           return (
             <div
@@ -194,7 +180,7 @@ const Masonry = ({
               className={[
                 'item-wrapper',
                 `item-wrapper--density-${iconDensity}`,
-                'item-wrapper--hydrated',
+                imagesReady ? 'item-wrapper--hydrated' : '',
                 shouldRenderCard ? 'item-wrapper--ready' : 'item-wrapper--culled',
                 shouldAnimateIn ? 'item-wrapper--entering' : '',
               ].filter(Boolean).join(' ')}
@@ -228,10 +214,7 @@ const Masonry = ({
                 type="button"
                 className={`favorite-toggle${item.isFavorite ? ' favorite-toggle--active' : ''}`}
                 aria-label={item.isFavorite ? `Unfavorite ${item.title}` : `Favorite ${item.title}`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onToggleFavorite?.(item.id);
-                }}
+                onClick={() => onToggleFavorite?.(item.id)}
               >
                 <span aria-hidden="true">☆</span>
               </button>
