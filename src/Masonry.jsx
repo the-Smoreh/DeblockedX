@@ -68,12 +68,6 @@ const useMeasure = () => {
   return [ref, size];
 };
 
-const preloadImages = async (urls) => Promise.all(urls.map((src) => new Promise((resolve) => {
-  const img = new Image();
-  img.src = src;
-  img.onload = img.onerror = () => resolve();
-})));
-
 const Masonry = ({
   items,
   onItemClick,
@@ -86,7 +80,6 @@ const Masonry = ({
 }) => {
   const columns = useMedia(MASONRY_BREAKPOINTS, MASONRY_COLUMNS, DEFAULT_COLUMNS);
   const [containerRef, { width }] = useMeasure();
-  const [imagesReady, setImagesReady] = useState(false);
   const [visibleIds, setVisibleIds] = useState(() => new Set());
   const [seenIds, setSeenIds] = useState(() => new Set());
   const seenIdsRef = useRef(new Set());
@@ -99,15 +92,6 @@ const Masonry = ({
     setVisibleIds(new Set());
     setSeenIds(new Set());
     seenIdsRef.current = new Set();
-  }, [items]);
-
-  useEffect(() => {
-    let active = true;
-    setImagesReady(false);
-    preloadImages(items.map((item) => item.img)).then(() => {
-      if (active) setImagesReady(true);
-    });
-    return () => { active = false; };
   }, [items]);
 
   const grid = useMemo(() => {
@@ -201,7 +185,7 @@ const Masonry = ({
           const isVisible = visibleIds.has(item.id);
           const hasBeenSeen = seenIds.has(item.id);
           const shouldRenderCard = isVisible || hasBeenSeen;
-          const shouldAnimateIn = imagesReady && isVisible && !hasBeenSeen;
+          const shouldAnimateIn = isVisible && !hasBeenSeen;
 
           return (
             <div
@@ -210,7 +194,7 @@ const Masonry = ({
               className={[
                 'item-wrapper',
                 `item-wrapper--density-${iconDensity}`,
-                imagesReady ? 'item-wrapper--hydrated' : '',
+                'item-wrapper--hydrated',
                 shouldRenderCard ? 'item-wrapper--ready' : 'item-wrapper--culled',
                 shouldAnimateIn ? 'item-wrapper--entering' : '',
               ].filter(Boolean).join(' ')}
@@ -244,7 +228,10 @@ const Masonry = ({
                 type="button"
                 className={`favorite-toggle${item.isFavorite ? ' favorite-toggle--active' : ''}`}
                 aria-label={item.isFavorite ? `Unfavorite ${item.title}` : `Favorite ${item.title}`}
-                onClick={() => onToggleFavorite?.(item.id)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onToggleFavorite?.(item.id);
+                }}
               >
                 <span aria-hidden="true">☆</span>
               </button>
