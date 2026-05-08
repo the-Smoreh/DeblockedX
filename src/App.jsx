@@ -136,9 +136,23 @@ const readObjectStorage = (key) => {
   return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
 };
 
-const LOCAL_MULTIPLAYER_SOURCE = typeof crypto !== 'undefined' && crypto.randomUUID
-  ? crypto.randomUUID()
-  : Math.random().toString(36).slice(2);
+const readSettingsStorage = () => {
+  const parsed = readJsonStorage(SETTINGS_PREF_KEY, DEFAULT_SETTINGS);
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return DEFAULT_SETTINGS;
+  }
+
+  return { ...DEFAULT_SETTINGS, ...parsed };
+};
+
+const createClientId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+};
+
+const LOCAL_MULTIPLAYER_SOURCE = createClientId();
 
 const readRemoteMultiplayerSnapshot = async () => {
   const response = await fetch(`https://dweet.io/get/latest/dweet/for/${MULTIPLAYER_THING_KEY}`, { cache: 'no-store' });
@@ -883,17 +897,7 @@ function PartyPanel({
 
 export default function App() {
   const secretConfig = useMemo(() => normalizeSecretConfig(secretData), []);
-  const [settings, setSettings] = useState(() => {
-    if (typeof window === 'undefined') return DEFAULT_SETTINGS;
-    const stored = loadStorageValue(SETTINGS_PREF_KEY, '');
-    if (!stored) return DEFAULT_SETTINGS;
-
-    try {
-      return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
-  });
+  const [settings, setSettings] = useState(readSettingsStorage);
   const [clickSoundDataUrl, setClickSoundDataUrl] = useState(() => loadStorageValue(CLICK_SOUND_KEY, ''));
   const [introSoundDataUrl, setIntroSoundDataUrl] = useState(() => loadStorageValue(INTRO_SOUND_KEY, ''));
   const [customThemeImage, setCustomThemeImage] = useState(() => loadStorageValue(CUSTOM_THEME_IMAGE_KEY, ''));
@@ -1344,7 +1348,7 @@ export default function App() {
     const validMembers = names.filter((name) => accounts.some((account) => account.username === name));
     const memberSet = new Set([activeUser.username, ...validMembers]);
     const created = {
-      id: crypto.randomUUID(),
+      id: createClientId(),
       isPrivate: privateParty,
       code: privateParty ? partyCode.trim() : '',
       members: Array.from(memberSet),
@@ -1370,7 +1374,7 @@ export default function App() {
       party.id === partyId
         ? {
           ...party,
-          messages: [...(party.messages || []), { id: crypto.randomUUID(), author: activeUser.username, text: text.trim(), createdAt: new Date().toISOString() }],
+          messages: [...(party.messages || []), { id: createClientId(), author: activeUser.username, text: text.trim(), createdAt: new Date().toISOString() }],
         }
         : party
     )));
@@ -1378,7 +1382,7 @@ export default function App() {
 
   const handleSendGlobalMessage = (text) => {
     if (!activeUser || !text.trim()) return;
-    setGlobalChat((current) => [...current, { id: crypto.randomUUID(), author: activeUser.username, text: text.trim(), createdAt: new Date().toISOString() }].slice(-200));
+    setGlobalChat((current) => [...current, { id: createClientId(), author: activeUser.username, text: text.trim(), createdAt: new Date().toISOString() }].slice(-200));
   };
 
 
