@@ -52,8 +52,8 @@ const Masonry = ({
 }) => {
   const columns = useMedia(
     ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'],
-    [6, 5, 4, 3, 2],
-    1,
+    [9, 7, 6, 5, 4],
+    2,
   );
   const [containerRef, { width }] = useMeasure();
   const [imagesReady, setImagesReady] = useState(false);
