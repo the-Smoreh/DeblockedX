@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import './Masonry.css';
 
 const CULLING_OVERSCAN_PX = 900;
+const CARD_SIZE_SCALE = 0.6;
 
 const useMedia = (queries, values, defaultValue) => {
   const getValue = () => values[queries.findIndex((query) => matchMedia(query).matches)] ?? defaultValue;
@@ -52,8 +53,8 @@ const Masonry = ({
 }) => {
   const columns = useMedia(
     ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'],
-    [6, 5, 4, 3, 2],
-    1,
+    [10, 8, 7, 5, 3],
+    2,
   );
   const [containerRef, { width }] = useMeasure();
   const [imagesReady, setImagesReady] = useState(false);
@@ -83,14 +84,14 @@ const Masonry = ({
   const grid = useMemo(() => {
     if (!width) return [];
 
-    const gutter = 8;
+    const gutter = 5;
     const colHeights = new Array(columns).fill(0);
     const columnWidth = width / columns;
 
     return items.map((item) => {
       const column = colHeights.indexOf(Math.min(...colHeights));
       const x = columnWidth * column;
-      const h = item.height / 2;
+      const h = (item.height / 2) * CARD_SIZE_SCALE;
       const y = colHeights[column];
       colHeights[column] += h + gutter;
       return { ...item, x, y, w: columnWidth, h };
