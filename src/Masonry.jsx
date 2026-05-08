@@ -23,9 +23,10 @@ const useMeasure = () => {
 
   useLayoutEffect(() => {
     if (!ref.current) return undefined;
+    const { width, height } = ref.current.getBoundingClientRect();
+    setSize({ width, height });
     const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setSize({ width, height });
+      setSize({ width: entry.contentRect.width, height: entry.contentRect.height });
     });
     observer.observe(ref.current);
     return () => observer.disconnect();
