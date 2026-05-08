@@ -2,15 +2,34 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import './Masonry.css';
 
 const CULLING_OVERSCAN_PX = 900;
-const CARD_SIZE_SCALE = 0.6;
+const MASONRY_BREAKPOINTS = ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'];
+const MASONRY_COLUMNS = [9, 7, 5, 4, 3];
+const DEFAULT_COLUMNS = 2;
+const GUTTER_PX = 6;
+const DESIGN_COLUMN_WIDTH = 280;
+const MIN_CARD_HEIGHT = 96;
 
 const useMedia = (queries, values, defaultValue) => {
-  const getValue = () => values[queries.findIndex((query) => matchMedia(query).matches)] ?? defaultValue;
+  const getValue = () => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return defaultValue;
+    }
+
+    const matchedIndex = queries.findIndex((query) => window.matchMedia(query).matches);
+    return values[matchedIndex] ?? defaultValue;
+  };
+
   const [value, setValue] = useState(getValue);
 
   useEffect(() => {
-    const mediaQueries = queries.map((query) => matchMedia(query));
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return undefined;
+    }
+
+    const mediaQueries = queries.map((query) => window.matchMedia(query));
     const handler = () => setValue(getValue());
+
+    handler();
     mediaQueries.forEach((mediaQuery) => mediaQuery.addEventListener('change', handler));
     return () => mediaQueries.forEach((mediaQuery) => mediaQuery.removeEventListener('change', handler));
   }, [defaultValue, queries, values]);
@@ -24,6 +43,20 @@ const useMeasure = () => {
 
   useLayoutEffect(() => {
     if (!ref.current) return undefined;
+
+    const updateSize = () => {
+      if (!ref.current) return;
+      const { width, height } = ref.current.getBoundingClientRect();
+      setSize({ width, height });
+    };
+
+    updateSize();
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateSize);
+      return () => window.removeEventListener('resize', updateSize);
+    }
+
     const observer = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
       setSize({ width, height });
@@ -51,11 +84,7 @@ const Masonry = ({
   iconShape = 'default',
   iconDensity = 'default',
 }) => {
-  const columns = useMedia(
-    ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'],
-    [10, 8, 7, 5, 3],
-    2,
-  );
+  const columns = useMedia(MASONRY_BREAKPOINTS, MASONRY_COLUMNS, DEFAULT_COLUMNS);
   const [containerRef, { width }] = useMeasure();
   const [imagesReady, setImagesReady] = useState(false);
   const [visibleIds, setVisibleIds] = useState(() => new Set());
@@ -84,16 +113,16 @@ const Masonry = ({
   const grid = useMemo(() => {
     if (!width) return [];
 
-    const gutter = 5;
     const colHeights = new Array(columns).fill(0);
     const columnWidth = width / columns;
+    const heightScale = columnWidth / DESIGN_COLUMN_WIDTH;
 
     return items.map((item) => {
       const column = colHeights.indexOf(Math.min(...colHeights));
       const x = columnWidth * column;
-      const h = (item.height / 2) * CARD_SIZE_SCALE;
+      const h = Math.max(MIN_CARD_HEIGHT, (item.height / 2) * heightScale);
       const y = colHeights[column];
-      colHeights[column] += h + gutter;
+      colHeights[column] += h + GUTTER_PX;
       return { ...item, x, y, w: columnWidth, h };
     });
   }, [columns, items, width]);
