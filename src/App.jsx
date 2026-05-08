@@ -603,7 +603,7 @@ function GameOverlay({ game, onClose }) {
         <div className="game-overlay__hud game-overlay__hud--top-left">
           <span className="game-overlay__label">TIP</span>
           <strong className="game-overlay__tip-copy">
-            Press <span className="game-overlay__shortcut">Ctrl - (minus)</span> to make the HUD buttons smaller! And <span className="game-overlay__shortcut">Ctrl +</span> to make them bigger.
+            Press <kbd className="game-overlay__shortcut">Ctrl/Cmd -</kbd> to make the HUD buttons smaller, or <kbd className="game-overlay__shortcut">Ctrl/Cmd +</kbd> to make them bigger.
           </strong>
         </div>
 
