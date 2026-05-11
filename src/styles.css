@@ -17,8 +17,8 @@ main {
   background-position: center;
 }
 
-.app-shell--hacks {
-  background: linear-gradient(180deg, #050816 0%, #03040a 100%);
+.app-shell--minecraft-server {
+  background: linear-gradient(180deg, #020e04 0%, #010802 100%);
 }
 
 .intro-screen,
@@ -1029,4 +1029,250 @@ main {
     font-size: 0.85rem;
     padding: 0.55rem 0.4rem;
   }
+  .mc-server-cards { grid-template-columns: 1fr; }
+  .library-tabs { width: 100%; }
+  .library-tab { flex: 1; text-align: center; justify-content: center; }
 }
+
+/* ── Library Tab Switcher ─────────────────────────────────── */
+.library-switcher {
+  padding: 0.25rem 0 1.1rem;
+}
+
+.library-tabs {
+  display: inline-flex;
+  gap: 0.3rem;
+  padding: 0.28rem;
+  background: rgba(6, 10, 22, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.library-tab {
+  padding: 0.58rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.58);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  letter-spacing: 0.01em;
+}
+
+.library-tab:hover {
+  color: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.library-tab--active {
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), #09152a 62%);
+  border-color: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 40%);
+  color: #fff;
+  box-shadow: 0 0 16px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 75%);
+}
+
+/* ── Minecraft Server Page ────────────────────────────────── */
+.mc-server-page {
+  padding: 0.5rem 0 3rem;
+}
+
+.mc-server-hero {
+  text-align: center;
+  padding: 2.5rem 1.5rem 2.8rem;
+}
+
+.mc-server-title {
+  margin: 0.5rem 0 0.7rem;
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #7dff95 0%, #4fc9ff 52%, #c07bff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mc-server-tagline {
+  margin: 0 0 1.1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent-color, #58d4ff);
+  opacity: 0.82;
+}
+
+.mc-server-desc {
+  max-width: 42rem;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.78;
+  font-size: 1rem;
+}
+
+.mc-server-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+  gap: 1.2rem;
+  padding: 0 0.25rem;
+}
+
+.mc-card {
+  border-radius: 22px;
+  padding: 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(5, 9, 18, 0.74);
+  backdrop-filter: blur(14px);
+  display: grid;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.mc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.3);
+}
+
+.mc-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+.mc-card--java { border-color: rgba(249, 115, 22, 0.3); }
+.mc-card--java::before { background: radial-gradient(ellipse at top left, #f97316 0%, transparent 62%); }
+
+.mc-card--bedrock { border-color: rgba(34, 197, 94, 0.3); }
+.mc-card--bedrock::before { background: radial-gradient(ellipse at top left, #22c55e 0%, transparent 62%); }
+
+.mc-card--console { border-color: rgba(139, 92, 246, 0.3); }
+.mc-card--console::before { background: radial-gradient(ellipse at top left, #8b5cf6 0%, transparent 62%); }
+
+.mc-card__badge {
+  display: inline-block;
+  padding: 0.22rem 0.78rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  width: fit-content;
+}
+
+.mc-card--java .mc-card__badge {
+  background: rgba(249, 115, 22, 0.16);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.38);
+}
+.mc-card--bedrock .mc-card__badge {
+  background: rgba(34, 197, 94, 0.16);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.38);
+}
+.mc-card--console .mc-card__badge {
+  background: rgba(139, 92, 246, 0.16);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.38);
+}
+
+.mc-card__title { margin: 0; font-size: 1.48rem; font-weight: 700; }
+.mc-card__desc { margin: 0; color: rgba(255, 255, 255, 0.66); line-height: 1.65; font-size: 0.9rem; }
+
+.mc-address-block { display: grid; gap: 0.38rem; }
+
+.mc-address-label {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.46);
+  font-weight: 700;
+}
+
+.mc-address-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mc-address-code {
+  flex: 1;
+  min-width: 0;
+  padding: 0.58rem 0.9rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 0.9rem;
+  color: #d8f4ff;
+  word-break: break-all;
+}
+
+.mc-copy-btn {
+  padding: 0.54rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(12, 20, 42, 0.9);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mc-copy-btn:hover {
+  background: rgba(88, 212, 255, 0.12);
+  border-color: rgba(88, 212, 255, 0.4);
+  color: #58d4ff;
+}
+
+.mc-copy-btn--copied {
+  background: rgba(74, 222, 128, 0.14);
+  border-color: rgba(74, 222, 128, 0.42);
+  color: #4ade80;
+}
+
+.mc-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.68rem;
+  counter-reset: mc-step;
+}
+
+.mc-steps li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  font-size: 0.87rem;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.58;
+  counter-increment: mc-step;
+}
+
+.mc-steps li::before {
+  content: counter(mc-step);
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.22);
+  border: 1px solid rgba(139, 92, 246, 0.46);
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #a78bfa;
+  margin-top: 0.12rem;
+}
+
+.mc-steps strong { color: #fff; }
