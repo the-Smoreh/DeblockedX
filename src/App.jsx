@@ -70,20 +70,12 @@ const ACCENT_PRESETS = {
   mint: '#67f0cb',
 };
 
-const hacksItems = [
-  {
-    title: 'Bookmarklets',
-    description: 'Quick-launch tools for bypass helpers, tab cloaking, and classroom-safe shortcuts.',
-  },
-  {
-    title: 'Console Hacks',
-    description: 'Devtools snippets and browser-console tweaks collected into a dedicated hacks hub.',
-  },
-  {
-    title: 'Stealth Tools',
-    description: 'A separate staging area for privacy-focused utilities and future experiments.',
-  },
-];
+const MINECRAFT_SERVER = {
+  java: { address: '135.148.252.219', port: '25961', combined: '135.148.252.219:25961' },
+  bedrock: { address: '135.148.252.219', port: '25961' },
+};
+
+const GAMES_LIBRARY_PREF_KEY = 'deblockedx-games-library-v1';
 
 const formatBatteryLevel = (level) => `${Math.round(level * 100)}%`;
 
@@ -915,6 +907,10 @@ export default function App() {
   const [introExiting, setIntroExiting] = useState(false);
   const [activePage, setActivePage] = useState('games');
   const [activeGame, setActiveGame] = useState(null);
+  const [gamesLibrary, setGamesLibrary] = useState(() => {
+    const stored = loadStorageValue(GAMES_LIBRARY_PREF_KEY, 'main');
+    return stored === 'second' ? 'second' : 'main';
+  });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [partyPanelOpen, setPartyPanelOpen] = useState(false);
@@ -996,6 +992,10 @@ export default function App() {
   useEffect(() => {
     saveStorageValue(CLOAK_PREF_KEY, String(cloakOnStartup));
   }, [cloakOnStartup]);
+
+  useEffect(() => {
+    saveStorageValue(GAMES_LIBRARY_PREF_KEY, gamesLibrary);
+  }, [gamesLibrary]);
 
   useEffect(() => {
     saveStorageValue(ACCOUNTS_KEY, JSON.stringify(accounts));
@@ -1188,12 +1188,12 @@ export default function App() {
         links: [{ label: 'Tip: to make the Peformance Buttons in games smaller, you can Always press CTRL SHIFT MINUS/PLUS ', ariaLabel: 'Tip: to make the Peformance Buttons in games smaller, you can Always press CTRL SHIFT MINUS/PLUS', page: 'games' }],
       },
       {
-        label: 'Hacks',
-        bgColor: activePage === 'hacks' ? '#362046' : '#1a1029',
+        label: 'Minecraft',
+        bgColor: activePage === 'minecraft' ? '#1f3a23' : '#0f2014',
         textColor: '#fff',
         links: [
-          { label: 'Bookmarklets', ariaLabel: 'Open hacks page', page: 'hacks' },
-          { label: 'Console hacks', ariaLabel: 'Open hacks page', page: 'hacks' },
+          { label: 'Server Address & Ports', ariaLabel: 'Open School Minecraft Server page', page: 'minecraft' },
+          { label: 'Java + Bedrock + Console', ariaLabel: 'Open School Minecraft Server page', page: 'minecraft' },
         ],
       },
       {
@@ -1381,6 +1381,217 @@ export default function App() {
     setGlobalChat((current) => [...current, { id: crypto.randomUUID(), author: activeUser.username, text: text.trim(), createdAt: new Date().toISOString() }].slice(-200));
   };
 
+  const [copyStatus, setCopyStatus] = useState('');
+  const handleCopyServerValue = async (value, label) => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyStatus(`Copied ${label}`);
+    } catch {
+      setCopyStatus(`Could not copy ${label}`);
+    }
+    window.setTimeout(() => setCopyStatus(''), 1800);
+  };
+
+  const gamesPage = (
+    <section className="games-page games-page--compact">
+      <div className="library-switcher" role="tablist" aria-label="Choose game library">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={gamesLibrary === 'main'}
+          className={`library-switcher__tab${gamesLibrary === 'main' ? ' library-switcher__tab--active' : ''}`}
+          onClick={() => setGamesLibrary('main')}
+        >
+          <span className="library-switcher__dot" aria-hidden="true" />
+          <span className="library-switcher__label">Main games</span>
+          <span className="library-switcher__hint">Script-loaded library</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={gamesLibrary === 'second'}
+          className={`library-switcher__tab${gamesLibrary === 'second' ? ' library-switcher__tab--active' : ''}`}
+          onClick={() => setGamesLibrary('second')}
+        >
+          <span className="library-switcher__dot" aria-hidden="true" />
+          <span className="library-switcher__label">Second Set of Games</span>
+          <span className="library-switcher__hint">Curated games.json</span>
+        </button>
+        <span
+          className={`library-switcher__indicator library-switcher__indicator--${gamesLibrary}`}
+          aria-hidden="true"
+        />
+      </div>
+
+      {gamesLibrary === 'main' ? (
+        <SecondLibraryGames />
+      ) : (
+        <Masonry
+          items={filteredMasonryItems}
+          onItemClick={setActiveGame}
+          onToggleFavorite={handleToggleFavoriteGame}
+          stagger={0.05}
+          hoverScale={0.97}
+          alwaysShowTitles={settings.alwaysShowGameTitles}
+          iconShape={settings.gameIconShape}
+          iconDensity={settings.gameIconDensity}
+        />
+      )}
+    </section>
+  );
+
+  const minecraftPage = (
+    <section className="minecraft-page">
+      <div className="minecraft-page__content">
+        <div className="minecraft-page__intro">
+          <p className="eyebrow">School Minecraft Server</p>
+          <h1>Cross-play, no mods, no rules.</h1>
+          <p className="page-copy">
+            We now have a <strong>paid Minecraft server</strong> that is fully crossplay — every version
+            can join, no mods required. It's for our school, and there are no rules.
+          </p>
+          <div className="minecraft-page__badges">
+            <span className="minecraft-badge minecraft-badge--java">Java Edition</span>
+            <span className="minecraft-badge minecraft-badge--bedrock">Bedrock Edition</span>
+            <span className="minecraft-badge minecraft-badge--console">Console (via Bedrock)</span>
+            <span className="minecraft-badge minecraft-badge--rules">No rules</span>
+            <span className="minecraft-badge minecraft-badge--paid">Paid hosting</span>
+          </div>
+        </div>
+
+        <div className="minecraft-grid">
+          <article className="minecraft-card minecraft-card--java">
+            <header className="minecraft-card__header">
+              <span className="minecraft-card__chip">Java</span>
+              <h2>Java Edition</h2>
+            </header>
+            <p className="minecraft-card__copy">Open Minecraft Java, hit Multiplayer → Add Server, and paste the address below.</p>
+            <dl className="server-info">
+              <div className="server-info__row">
+                <dt>Server Address</dt>
+                <dd>
+                  <code>{MINECRAFT_SERVER.java.combined}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.java.combined, 'Java address')}
+                  >
+                    Copy
+                  </button>
+                </dd>
+              </div>
+            </dl>
+          </article>
+
+          <article className="minecraft-card minecraft-card--bedrock">
+            <header className="minecraft-card__header">
+              <span className="minecraft-card__chip">Bedrock</span>
+              <h2>Bedrock Edition</h2>
+            </header>
+            <p className="minecraft-card__copy">Open Minecraft Bedrock → Servers → Add Server, and use the address & port below.</p>
+            <dl className="server-info">
+              <div className="server-info__row">
+                <dt>Server Address</dt>
+                <dd>
+                  <code>{MINECRAFT_SERVER.bedrock.address}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Bedrock address')}
+                  >
+                    Copy
+                  </button>
+                </dd>
+              </div>
+              <div className="server-info__row">
+                <dt>Port</dt>
+                <dd>
+                  <code>{MINECRAFT_SERVER.bedrock.port}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Bedrock port')}
+                  >
+                    Copy
+                  </button>
+                </dd>
+              </div>
+            </dl>
+          </article>
+
+          <article className="minecraft-card minecraft-card--console">
+            <header className="minecraft-card__header">
+              <span className="minecraft-card__chip">Console</span>
+              <h2>Console (Xbox / PlayStation / Switch)</h2>
+            </header>
+            <p className="minecraft-card__copy">
+              On your phone, open <strong>Bedrock Together</strong> or <strong>Bedrock Connect</strong>
+              {' '}(App Store / Google Play). Enter the server address and port. Make sure your phone and your
+              console are on the same Wi-Fi. The server then appears in
+              {' '}<strong>Play → Friends → LAN Games</strong> on your console.
+            </p>
+            <dl className="server-info">
+              <div className="server-info__row">
+                <dt>Server Address</dt>
+                <dd>
+                  <code>{MINECRAFT_SERVER.bedrock.address}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Console address')}
+                  >
+                    Copy
+                  </button>
+                </dd>
+              </div>
+              <div className="server-info__row">
+                <dt>Port</dt>
+                <dd>
+                  <code>{MINECRAFT_SERVER.bedrock.port}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Console port')}
+                  >
+                    Copy
+                  </button>
+                </dd>
+              </div>
+            </dl>
+          </article>
+        </div>
+
+        <ol className="minecraft-steps" aria-label="How to join">
+          <li><span>1</span>Pick your platform card above (Java, Bedrock, or Console).</li>
+          <li><span>2</span>Copy the server address (and port for Bedrock / Console).</li>
+          <li><span>3</span>Open Minecraft, add the server, and click Join.</li>
+        </ol>
+
+        {copyStatus && <p className="minecraft-page__toast" role="status">{copyStatus}</p>}
+      </div>
+    </section>
+  );
+
+  const activeNavCardItems = (
+    <CardNav
+      title="deblocked"
+      items={navItems}
+      activePage={activePage}
+      onNavigate={setActivePage}
+      showCompactSearch={activePage === 'games' && gamesLibrary === 'second'}
+      searchQuery={searchQuery}
+      onSearchChange={setSearchQuery}
+      searchResultCount={totalGameAmount}
+      onOpenSettings={() => setSettingsOpen(true)}
+      onOpenAuth={() => setAuthOpen(true)}
+      onOpenParties={() => setPartyPanelOpen(true)}
+      user={activeUser}
+      baseColor="var(--nav-surface)"
+      menuColor="#ffffff"
+      ease="power3.out"
+    />
+  );
 
   return (
     <main
@@ -1427,114 +1638,14 @@ export default function App() {
           {isAnimationEnabled ? (
             <ClickSpark sparkColor="#fff" sparkSize={7} sparkRadius={30} sparkCount={8} duration={400}>
               <section className="page-shell">
-                <CardNav
-                  title="deblocked"
-                  items={navItems}
-                  activePage={activePage}
-                  onNavigate={setActivePage}
-                  showCompactSearch={activePage === 'games'}
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  searchResultCount={totalGameAmount}
-                  onOpenSettings={() => setSettingsOpen(true)}
-                  onOpenAuth={() => setAuthOpen(true)}
-                  onOpenParties={() => setPartyPanelOpen(true)}
-                  user={activeUser}
-                  baseColor="var(--nav-surface)"
-                  menuColor="#ffffff"
-                  ease="power3.out"
-                />
-
-                {activePage === 'games' ? (
-                  <section className="games-page games-page--compact">
-                    <Masonry
-                      items={filteredMasonryItems}
-                      onItemClick={setActiveGame}
-                      onToggleFavorite={handleToggleFavoriteGame}
-                      stagger={0.05}
-                      hoverScale={0.97}
-                      alwaysShowTitles={settings.alwaysShowGameTitles}
-                      iconShape={settings.gameIconShape}
-                      iconDensity={settings.gameIconDensity}
-                    />
-                    <SecondLibraryGames />
-                  </section>
-                ) : (
-                  <section className="hacks-page">
-                    <div className="hacks-page__content">
-                      <div className="games-page__intro hacks-page__intro">
-                        <p className="eyebrow">Hacks Page</p>
-                        <h1>Separate hacks staging area.</h1>
-                        <p className="page-copy">Bookmarklets, console hacks, and stealth tools now have their own dedicated page instead of sharing the games screen.</p>
-                      </div>
-                      <div className="hacks-grid">
-                        {hacksItems.map((item) => (
-                          <article key={item.title} className="hacks-card">
-                            <p className="eyebrow">Toolset</p>
-                            <h2>{item.title}</h2>
-                            <p>{item.description}</p>
-                          </article>
-                        ))}
-                      </div>
-                    </div>
-                  </section>
-                )}
+                {activeNavCardItems}
+                {activePage === 'games' ? gamesPage : minecraftPage}
               </section>
             </ClickSpark>
           ) : (
             <section className="page-shell">
-              <CardNav
-                title="deblocked"
-                items={navItems}
-                activePage={activePage}
-                onNavigate={setActivePage}
-                showCompactSearch={activePage === 'games'}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                searchResultCount={totalGameAmount}
-                onOpenSettings={() => setSettingsOpen(true)}
-                onOpenAuth={() => setAuthOpen(true)}
-                onOpenParties={() => setPartyPanelOpen(true)}
-                user={activeUser}
-                baseColor="var(--nav-surface)"
-                menuColor="#ffffff"
-                ease="power3.out"
-              />
-
-              {activePage === 'games' ? (
-                <section className="games-page games-page--compact">
-                  <Masonry
-                    items={filteredMasonryItems}
-                    onItemClick={setActiveGame}
-                    onToggleFavorite={handleToggleFavoriteGame}
-                    stagger={0.05}
-                    hoverScale={0.97}
-                    alwaysShowTitles={settings.alwaysShowGameTitles}
-                    iconShape={settings.gameIconShape}
-                    iconDensity={settings.gameIconDensity}
-                  />
-                  <SecondLibraryGames />
-                </section>
-              ) : (
-                <section className="hacks-page">
-                  <div className="hacks-page__content">
-                    <div className="games-page__intro hacks-page__intro">
-                      <p className="eyebrow">Hacks Page</p>
-                      <h1>Separate hacks staging area.</h1>
-                      <p className="page-copy">Bookmarklets, console hacks, and stealth tools now have their own dedicated page instead of sharing the games screen.</p>
-                    </div>
-                    <div className="hacks-grid">
-                      {hacksItems.map((item) => (
-                        <article key={item.title} className="hacks-card">
-                          <p className="eyebrow">Toolset</p>
-                          <h2>{item.title}</h2>
-                          <p>{item.description}</p>
-                        </article>
-                      ))}
-                    </div>
-                  </div>
-                  </section>
-                )}
+              {activeNavCardItems}
+              {activePage === 'games' ? gamesPage : minecraftPage}
             </section>
           )}
         </section>
@@ -1549,7 +1660,7 @@ export default function App() {
 
           <div className="intro-content">
             <h1 className="hero-title">DEBLOCKED</h1>
-            <p className="intro-subtitle"> 1452 Games(7000 Soon), Proxies, Hacks.</p>
+            <p className="intro-subtitle"> 1452 Games(7000 Soon) · Proxies · School Minecraft Server.</p>
             <button type="button" className="intro-play-button" onClick={handlePlayIntro}>
               Play
             </button>
