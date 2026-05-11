@@ -1,6 +1,6 @@
 {
-  "version": 1,
+  "version": 2,
   "title": "Announcements",
   "updatedAt": "2026-05-01T00:00:00Z",
-  "message": "Welcome to DeblockedX!\n\nThis is the announcements panel. Edit announcements.json in the project root to push a new note to everyone. You'll see new announcements automatically about an hour after they go out, and you can always reopen this panel from the top bar."
+  "message": "Welcome to DeblockedX\n\n• Made a Public Paid Crossplay Minecraft Server\n• speed stars not working, fixing tomorrow\n• bringing back monkeygg2"
 }
