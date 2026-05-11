@@ -308,11 +308,7 @@ function SecondLibraryGames() {
   }, []);
 
   return (
-    <section className="second-library" aria-label="Second Library of Games">
-      <div className="games-page__intro games-page__intro--compact">
-        <p className="eyebrow">Second Library of Games</p>
-        <h2>Second Library of Games</h2>
-      </div>
+    <section className="second-library" aria-label="Main games library">
       <div ref={containerRef} className="second-library__embed" />
       {embedError && <p className="second-library__error">{embedError}</p>}
     </section>
