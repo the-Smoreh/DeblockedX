@@ -111,10 +111,13 @@ const CardNav = ({
         <div className="card-nav-content" aria-hidden={!isExpanded}>
           {(items || []).slice(0, 3).map((item, index) => {
             const defaultPage = item.links?.[0]?.page;
+            const isActive = defaultPage
+              ? activePage === defaultPage
+              : activePage === item.label.toLowerCase();
             return (
               <div
                 key={`${item.label}-${index}`}
-                className={`nav-card ${activePage === item.label.toLowerCase() ? 'nav-card--active' : ''}`}
+                className={`nav-card ${isActive ? 'nav-card--active' : ''}`}
                 style={{ backgroundColor: item.bgColor, color: item.textColor, transitionDelay: `${index * 80}ms` }}
                 role="button"
                 tabIndex={0}

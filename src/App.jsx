@@ -753,19 +753,13 @@ export default function App() {
         links: [{ label: 'Tip: to make the Peformance Buttons in games smaller, you can Always press CTRL SHIFT MINUS/PLUS ', ariaLabel: 'Tip: to make the Peformance Buttons in games smaller, you can Always press CTRL SHIFT MINUS/PLUS', page: 'games' }],
       },
       {
-        label: 'Minecraft',
+        label: 'Minecraft Server',
         bgColor: activePage === 'minecraft' ? '#1d2a26' : '#161e1c',
         textColor: '#fff',
         links: [
           { label: 'Server Address & Ports', ariaLabel: 'Open School Minecraft Server page', page: 'minecraft' },
           { label: 'Java + Bedrock + Console', ariaLabel: 'Open School Minecraft Server page', page: 'minecraft' },
         ],
-      },
-      {
-        label: 'Proxies',
-        bgColor: '#202838',
-        textColor: '#fff',
-        links: [{ label: 'See everything', ariaLabel: 'See every proxy', page: 'games' }],
       },
     ],
     [activePage],
@@ -948,7 +942,7 @@ export default function App() {
       <div className="minecraft-page__content">
         <header className="minecraft-page__intro">
           <h1>School Minecraft Server</h1>
-          <p className="minecraft-page__sub">Paid · Crossplay · All versions · No mods · No rules.</p>
+          <p className="minecraft-page__sub">Paid · Crossplay · All versions · No mods.</p>
         </header>
 
         <div className="minecraft-section">
