@@ -2,34 +2,24 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import CardNav from './CardNav';
 import ClickSpark from './ClickSpark';
 import Masonry from './Masonry';
-import RippleGrid from './RippleGrid';
 import gamesData from '../games.json';
 import secretData from '../secret.json';
+import announcementsData from '../announcements.json';
 
-const INTRO_DURATION_MS = 3200;
-const INTRO_FADE_MS = 700;
 const CLOAK_PREF_KEY = 'deblockedx-cloak-on-startup';
 const CLOAK_SESSION_KEY = 'deblockedx-cloak-session-done';
 const SETTINGS_PREF_KEY = 'deblockedx-settings-v2';
 const UNLOCKED_SECRET_KEY = 'deblockedx-secret-unlocked-v1';
 const CLICK_SOUND_KEY = 'deblockedx-click-sound';
-const INTRO_SOUND_KEY = 'deblockedx-intro-sound';
 const FAVORITE_GAMES_KEY = 'deblockedx-favorite-games-v1';
 const CUSTOM_THEME_IMAGE_KEY = 'deblockedx-custom-theme-image-v1';
 const BACKGROUND_AUDIO_KEY = 'deblockedx-background-audio-v1';
-const ACCOUNTS_KEY = 'deblockedx-accounts-v1';
-const ACTIVE_ACCOUNT_KEY = 'deblockedx-active-account-v1';
-const PARTIES_KEY = 'deblockedx-parties-v1';
-const GLOBAL_CHAT_KEY = 'deblockedx-global-chat-v1';
-const PLAYER_STATUS_KEY = 'deblockedx-player-status-v1';
-const MULTIPLAYER_THING_KEY = 'deblockedx-parties-global-v3';
+const ANNOUNCEMENT_SEEN_KEY = 'deblockedx-announcement-seen-v1';
+const ANNOUNCEMENT_DELAY_MS = 60 * 60 * 1000;
 
 const DEFAULT_SETTINGS = {
-  introDurationSec: 3.2,
-  enableIntro: true,
   enableAnimations: true,
   enableClickSound: false,
-  enableIntroSound: false,
   performanceMode: true,
   themePreset: 'midnight',
   accentPreset: 'cyan',
@@ -117,113 +107,6 @@ const readJsonStorage = (key, fallback) => {
     return fallback;
   }
 };
-
-const readArrayStorage = (key) => {
-  const parsed = readJsonStorage(key, []);
-  return Array.isArray(parsed) ? parsed : [];
-};
-
-const readObjectStorage = (key) => {
-  const parsed = readJsonStorage(key, {});
-  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
-};
-
-const LOCAL_MULTIPLAYER_SOURCE = typeof crypto !== 'undefined' && crypto.randomUUID
-  ? crypto.randomUUID()
-  : Math.random().toString(36).slice(2);
-
-const readRemoteMultiplayerSnapshot = async () => {
-  const response = await fetch(`https://dweet.io/get/latest/dweet/for/${MULTIPLAYER_THING_KEY}`, { cache: 'no-store' });
-  if (!response.ok) throw new Error('Could not fetch multiplayer snapshot.');
-  const payload = await response.json();
-  const latest = payload?.with?.[0]?.content;
-  if (!latest || typeof latest !== 'object') return null;
-  return latest;
-};
-
-const writeRemoteMultiplayerSnapshot = async (snapshot) => {
-  await fetch(`https://dweet.io/dweet/for/${MULTIPLAYER_THING_KEY}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(snapshot),
-  });
-};
-
-const mergeAccounts = (localAccounts, remoteAccounts) => {
-  const merged = new Map();
-  [...(Array.isArray(localAccounts) ? localAccounts : []), ...(Array.isArray(remoteAccounts) ? remoteAccounts : [])]
-    .forEach((account) => {
-      if (!account || typeof account.username !== 'string') return;
-      const key = account.username.toLowerCase();
-      if (!merged.has(key)) {
-        merged.set(key, {
-          username: account.username,
-          password: account.password || '',
-          avatar: account.avatar || makeRandomAvatar(account.username),
-        });
-      }
-    });
-  return Array.from(merged.values());
-};
-
-const mergeMessages = (currentMessages, incomingMessages) => {
-  const mapped = new Map();
-  [...(Array.isArray(currentMessages) ? currentMessages : []), ...(Array.isArray(incomingMessages) ? incomingMessages : [])]
-    .forEach((message) => {
-      if (!message?.id) return;
-      mapped.set(message.id, message);
-    });
-  return Array.from(mapped.values())
-    .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
-    .slice(-300);
-};
-
-const mergeParties = (localParties, remoteParties) => {
-  const merged = new Map();
-  [...(Array.isArray(localParties) ? localParties : []), ...(Array.isArray(remoteParties) ? remoteParties : [])]
-    .forEach((party) => {
-      if (!party?.id) return;
-      const existing = merged.get(party.id);
-      if (!existing) {
-        merged.set(party.id, {
-          ...party,
-          members: Array.from(new Set(Array.isArray(party.members) ? party.members : [])),
-          messages: Array.isArray(party.messages) ? party.messages : [],
-        });
-        return;
-      }
-      merged.set(party.id, {
-        ...existing,
-        ...party,
-        members: Array.from(new Set([...(existing.members || []), ...((Array.isArray(party.members) ? party.members : []))])),
-        messages: mergeMessages(existing.messages, party.messages),
-      });
-    });
-  return Array.from(merged.values())
-    .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
-};
-
-const makeRandomAvatar = (seed = Math.random().toString(36).slice(2)) => {
-  const palette = ['#5eead4', '#7dd3fc', '#a5b4fc', '#f9a8d4', '#fde68a', '#86efac'];
-  const colorA = palette[Math.floor(Math.random() * palette.length)];
-  const colorB = palette[Math.floor(Math.random() * palette.length)];
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-      <defs>
-        <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="${colorA}" />
-          <stop offset="100%" stop-color="${colorB}" />
-        </linearGradient>
-      </defs>
-      <rect width="100" height="100" fill="url(#g)" rx="50" />
-      <text x="50" y="58" fill="#04101f" font-size="38" text-anchor="middle" font-family="Inter, Arial" font-weight="700">${seed.slice(0, 1).toUpperCase()}</text>
-    </svg>
-  `;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-};
-
 
 function SecondLibraryGames() {
   const containerRef = useRef(null);
@@ -616,255 +499,60 @@ function GameOverlay({ game, onClose }) {
   );
 }
 
-function AuthModal({
-  accounts,
-  activeUser,
-  onClose,
-  onLogin,
-  onCreateAccount,
-  onLogout,
-}) {
-  const [mode, setMode] = useState('login');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [avatar, setAvatar] = useState('');
-  const [status, setStatus] = useState('');
-
-  const handleAvatarUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-    if (typeof dataUrl === 'string') setAvatar(dataUrl);
-  };
-
-  return (
-    <div className="auth-modal" role="dialog" aria-modal="true" aria-label="Account">
-      <div className="auth-modal__panel">
-        <header className="auth-modal__header">
-          <h2>{activeUser ? 'Account' : 'Log in / Create account'}</h2>
-          <button type="button" onClick={onClose}>×</button>
-        </header>
-        {activeUser && (
-          <div className="auth-active">
-            <img src={activeUser.avatar} alt={`${activeUser.username} avatar`} />
-            <div>
-              <strong>{activeUser.username}</strong>
-              <p>You are currently signed in.</p>
-            </div>
-            <button type="button" className="settings-chip settings-chip--cta" onClick={onLogout}>Log out</button>
-          </div>
-        )}
-        {!activeUser && (
-          <>
-            <div className="settings-chip-row">
-              <button type="button" className={`settings-chip${mode === 'login' ? ' settings-chip--active' : ''}`} onClick={() => setMode('login')}>Log in</button>
-              <button type="button" className={`settings-chip${mode === 'create' ? ' settings-chip--active' : ''}`} onClick={() => setMode('create')}>Create</button>
-            </div>
-            <label className="settings-upload">
-              <span>Username</span>
-              <input value={username} onChange={(event) => setUsername(event.target.value)} type="text" />
-            </label>
-            <label className="settings-upload">
-              <span>Password</span>
-              <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" />
-            </label>
-            {mode === 'create' && (
-              <label className="settings-upload">
-                <span>Optional profile picture</span>
-                <input type="file" accept="image/*" onChange={handleAvatarUpload} />
-              </label>
-            )}
-            <button
-              type="button"
-              className="settings-chip settings-chip--active"
-              onClick={() => {
-                const cleanUser = username.trim();
-                if (!cleanUser || !password.trim()) {
-                  setStatus('Please fill username + password.');
-                  return;
-                }
-                if (mode === 'create') {
-                  const result = onCreateAccount(cleanUser, password, avatar);
-                  setStatus(result);
-                } else {
-                  const result = onLogin(cleanUser, password);
-                  setStatus(result);
-                }
-              }}
-            >
-              {mode === 'create' ? 'Create account' : 'Log in'}
-            </button>
-            {!!accounts.length && <p className="settings-copy">Existing users: {accounts.map((account) => account.username).join(', ')}</p>}
-            {status && <p className="settings-copy">{status}</p>}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function PartyPanel({
-  user,
-  parties,
-  activeGameTitle,
-  globalChat,
-  statuses,
-  onClose,
-  onCreateParty,
-  onJoinParty,
-  onSendPartyMessage,
-  onSendGlobalMessage,
-}) {
-  const [x, setX] = useState(30);
-  const [y, setY] = useState(100);
-  const [dragging, setDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [minimized, setMinimized] = useState(false);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [privateParty, setPrivateParty] = useState(true);
-  const [partyCode, setPartyCode] = useState('');
-  const [selectedNames, setSelectedNames] = useState('');
-  const [partyMessage, setPartyMessage] = useState('');
-  const [globalMessage, setGlobalMessage] = useState('');
-  const [selectedPartyId, setSelectedPartyId] = useState('');
-  const [view, setView] = useState('parties');
-  const serverTime = new Date().toUTCString();
-  const selectedParty = parties.find((party) => party.id === selectedPartyId) ?? null;
-  const myPartyCount = parties.filter((party) => party.members.includes(user.username)).length;
-
+function AnnouncementsModal({ announcement, onClose }) {
   useEffect(() => {
-    const handleMove = (event) => {
-      if (!dragging) return;
-      setX(event.clientX - dragOffset.x);
-      setY(event.clientY - dragOffset.y);
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
     };
-    const handleUp = () => setDragging(false);
-    window.addEventListener('mousemove', handleMove);
-    window.addEventListener('mouseup', handleUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('mouseup', handleUp);
-    };
-  }, [dragOffset.x, dragOffset.y, dragging]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const title = announcement?.title || 'Announcements';
+  const message = typeof announcement?.message === 'string'
+    ? announcement.message
+    : 'No announcement available right now.';
+  const updatedAt = announcement?.updatedAt ? new Date(announcement.updatedAt) : null;
+  const updatedLabel = updatedAt && !Number.isNaN(updatedAt.getTime())
+    ? updatedAt.toLocaleString()
+    : '';
 
   return (
-    <div className="party-panel" style={{ left: x, top: y }}>
-      <div
-        className="party-panel__bar"
-        onMouseDown={(event) => {
-          setDragging(true);
-          setDragOffset({ x: event.clientX - x, y: event.clientY - y });
-        }}
-      >
-        <strong>Parties · {user.username}</strong>
-        <span className="party-panel__time">Server Time (UTC): {serverTime}</span>
-        <div>
-          <button type="button" onClick={() => setMinimized((current) => !current)}>{minimized ? 'Restore' : 'Minimize'}</button>
-          <button type="button" onClick={onClose}>Close</button>
+    <div
+      className="announcements-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="announcements-modal-title"
+      onClick={onClose}
+    >
+      <div className="announcements-modal__panel" onClick={(event) => event.stopPropagation()}>
+        <header className="announcements-modal__header">
+          <div>
+            <span className="announcements-modal__eyebrow">DeblockedX</span>
+            <h2 id="announcements-modal-title">{title}</h2>
+          </div>
+          <button
+            type="button"
+            className="announcements-modal__close"
+            onClick={onClose}
+            aria-label="Close announcements"
+          >
+            ×
+          </button>
+        </header>
+        <div className="announcements-modal__body">
+          {message.split('\n').map((line, index) => (
+            line.trim()
+              ? <p key={index}>{line}</p>
+              : <span key={index} className="announcements-modal__spacer" aria-hidden="true" />
+          ))}
         </div>
+        {updatedLabel && (
+          <footer className="announcements-modal__footer">
+            <span>Updated {updatedLabel}</span>
+          </footer>
+        )}
       </div>
-      {!minimized && (
-        <div className="party-panel__body">
-          <div className="party-panel__stats">
-            <article>
-              <strong>{parties.length}</strong>
-              <span>Active parties</span>
-            </article>
-            <article>
-              <strong>{myPartyCount}</strong>
-              <span>Your groups</span>
-            </article>
-            <article>
-              <strong>{globalChat.length}</strong>
-              <span>Global messages</span>
-            </article>
-          </div>
-          <div className="settings-chip-row party-panel__nav">
-            <button type="button" className={`settings-chip${view === 'parties' ? ' settings-chip--active' : ''}`} onClick={() => setView('parties')}>Parties</button>
-            <button type="button" className={`settings-chip${view === 'global' ? ' settings-chip--active' : ''}`} onClick={() => setView('global')}>Global Chat</button>
-          </div>
-
-          {view === 'parties' && (
-            <>
-              <p className="settings-copy">Now playing: <strong>{activeGameTitle || 'Browsing menus'}</strong></p>
-              <button type="button" className="settings-chip settings-chip--active" onClick={() => setIsCreateOpen((current) => !current)}>Create a party</button>
-              {isCreateOpen && (
-                <div className="party-create">
-                  <label>Add usernames (comma separated)</label>
-                  <input value={selectedNames} onChange={(event) => setSelectedNames(event.target.value)} placeholder="friend1, friend2" />
-                  <SettingsToggle id="private-party-toggle" checked={privateParty} onChange={(event) => setPrivateParty(event.target.checked)}>Private party</SettingsToggle>
-                  {privateParty && <input value={partyCode} onChange={(event) => setPartyCode(event.target.value)} placeholder="Party code" />}
-                  <button
-                    type="button"
-                    className="settings-chip settings-chip--active"
-                    onClick={() => {
-                      const names = selectedNames.split(',').map((name) => name.trim()).filter(Boolean);
-                      onCreateParty({ names, privateParty, partyCode });
-                      setIsCreateOpen(false);
-                      setSelectedNames('');
-                      setPartyCode('');
-                    }}
-                  >
-                    Confirm
-                  </button>
-                </div>
-              )}
-
-              <div className="party-list">
-                {parties.map((party) => (
-                  <article key={party.id} className={`party-item${selectedPartyId === party.id ? ' party-item--active' : ''}`}>
-                    <button type="button" onClick={() => setSelectedPartyId(party.id)}>
-                      {party.isPrivate ? '🔒 Private' : '🌍 Public'} · {party.members.length} players
-                    </button>
-                    <small className="settings-copy">Created {new Date(party.createdAt || Date.now()).toLocaleString()}</small>
-                    <div className="party-avatars">
-                      {party.members.map((name) => (
-                        <span key={name} className="party-avatar-badge" title={name}>{name.slice(0, 1).toUpperCase()}</span>
-                      ))}
-                    </div>
-                    {!party.members.includes(user.username) && (
-                      <button type="button" onClick={() => onJoinParty(party.id, prompt('Enter party code if needed') || '')}>Join</button>
-                    )}
-                  </article>
-                ))}
-              </div>
-
-              {selectedParty && (
-                <div className="party-chat">
-                  <h4>Party chat</h4>
-                  <div className="party-chat__messages">
-                    {(selectedParty.messages || []).map((message) => (
-                      <p key={message.id}><strong>{message.author}:</strong> {message.text}</p>
-                    ))}
-                  </div>
-                  <input value={partyMessage} onChange={(event) => setPartyMessage(event.target.value)} placeholder="Type party message..." />
-                  <button type="button" onClick={() => { onSendPartyMessage(selectedParty.id, partyMessage); setPartyMessage(''); }}>Send</button>
-                </div>
-              )}
-              <div className="party-status">
-                <h4>Friends activity</h4>
-                {Object.entries(statuses).map(([name, status]) => <p key={name}>{name}: {status}</p>)}
-              </div>
-            </>
-          )}
-
-          {view === 'global' && (
-            <div className="party-chat">
-              <h4>Global chat</h4>
-              <div className="party-chat__messages">
-                {globalChat.map((message) => <p key={message.id}><strong>{message.author}:</strong> {message.text}</p>)}
-              </div>
-              <input value={globalMessage} onChange={(event) => setGlobalMessage(event.target.value)} placeholder="Type global message..." />
-              <button type="button" onClick={() => { onSendGlobalMessage(globalMessage); setGlobalMessage(''); }}>Send</button>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -883,7 +571,6 @@ export default function App() {
     }
   });
   const [clickSoundDataUrl, setClickSoundDataUrl] = useState(() => loadStorageValue(CLICK_SOUND_KEY, ''));
-  const [introSoundDataUrl, setIntroSoundDataUrl] = useState(() => loadStorageValue(INTRO_SOUND_KEY, ''));
   const [customThemeImage, setCustomThemeImage] = useState(() => loadStorageValue(CUSTOM_THEME_IMAGE_KEY, ''));
   const [backgroundAudioDataUrl, setBackgroundAudioDataUrl] = useState(() => loadStorageValue(BACKGROUND_AUDIO_KEY, ''));
   const [secretUnlocked, setSecretUnlocked] = useState(() => loadStorageValue(UNLOCKED_SECRET_KEY, '') === '1');
@@ -899,8 +586,6 @@ export default function App() {
   });
   const [codeInput, setCodeInput] = useState('');
   const [codeStatus, setCodeStatus] = useState('');
-  const [showIntro, setShowIntro] = useState(true);
-  const [introExiting, setIntroExiting] = useState(false);
   const [activePage, setActivePage] = useState('games');
   const [activeGame, setActiveGame] = useState(null);
   const [gamesLibrary, setGamesLibrary] = useState(() => {
@@ -908,8 +593,7 @@ export default function App() {
     return stored === 'second' ? 'second' : 'main';
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [partyPanelOpen, setPartyPanelOpen] = useState(false);
+  const [announcementsOpen, setAnnouncementsOpen] = useState(false);
   const [activeSettingsSection, setActiveSettingsSection] = useState('appearance');
   const [searchQuery, setSearchQuery] = useState('');
   const [lastSettingsChangeAt, setLastSettingsChangeAt] = useState(Date.now());
@@ -917,44 +601,32 @@ export default function App() {
     const stored = loadStorageValue(CLOAK_PREF_KEY, '');
     return stored === '' ? true : stored === 'true';
   });
-  const [accounts, setAccounts] = useState(() => readArrayStorage(ACCOUNTS_KEY));
-  const [activeUsername, setActiveUsername] = useState(() => loadStorageValue(ACTIVE_ACCOUNT_KEY, ''));
-  const [parties, setParties] = useState(() => readArrayStorage(PARTIES_KEY));
-  const [globalChat, setGlobalChat] = useState(() => readArrayStorage(GLOBAL_CHAT_KEY));
-  const [playerStatuses, setPlayerStatuses] = useState(() => readObjectStorage(PLAYER_STATUS_KEY));
-  const [multiplayerReady, setMultiplayerReady] = useState(false);
   const clickAudioRef = useRef(null);
-  const introAudioRef = useRef(null);
   const backgroundAudioRef = useRef(null);
-  const introDismissTimeoutRef = useRef(null);
-  const isApplyingRemoteStateRef = useRef(false);
-  const lastRemoteUpdateAtRef = useRef(0);
-  const activeUser = accounts.find((account) => account.username === activeUsername) ?? null;
 
-  const handlePlayIntro = () => {
-    if (!showIntro) return;
-    setIntroExiting(true);
-    if (introDismissTimeoutRef.current) clearTimeout(introDismissTimeoutRef.current);
-    introDismissTimeoutRef.current = setTimeout(() => {
-      setShowIntro(false);
-      setIntroExiting(false);
-      introDismissTimeoutRef.current = null;
-    }, INTRO_FADE_MS);
-  };
+  const announcement = useMemo(() => {
+    if (!announcementsData || typeof announcementsData !== 'object') return null;
+    return announcementsData;
+  }, []);
+
+  const announcementVersion = announcement?.updatedAt
+    || (announcement?.version != null ? `v${announcement.version}` : '');
 
   useEffect(() => {
-    if (!settings.enableIntro || settings.performanceMode) {
-      setShowIntro(false);
-      setIntroExiting(false);
-      return;
-    }
-    setShowIntro(true);
-    setIntroExiting(false);
-  }, [settings.enableIntro, settings.performanceMode]);
+    if (!announcement) return;
+    if (!announcementVersion) return;
 
-  useEffect(() => () => {
-    if (introDismissTimeoutRef.current) clearTimeout(introDismissTimeoutRef.current);
-  }, []);
+    const lastSeen = loadStorageValue(ANNOUNCEMENT_SEEN_KEY, '');
+    if (lastSeen === announcementVersion) return;
+
+    const publishedAt = announcement.updatedAt
+      ? new Date(announcement.updatedAt).getTime()
+      : 0;
+    if (publishedAt && Date.now() < publishedAt + ANNOUNCEMENT_DELAY_MS) return;
+
+    setAnnouncementsOpen(true);
+    saveStorageValue(ANNOUNCEMENT_SEEN_KEY, announcementVersion);
+  }, [announcement, announcementVersion]);
 
   useEffect(() => {
     saveStorageValue(SETTINGS_PREF_KEY, JSON.stringify(settings));
@@ -963,10 +635,6 @@ export default function App() {
   useEffect(() => {
     saveStorageValue(CLICK_SOUND_KEY, clickSoundDataUrl);
   }, [clickSoundDataUrl]);
-
-  useEffect(() => {
-    saveStorageValue(INTRO_SOUND_KEY, introSoundDataUrl);
-  }, [introSoundDataUrl]);
 
   useEffect(() => {
     saveStorageValue(CUSTOM_THEME_IMAGE_KEY, customThemeImage);
@@ -992,93 +660,6 @@ export default function App() {
   useEffect(() => {
     saveStorageValue(GAMES_LIBRARY_PREF_KEY, gamesLibrary);
   }, [gamesLibrary]);
-
-  useEffect(() => {
-    saveStorageValue(ACCOUNTS_KEY, JSON.stringify(accounts));
-  }, [accounts]);
-
-  useEffect(() => {
-    saveStorageValue(ACTIVE_ACCOUNT_KEY, activeUsername);
-  }, [activeUsername]);
-
-  useEffect(() => {
-    saveStorageValue(PARTIES_KEY, JSON.stringify(parties));
-  }, [parties]);
-
-  useEffect(() => {
-    saveStorageValue(GLOBAL_CHAT_KEY, JSON.stringify(globalChat));
-  }, [globalChat]);
-
-  useEffect(() => {
-    saveStorageValue(PLAYER_STATUS_KEY, JSON.stringify(playerStatuses));
-  }, [playerStatuses]);
-
-  useEffect(() => {
-    const handleStorageSync = () => {
-      setAccounts(readArrayStorage(ACCOUNTS_KEY));
-      setParties(readArrayStorage(PARTIES_KEY));
-      setGlobalChat(readArrayStorage(GLOBAL_CHAT_KEY));
-      setPlayerStatuses(readObjectStorage(PLAYER_STATUS_KEY));
-      setActiveUsername(loadStorageValue(ACTIVE_ACCOUNT_KEY, ''));
-    };
-    window.addEventListener('storage', handleStorageSync);
-    return () => window.removeEventListener('storage', handleStorageSync);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const pullSnapshot = async () => {
-      try {
-        const remoteSnapshot = await readRemoteMultiplayerSnapshot();
-        if (!remoteSnapshot || cancelled) return;
-        const updatedAt = Number(remoteSnapshot.updatedAt || 0);
-        if (updatedAt <= lastRemoteUpdateAtRef.current) return;
-        lastRemoteUpdateAtRef.current = updatedAt;
-        isApplyingRemoteStateRef.current = true;
-        setAccounts((current) => mergeAccounts(current, remoteSnapshot.accounts));
-        setParties((current) => mergeParties(current, remoteSnapshot.parties));
-        setGlobalChat((current) => mergeMessages(current, remoteSnapshot.globalChat));
-        setPlayerStatuses((current) => ({
-          ...current,
-          ...(remoteSnapshot.playerStatuses && typeof remoteSnapshot.playerStatuses === 'object' ? remoteSnapshot.playerStatuses : {}),
-        }));
-      } catch {
-        // Network failures should not break local multiplayer fallback.
-      } finally {
-        isApplyingRemoteStateRef.current = false;
-        if (!cancelled) setMultiplayerReady(true);
-      }
-    };
-
-    pullSnapshot();
-    const intervalId = window.setInterval(pullSnapshot, 5000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!multiplayerReady || isApplyingRemoteStateRef.current) return;
-
-    const timeoutId = window.setTimeout(() => {
-      const snapshot = {
-        source: LOCAL_MULTIPLAYER_SOURCE,
-        updatedAt: Date.now(),
-        accounts,
-        parties,
-        globalChat,
-        playerStatuses,
-      };
-      lastRemoteUpdateAtRef.current = snapshot.updatedAt;
-      writeRemoteMultiplayerSnapshot(snapshot).catch(() => {
-        // Local storage remains source of truth if remote sync fails.
-      });
-    }, 250);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [accounts, globalChat, multiplayerReady, parties, playerStatuses]);
 
   useEffect(() => {
     if (!cloakOnStartup) return;
@@ -1113,12 +694,6 @@ export default function App() {
   }, [settings.enableClickSound, clickSoundDataUrl]);
 
   useEffect(() => {
-    if (!showIntro || !settings.enableIntroSound || !introAudioRef.current) return;
-    introAudioRef.current.currentTime = 0;
-    introAudioRef.current.play().catch(() => {});
-  }, [settings.enableIntroSound, showIntro, introSoundDataUrl]);
-
-  useEffect(() => {
     const audio = backgroundAudioRef.current;
     if (!audio || !backgroundAudioDataUrl) return;
     if (!settings.enableBackgroundAudio) {
@@ -1129,12 +704,6 @@ export default function App() {
     audio.loop = true;
     audio.play().catch(() => {});
   }, [backgroundAudioDataUrl, settings.enableBackgroundAudio]);
-
-  useEffect(() => {
-    if (!activeUser) return;
-    const status = activeGame?.title ? `Playing ${activeGame.title}` : 'Browsing DeblockedX';
-    setPlayerStatuses((current) => ({ ...current, [activeUser.username]: status }));
-  }, [activeGame?.title, activeUser]);
 
   const masonryItems = useMemo(
     () => {
@@ -1185,7 +754,7 @@ export default function App() {
       },
       {
         label: 'Minecraft',
-        bgColor: activePage === 'minecraft' ? '#1f3a23' : '#0f2014',
+        bgColor: activePage === 'minecraft' ? '#1d2a26' : '#161e1c',
         textColor: '#fff',
         links: [
           { label: 'Server Address & Ports', ariaLabel: 'Open School Minecraft Server page', page: 'minecraft' },
@@ -1257,7 +826,6 @@ export default function App() {
 
     if (typeof dataUrl !== 'string') return;
     if (target === 'click') setClickSoundDataUrl(dataUrl);
-    if (target === 'intro') setIntroSoundDataUrl(dataUrl);
     if (target === 'background') setBackgroundAudioDataUrl(dataUrl);
     setLastSettingsChangeAt(Date.now());
     event.target.value = '';
@@ -1313,68 +881,6 @@ export default function App() {
     }
 
     setCodeStatus('❌ Invalid code.');
-  };
-
-  const handleCreateAccount = (username, password, avatar) => {
-    const exists = accounts.some((account) => account.username.toLowerCase() === username.toLowerCase());
-    if (exists) return 'Username already exists.';
-    const createdAccount = {
-      username,
-      password,
-      avatar: avatar || makeRandomAvatar(username),
-    };
-    setAccounts((current) => [...current, createdAccount]);
-    setActiveUsername(username);
-    return 'Account created and logged in.';
-  };
-
-  const handleLogin = (username, password) => {
-    const matched = accounts.find((account) => account.username === username && account.password === password);
-    if (!matched) return 'Invalid username/password.';
-    setActiveUsername(username);
-    return `Welcome back, ${username}.`;
-  };
-
-  const handleCreateParty = ({ names, privateParty, partyCode }) => {
-    if (!activeUser) return;
-    const validMembers = names.filter((name) => accounts.some((account) => account.username === name));
-    const memberSet = new Set([activeUser.username, ...validMembers]);
-    const created = {
-      id: crypto.randomUUID(),
-      isPrivate: privateParty,
-      code: privateParty ? partyCode.trim() : '',
-      members: Array.from(memberSet),
-      createdAt: new Date().toISOString(),
-      messages: [],
-    };
-    setParties((current) => [created, ...current]);
-  };
-
-  const handleJoinParty = (partyId, code) => {
-    if (!activeUser) return;
-    setParties((current) => current.map((party) => {
-      if (party.id !== partyId) return party;
-      if (party.isPrivate && party.code && party.code !== code) return party;
-      if (party.members.includes(activeUser.username)) return party;
-      return { ...party, members: [...party.members, activeUser.username] };
-    }));
-  };
-
-  const handleSendPartyMessage = (partyId, text) => {
-    if (!activeUser || !text.trim()) return;
-    setParties((current) => current.map((party) => (
-      party.id === partyId
-        ? {
-          ...party,
-          messages: [...(party.messages || []), { id: crypto.randomUUID(), author: activeUser.username, text: text.trim(), createdAt: new Date().toISOString() }],
-        }
-        : party
-    )));
-  };
-
-  const handleSendGlobalMessage = (text) => {
-    if (!activeUser || !text.trim()) return;
-    setGlobalChat((current) => [...current, { id: crypto.randomUUID(), author: activeUser.username, text: text.trim(), createdAt: new Date().toISOString() }].slice(-200));
   };
 
   const [copyStatus, setCopyStatus] = useState('');
@@ -1560,9 +1066,7 @@ export default function App() {
       onSearchChange={setSearchQuery}
       searchResultCount={totalGameAmount}
       onOpenSettings={() => setSettingsOpen(true)}
-      onOpenAuth={() => setAuthOpen(true)}
-      onOpenParties={() => setPartyPanelOpen(true)}
-      user={activeUser}
+      onOpenAnnouncements={() => setAnnouncementsOpen(true)}
       baseColor="var(--nav-surface)"
       menuColor="#ffffff"
       ease="power3.out"
@@ -1583,7 +1087,6 @@ export default function App() {
       }}
     >
       {clickSoundDataUrl && <audio ref={clickAudioRef} src={clickSoundDataUrl} preload="auto" />}
-      {introSoundDataUrl && <audio ref={introAudioRef} src={introSoundDataUrl} preload="auto" />}
       {backgroundAudioDataUrl && <audio ref={backgroundAudioRef} src={backgroundAudioDataUrl} preload="auto" />}
       {settings.dynamicStarsEnabled && (
         <DynamicStars
@@ -1595,20 +1098,9 @@ export default function App() {
         />
       )}
       {!activeGame && (
-        <section className={`main-content${showIntro ? ' main-content--intro-active' : ' main-content--intro-ready'}`}>
-          <div className={`main-background${activePage === 'games' ? ' main-background--games' : ''}`}>
-            {activePage === 'games' || !isAnimationEnabled ? <div className="games-backdrop" aria-hidden="true" /> : (
-              <RippleGrid
-                enableRainbow={false}
-                gridColor="#ffffff"
-                rippleIntensity={0.05}
-                gridSize={10}
-                gridThickness={15}
-                mouseInteraction
-                mouseInteractionRadius={1.2}
-                opacity={0.8}
-              />
-            )}
+        <section className="main-content main-content--intro-ready">
+          <div className="main-background main-background--games">
+            <div className="games-backdrop" aria-hidden="true" />
           </div>
 
           {isAnimationEnabled ? (
@@ -1629,44 +1121,10 @@ export default function App() {
 
       {activeGame && <GameOverlay game={activeGame} onClose={() => setActiveGame(null)} />}
 
-      {showIntro && (
-        <section className={`intro-screen${introExiting ? ' intro-screen--exit' : ''}`}>
-          <div className={`intro-wave${isAnimationEnabled ? '' : ' intro-wave--still'}`} />
-          <div className="intro-grid-fade" />
-
-          <div className="intro-content">
-            <h1 className="hero-title">DEBLOCKED</h1>
-            <p className="intro-subtitle"> 1452 Games(7000 Soon) · Proxies · School Minecraft Server.</p>
-            <button type="button" className="intro-play-button" onClick={handlePlayIntro}>
-              Play
-            </button>
-          </div>
-        </section>
-      )}
-
-      {authOpen && (
-        <AuthModal
-          accounts={accounts}
-          activeUser={activeUser}
-          onClose={() => setAuthOpen(false)}
-          onCreateAccount={handleCreateAccount}
-          onLogin={handleLogin}
-          onLogout={() => setActiveUsername('')}
-        />
-      )}
-
-      {partyPanelOpen && activeUser && (
-        <PartyPanel
-          user={activeUser}
-          parties={parties}
-          activeGameTitle={activeGame?.title}
-          globalChat={globalChat}
-          statuses={playerStatuses}
-          onClose={() => setPartyPanelOpen(false)}
-          onCreateParty={handleCreateParty}
-          onJoinParty={handleJoinParty}
-          onSendPartyMessage={handleSendPartyMessage}
-          onSendGlobalMessage={handleSendGlobalMessage}
+      {announcementsOpen && (
+        <AnnouncementsModal
+          announcement={announcement}
+          onClose={() => setAnnouncementsOpen(false)}
         />
       )}
 
@@ -1690,7 +1148,6 @@ export default function App() {
                   ['games', 'Games'],
                   ['flow', 'Flow'],
                   ['audio', 'Audio'],
-                  ['intro', 'Intro'],
                   ['stealth', 'Stealth'],
                   ['secret', 'Secret'],
                 ].map(([id, label]) => (
@@ -1937,42 +1394,6 @@ export default function App() {
                 <label className="settings-upload">
                   <span>Upload background audio (mp3)</span>
                   <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'background')} />
-                </label>
-              </section>
-              )}
-
-              {activeSettingsSection === 'intro' && (
-                <section className="settings-block">
-                <h3>Intro controls</h3>
-                <SettingsToggle
-                  id="show-intro-toggle"
-                  checked={settings.enableIntro}
-                  onChange={(event) => updateSetting('enableIntro', event.target.checked)}
-                >
-                  Show intro screen on launch
-                </SettingsToggle>
-                <label className="settings-range" htmlFor="intro-duration">
-                  <span>Intro duration (seconds): {settings.introDurationSec.toFixed(1)}s</span>
-                  <input
-                    id="intro-duration"
-                    type="range"
-                    min="1"
-                    max="12"
-                    step="0.5"
-                    value={settings.introDurationSec}
-                    onChange={(event) => updateSetting('introDurationSec', Number(event.target.value))}
-                  />
-                </label>
-                <SettingsToggle
-                  id="enable-intro-sound-toggle"
-                  checked={settings.enableIntroSound}
-                  onChange={(event) => updateSetting('enableIntroSound', event.target.checked)}
-                >
-                  Enable intro sound
-                </SettingsToggle>
-                <label className="settings-upload">
-                  <span>Upload custom intro sound (mp3)</span>
-                  <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'intro')} />
                 </label>
               </section>
               )}
