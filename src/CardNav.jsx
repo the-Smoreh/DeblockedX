@@ -8,9 +8,7 @@ const CardNav = ({
   activePage = 'games',
   onNavigate,
   onOpenSettings,
-  onOpenAuth,
-  onOpenParties,
-  user,
+  onOpenAnnouncements,
   showCompactSearch = false,
   searchQuery = '',
   onSearchChange,
@@ -91,35 +89,14 @@ const CardNav = ({
           </div>
 
           <div className="nav-actions">
-            {user ? (
-              <>
-                <button
-                  type="button"
-                  className="header-action-button"
-                  onClick={onOpenParties}
-                  aria-label="Open parties"
-                >
-                  Parties
-                </button>
-                <button
-                  type="button"
-                  className="profile-button"
-                  onClick={onOpenAuth}
-                  aria-label="Open account panel"
-                >
-                  <img src={user.avatar} alt={`${user.username} avatar`} />
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                className="header-action-button"
-                onClick={onOpenAuth}
-                aria-label="Log in"
-              >
-                Log in
-              </button>
-            )}
+            <button
+              type="button"
+              className="header-action-button"
+              onClick={onOpenAnnouncements}
+              aria-label="Open announcements"
+            >
+              Announcements
+            </button>
             <button
               type="button"
               className="settings-button"
