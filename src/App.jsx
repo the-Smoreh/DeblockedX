@@ -1444,129 +1444,94 @@ export default function App() {
   const minecraftPage = (
     <section className="minecraft-page">
       <div className="minecraft-page__content">
-        <div className="minecraft-page__intro">
-          <p className="eyebrow">School Minecraft Server</p>
-          <h1>Cross-play, no mods, no rules.</h1>
-          <p className="page-copy">
-            We now have a <strong>paid Minecraft server</strong> that is fully crossplay — every version
-            can join, no mods required. It's for our school, and there are no rules.
-          </p>
-          <div className="minecraft-page__badges">
-            <span className="minecraft-badge minecraft-badge--java">Java Edition</span>
-            <span className="minecraft-badge minecraft-badge--bedrock">Bedrock Edition</span>
-            <span className="minecraft-badge minecraft-badge--console">Console (via Bedrock)</span>
-            <span className="minecraft-badge minecraft-badge--rules">No rules</span>
-            <span className="minecraft-badge minecraft-badge--paid">Paid hosting</span>
-          </div>
-        </div>
+        <header className="minecraft-page__intro">
+          <h1>School Minecraft Server</h1>
+          <p className="minecraft-page__sub">Paid · Crossplay · All versions · No mods · No rules.</p>
+        </header>
 
         <div className="minecraft-grid">
           <article className="minecraft-card minecraft-card--java">
-            <header className="minecraft-card__header">
-              <span className="minecraft-card__chip">Java</span>
-              <h2>Java Edition</h2>
-            </header>
-            <p className="minecraft-card__copy">Open Minecraft Java, hit Multiplayer → Add Server, and paste the address below.</p>
-            <dl className="server-info">
-              <div className="server-info__row">
-                <dt>Server Address</dt>
-                <dd>
-                  <code>{MINECRAFT_SERVER.java.combined}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.java.combined, 'Java address')}
-                  >
-                    Copy
-                  </button>
-                </dd>
-              </div>
-            </dl>
+            <h2><span className="minecraft-card__chip">Java</span>Java</h2>
+            <div className="server-info__row">
+              <dt>Address</dt>
+              <dd>
+                <code>{MINECRAFT_SERVER.java.combined}</code>
+                <button
+                  type="button"
+                  className="copy-button"
+                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.java.combined, 'Java address')}
+                >
+                  Copy
+                </button>
+              </dd>
+            </div>
           </article>
 
           <article className="minecraft-card minecraft-card--bedrock">
-            <header className="minecraft-card__header">
-              <span className="minecraft-card__chip">Bedrock</span>
-              <h2>Bedrock Edition</h2>
-            </header>
-            <p className="minecraft-card__copy">Open Minecraft Bedrock → Servers → Add Server, and use the address & port below.</p>
-            <dl className="server-info">
-              <div className="server-info__row">
-                <dt>Server Address</dt>
-                <dd>
-                  <code>{MINECRAFT_SERVER.bedrock.address}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Bedrock address')}
-                  >
-                    Copy
-                  </button>
-                </dd>
-              </div>
-              <div className="server-info__row">
-                <dt>Port</dt>
-                <dd>
-                  <code>{MINECRAFT_SERVER.bedrock.port}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Bedrock port')}
-                  >
-                    Copy
-                  </button>
-                </dd>
-              </div>
-            </dl>
+            <h2><span className="minecraft-card__chip">Bedrock</span>Bedrock</h2>
+            <div className="server-info__row">
+              <dt>Address</dt>
+              <dd>
+                <code>{MINECRAFT_SERVER.bedrock.address}</code>
+                <button
+                  type="button"
+                  className="copy-button"
+                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Bedrock address')}
+                >
+                  Copy
+                </button>
+              </dd>
+            </div>
+            <div className="server-info__row">
+              <dt>Port</dt>
+              <dd>
+                <code>{MINECRAFT_SERVER.bedrock.port}</code>
+                <button
+                  type="button"
+                  className="copy-button"
+                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Bedrock port')}
+                >
+                  Copy
+                </button>
+              </dd>
+            </div>
           </article>
 
           <article className="minecraft-card minecraft-card--console">
-            <header className="minecraft-card__header">
-              <span className="minecraft-card__chip">Console</span>
-              <h2>Console (Xbox / PlayStation / Switch)</h2>
-            </header>
+            <h2><span className="minecraft-card__chip">Console</span>Console</h2>
             <p className="minecraft-card__copy">
-              On your phone, open <strong>Bedrock Together</strong> or <strong>Bedrock Connect</strong>
-              {' '}(App Store / Google Play). Enter the server address and port. Make sure your phone and your
-              console are on the same Wi-Fi. The server then appears in
-              {' '}<strong>Play → Friends → LAN Games</strong> on your console.
+              Phone: open <strong>Bedrock Together</strong> or <strong>Bedrock Connect</strong>, enter the address
+              and port below on the same Wi-Fi as your console. The server shows up under
+              {' '}<strong>Play → Friends → LAN Games</strong>.
             </p>
-            <dl className="server-info">
-              <div className="server-info__row">
-                <dt>Server Address</dt>
-                <dd>
-                  <code>{MINECRAFT_SERVER.bedrock.address}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Console address')}
-                  >
-                    Copy
-                  </button>
-                </dd>
-              </div>
-              <div className="server-info__row">
-                <dt>Port</dt>
-                <dd>
-                  <code>{MINECRAFT_SERVER.bedrock.port}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Console port')}
-                  >
-                    Copy
-                  </button>
-                </dd>
-              </div>
-            </dl>
+            <div className="server-info__row">
+              <dt>Address</dt>
+              <dd>
+                <code>{MINECRAFT_SERVER.bedrock.address}</code>
+                <button
+                  type="button"
+                  className="copy-button"
+                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Console address')}
+                >
+                  Copy
+                </button>
+              </dd>
+            </div>
+            <div className="server-info__row">
+              <dt>Port</dt>
+              <dd>
+                <code>{MINECRAFT_SERVER.bedrock.port}</code>
+                <button
+                  type="button"
+                  className="copy-button"
+                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Console port')}
+                >
+                  Copy
+                </button>
+              </dd>
+            </div>
           </article>
         </div>
-
-        <ol className="minecraft-steps" aria-label="How to join">
-          <li><span>1</span>Pick your platform card above (Java, Bedrock, or Console).</li>
-          <li><span>2</span>Copy the server address (and port for Bedrock / Console).</li>
-          <li><span>3</span>Open Minecraft, add the server, and click Join.</li>
-        </ol>
 
         {copyStatus && <p className="minecraft-page__toast" role="status">{copyStatus}</p>}
       </div>
