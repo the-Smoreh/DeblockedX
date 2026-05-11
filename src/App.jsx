@@ -1449,61 +1449,76 @@ export default function App() {
           <p className="minecraft-page__sub">Paid · Crossplay · All versions · No mods · No rules.</p>
         </header>
 
-        <div className="minecraft-grid">
-          <article className="minecraft-card minecraft-card--java">
-            <h2><span className="minecraft-card__chip">Java</span>Java</h2>
-            <div className="server-info__row">
-              <dt>Address</dt>
-              <dd>
-                <code>{MINECRAFT_SERVER.java.combined}</code>
-                <button
-                  type="button"
-                  className="copy-button"
-                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.java.combined, 'Java address')}
-                >
-                  Copy
-                </button>
-              </dd>
-            </div>
-          </article>
+        <div className="minecraft-section">
+          <p className="minecraft-section__label">In-game server browser</p>
+          <div className="minecraft-grid minecraft-grid--pair">
+            <article className="minecraft-card minecraft-card--java">
+              <span className="minecraft-card__chip">Java</span>
+              <h2>Java Edition</h2>
+              <div className="server-info__row">
+                <dt>Address</dt>
+                <dd>
+                  <code>{MINECRAFT_SERVER.java.combined}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.java.combined, 'Java address')}
+                  >
+                    Copy
+                  </button>
+                </dd>
+              </div>
+            </article>
 
-          <article className="minecraft-card minecraft-card--bedrock">
-            <h2><span className="minecraft-card__chip">Bedrock</span>Bedrock</h2>
-            <div className="server-info__row">
-              <dt>Address</dt>
-              <dd>
-                <code>{MINECRAFT_SERVER.bedrock.address}</code>
-                <button
-                  type="button"
-                  className="copy-button"
-                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Bedrock address')}
-                >
-                  Copy
-                </button>
-              </dd>
-            </div>
-            <div className="server-info__row">
-              <dt>Port</dt>
-              <dd>
-                <code>{MINECRAFT_SERVER.bedrock.port}</code>
-                <button
-                  type="button"
-                  className="copy-button"
-                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Bedrock port')}
-                >
-                  Copy
-                </button>
-              </dd>
-            </div>
-          </article>
+            <article className="minecraft-card minecraft-card--bedrock">
+              <span className="minecraft-card__chip">Bedrock</span>
+              <h2>Bedrock Edition (PC / Mobile)</h2>
+              <div className="server-info__row">
+                <dt>Address</dt>
+                <dd>
+                  <code>{MINECRAFT_SERVER.bedrock.address}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Bedrock address')}
+                  >
+                    Copy
+                  </button>
+                </dd>
+              </div>
+              <div className="server-info__row">
+                <dt>Port</dt>
+                <dd>
+                  <code>{MINECRAFT_SERVER.bedrock.port}</code>
+                  <button
+                    type="button"
+                    className="copy-button"
+                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Bedrock port')}
+                  >
+                    Copy
+                  </button>
+                </dd>
+              </div>
+            </article>
+          </div>
+        </div>
 
-          <article className="minecraft-card minecraft-card--console">
-            <h2><span className="minecraft-card__chip">Console</span>Console</h2>
+        <hr className="minecraft-divider" aria-hidden="true" />
+
+        <div className="minecraft-section">
+          <p className="minecraft-section__label">Different join method — read this</p>
+          <article className="minecraft-card minecraft-card--console minecraft-card--full">
+            <span className="minecraft-card__chip">Console</span>
+            <h2>Xbox · PlayStation · Switch</h2>
             <p className="minecraft-card__copy">
-              Phone: open <strong>Bedrock Together</strong> or <strong>Bedrock Connect</strong>, enter the address
-              and port below on the same Wi-Fi as your console. The server shows up under
-              {' '}<strong>Play → Friends → LAN Games</strong>.
+              Consoles can't type a server address directly. Use the workaround below:
             </p>
+            <ol className="minecraft-card__steps">
+              <li>On your phone, install <strong>Bedrock Together</strong> or <strong>Bedrock Connect</strong> (App Store / Google Play).</li>
+              <li>Open the app and enter the server address &amp; port below.</li>
+              <li>Make sure your phone and console are on the <strong>same Wi-Fi</strong>.</li>
+              <li>On the console, go to <strong>Play → Friends → LAN Games</strong>. The server will be listed.</li>
+            </ol>
             <div className="server-info__row">
               <dt>Address</dt>
               <dd>
