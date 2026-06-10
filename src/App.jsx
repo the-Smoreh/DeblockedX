@@ -39,7 +39,20 @@ const DEFAULT_SETTINGS = {
   dynamicStarsOrigin: 'top',
   dynamicStarsSize: 'medium',
   dynamicStarsConnectMode: false,
+  dynamicStarsDensity: 'medium',
+  dynamicStarsSpeed: 'medium',
+  dynamicStarsTwinkle: false,
   enableBackgroundAudio: false,
+  uiRoundness: 'soft',
+  uiDensity: 'comfortable',
+  uiFont: 'inter',
+  uiScale: 100,
+  reduceMotion: false,
+  accentGlow: true,
+  backgroundDim: 32,
+  cardHoverEffect: 'lift',
+  favoriteIconStyle: 'star',
+  showPlayBadge: true,
 };
 
 const THEME_PRESETS = {
@@ -48,6 +61,8 @@ const THEME_PRESETS = {
   graphite: { pageFrom: '#10151f', pageTo: '#05070d', card: 'rgba(17, 23, 35, 0.92)', panel: 'rgba(17, 22, 34, 0.96)' },
   sunset: { pageFrom: '#3f1b2f', pageTo: '#140b20', card: 'rgba(47, 21, 38, 0.92)', panel: 'rgba(44, 17, 38, 0.96)' },
   ocean: { pageFrom: '#0b2d44', pageTo: '#03131f', card: 'rgba(8, 34, 50, 0.92)', panel: 'rgba(8, 30, 45, 0.96)' },
+  forest: { pageFrom: '#0d2b1d', pageTo: '#04120b', card: 'rgba(8, 30, 21, 0.92)', panel: 'rgba(9, 32, 23, 0.96)' },
+  ember: { pageFrom: '#2b150d', pageTo: '#120704', card: 'rgba(36, 17, 10, 0.92)', panel: 'rgba(38, 18, 11, 0.96)' },
   light: { pageFrom: '#eff5ff', pageTo: '#dee8ff', card: 'rgba(255, 255, 255, 0.9)', panel: 'rgba(247, 251, 255, 0.95)' },
 };
 
@@ -58,6 +73,21 @@ const ACCENT_PRESETS = {
   rose: '#ff7ba7',
   amber: '#ffc65c',
   mint: '#67f0cb',
+  sky: '#7ab2ff',
+  coral: '#ff8e6e',
+};
+
+const UI_FONTS = {
+  inter: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  system: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  serif: "'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif",
+  mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+};
+
+const UI_ROUNDNESS = {
+  sharp: { sm: '6px', md: '10px', lg: '14px', pill: '14px' },
+  soft: { sm: '10px', md: '14px', lg: '20px', pill: '999px' },
+  round: { sm: '14px', md: '20px', lg: '28px', pill: '999px' },
 };
 
 const MINECRAFT_SERVER = {
@@ -95,16 +125,6 @@ const saveStorageValue = (key, value) => {
     window.localStorage.setItem(key, value);
   } catch {
     // Ignore storage quota/private browsing issues so app keeps running.
-  }
-};
-
-const readJsonStorage = (key, fallback) => {
-  const raw = loadStorageValue(key, '');
-  if (!raw) return fallback;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return fallback;
   }
 };
 
@@ -226,15 +246,43 @@ function launchAboutBlankCloak() {
   return true;
 }
 
-function SettingsToggle({ checked, onChange, children, id }) {
+function SettingsToggle({ checked, onChange, children, hint, id }) {
   return (
     <label className="settings-toggle" htmlFor={id}>
       <input id={id} type="checkbox" checked={checked} onChange={onChange} />
       <span className="settings-toggle__track" aria-hidden="true">
         <span className="settings-toggle__thumb" />
       </span>
-      <span>{children}</span>
+      <span className="settings-toggle__text">
+        <span>{children}</span>
+        {hint ? <small className="settings-toggle__hint">{hint}</small> : null}
+      </span>
     </label>
+  );
+}
+
+function SettingsChipRow({ label, options, value, onChange }) {
+  return (
+    <div className="settings-field" role="group" aria-label={label}>
+      {label ? <span className="settings-field__label">{label}</span> : null}
+      <div className="settings-chip-row">
+        {options.map((option) => {
+          const optionValue = typeof option === 'string' ? option : option.value;
+          const optionLabel = typeof option === 'string' ? option : option.label;
+          return (
+            <button
+              key={optionValue}
+              type="button"
+              aria-pressed={value === optionValue}
+              className={`settings-chip${value === optionValue ? ' settings-chip--active' : ''}`}
+              onClick={() => onChange(optionValue)}
+            >
+              {optionLabel}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -243,6 +291,9 @@ function DynamicStars({
   direction = 'down',
   origin = 'top',
   size = 'medium',
+  density = 'medium',
+  speed = 'medium',
+  twinkle = false,
   connectMode = false,
 }) {
   const canvasRef = useRef(null);
@@ -256,24 +307,26 @@ function DynamicStars({
 
     const stars = [];
     const sizeMultiplier = size === 'small' ? 0.65 : size === 'large' ? 1.5 : 1;
+    const speedMultiplier = speed === 'slow' ? 0.55 : speed === 'fast' ? 1.8 : 1;
+    const densityDivisor = density === 'low' ? 38000 : density === 'high' ? 13000 : 22000;
     let animationFrameId;
 
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      const starCount = Math.max(80, Math.floor((canvas.width * canvas.height) / 22000));
+      const starCount = Math.max(60, Math.floor((canvas.width * canvas.height) / densityDivisor));
       stars.length = 0;
 
       for (let index = 0; index < starCount; index += 1) {
         const radius = (Math.random() * 1.8 + 0.7) * sizeMultiplier;
-        const speed = (Math.random() * 0.8 + 0.3) * sizeMultiplier;
+        const starSpeed = (Math.random() * 0.8 + 0.3) * sizeMultiplier * speedMultiplier;
         let x = Math.random() * canvas.width;
         let y = Math.random() * canvas.height;
         if (origin === 'top') y = -Math.random() * canvas.height;
         if (origin === 'bottom') y = canvas.height + Math.random() * canvas.height;
         if (origin === 'left') x = -Math.random() * canvas.width;
         if (origin === 'right') x = canvas.width + Math.random() * canvas.width;
-        stars.push({ x, y, radius, speed });
+        stars.push({ x, y, radius, speed: starSpeed, phase: Math.random() * Math.PI * 2 });
       }
     };
 
@@ -293,7 +346,7 @@ function DynamicStars({
       }
     };
 
-    const render = () => {
+    const render = (timestamp) => {
       context.clearRect(0, 0, canvas.width, canvas.height);
 
       stars.forEach((star) => {
@@ -306,9 +359,12 @@ function DynamicStars({
           resetStar(star);
         }
 
+        const alpha = twinkle
+          ? 0.45 + 0.4 * (0.5 + 0.5 * Math.sin(timestamp * 0.0024 + star.phase))
+          : 0.85;
         context.beginPath();
         context.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-        context.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        context.fillStyle = `rgba(255, 255, 255, ${alpha})`;
         context.fill();
       });
 
@@ -342,15 +398,16 @@ function DynamicStars({
       window.removeEventListener('resize', resize);
       window.cancelAnimationFrame(animationFrameId);
     };
-  }, [connectMode, direction, enabled, origin, size]);
+  }, [connectMode, density, direction, enabled, origin, size, speed, twinkle]);
 
   return <canvas ref={canvasRef} className="dynamic-stars" aria-hidden="true" />;
 }
 
 function GameOverlay({ game, onClose }) {
   const [fps, setFps] = useState(0);
-  const [battery, setBattery] = useState('Unavailable');
+  const [battery, setBattery] = useState('—');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [tipDismissed, setTipDismissed] = useState(false);
   const gameShellRef = useRef(null);
 
   useEffect(() => {
@@ -388,7 +445,7 @@ function GameOverlay({ game, onClose }) {
         batteryManager = manager;
         syncBattery();
         manager.addEventListener('levelchange', syncBattery);
-      }).catch(() => setBattery('Unavailable'));
+      }).catch(() => setBattery('—'));
     }
 
     return () => {
@@ -420,6 +477,11 @@ function GameOverlay({ game, onClose }) {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setTipDismissed(true), 12000);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleToggleFullscreen = async () => {
     try {
@@ -458,41 +520,60 @@ function GameOverlay({ game, onClose }) {
         />
 
         <div className="game-overlay__hud game-overlay__hud--top-left">
-          <span className="game-overlay__label">TIP</span>
-          <strong className="game-overlay__tip-copy">
-            Press <span className="game-overlay__shortcut">Ctrl - (minus)</span> to make the HUD buttons smaller! And <span className="game-overlay__shortcut">Ctrl +</span> to make them bigger.
-          </strong>
+          <span className="game-overlay__title">{game.title}</span>
+          {!tipDismissed && (
+            <span className="game-overlay__tip">
+              <span className="game-overlay__shortcut">Ctrl −</span> / <span className="game-overlay__shortcut">Ctrl +</span> resizes the HUD
+              <button
+                type="button"
+                className="game-overlay__tip-dismiss"
+                onClick={() => setTipDismissed(true)}
+                aria-label="Dismiss tip"
+              >
+                ✕
+              </button>
+            </span>
+          )}
         </div>
 
-        <div className="game-overlay__hud game-overlay__hud--top-right game-overlay__hud--actions">
+        <div className="game-overlay__hud game-overlay__hud--top-right">
           <button
             type="button"
-            className="game-overlay__button game-overlay__button--icon"
+            className="game-overlay__button"
             onClick={handleToggleFullscreen}
             aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
             title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           >
-            {isFullscreen ? '🗗' : '⛶'}
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              {isFullscreen ? (
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+              ) : (
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+              )}
+            </svg>
           </button>
           <button
             type="button"
-            className="game-overlay__button game-overlay__button--danger game-overlay__button--icon"
+            className="game-overlay__button game-overlay__button--danger"
             onClick={handleClose}
             aria-label="Close game"
             title="Close game"
           >
-            ✕
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
         <div className="game-overlay__hud game-overlay__hud--bottom-left">
-          <span className="game-overlay__label">FPS</span>
-          <strong>{fps || '...'}</strong>
-        </div>
-
-        <div className="game-overlay__hud game-overlay__hud--bottom-right">
-          <span className="game-overlay__label">Battery</span>
-          <strong>{battery}</strong>
+          <span className="game-overlay__stat">
+            <span className="game-overlay__label">FPS</span>
+            <strong>{fps || '…'}</strong>
+          </span>
+          <span className="game-overlay__stat">
+            <span className="game-overlay__label">Battery</span>
+            <strong>{battery}</strong>
+          </span>
         </div>
       </div>
     </div>
@@ -557,6 +638,15 @@ function AnnouncementsModal({ announcement, onClose }) {
   );
 }
 
+const SETTINGS_SECTIONS = [
+  { id: 'interface', label: 'Interface', icon: '◧', blurb: 'Layout, motion, and feel' },
+  { id: 'appearance', label: 'Themes', icon: '◑', blurb: 'Colors, background, and stars' },
+  { id: 'games', label: 'Games', icon: '▦', blurb: 'How the library looks' },
+  { id: 'audio', label: 'Audio', icon: '♪', blurb: 'Clicks and background sound' },
+  { id: 'stealth', label: 'Stealth', icon: '◍', blurb: 'Cloaking tools' },
+  { id: 'secret', label: 'Secret', icon: '✦', blurb: 'Unlock hidden games' },
+];
+
 export default function App() {
   const secretConfig = useMemo(() => normalizeSecretConfig(secretData), []);
   const [settings, setSettings] = useState(() => {
@@ -594,7 +684,7 @@ export default function App() {
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [announcementsOpen, setAnnouncementsOpen] = useState(false);
-  const [activeSettingsSection, setActiveSettingsSection] = useState('appearance');
+  const [activeSettingsSection, setActiveSettingsSection] = useState('interface');
   const [searchQuery, setSearchQuery] = useState('');
   const [lastSettingsChangeAt, setLastSettingsChangeAt] = useState(Date.now());
   const [cloakOnStartup, setCloakOnStartup] = useState(() => {
@@ -683,6 +773,15 @@ export default function App() {
   }, [settings.smoothScroll]);
 
   useEffect(() => {
+    const scale = Number(settings.uiScale);
+    const safeScale = Number.isFinite(scale) ? Math.min(115, Math.max(85, scale)) : 100;
+    document.documentElement.style.fontSize = safeScale === 100 ? '' : `${(safeScale / 100) * 16}px`;
+    return () => {
+      document.documentElement.style.fontSize = '';
+    };
+  }, [settings.uiScale]);
+
+  useEffect(() => {
     const handlePointerDown = () => {
       if (!settings.enableClickSound || !clickAudioRef.current) return;
       clickAudioRef.current.currentTime = 0;
@@ -750,7 +849,7 @@ export default function App() {
         label: 'Games',
         bgColor: activePage === 'games' ? '#1a2235' : '#111827',
         textColor: '#fff',
-        links: [{ label: 'Tip: to make the Peformance Buttons in games smaller, you can Always press CTRL SHIFT MINUS/PLUS ', ariaLabel: 'Tip: to make the Peformance Buttons in games smaller, you can Always press CTRL SHIFT MINUS/PLUS', page: 'games' }],
+        links: [{ label: 'Tip: press CTRL − / CTRL + anytime to resize the in-game HUD buttons', ariaLabel: 'Tip: press CTRL minus or CTRL plus anytime to resize the in-game HUD buttons', page: 'games' }],
       },
       {
         label: 'Minecraft Server',
@@ -765,7 +864,7 @@ export default function App() {
     [activePage],
   );
 
-  const isAnimationEnabled = settings.enableAnimations && !settings.performanceMode;
+  const isAnimationEnabled = settings.enableAnimations && !settings.performanceMode && !settings.reduceMotion;
   const presetTheme = THEME_PRESETS[settings.themePreset] ?? THEME_PRESETS.midnight;
   const activeTheme = {
     pageFrom: settings.themeMode === 'solid' ? settings.customSolidColor : settings.themeMode === 'gradient' ? settings.customGradientFrom : presetTheme.pageFrom,
@@ -776,6 +875,9 @@ export default function App() {
   const activeAccent = settings.accentPreset === 'custom'
     ? settings.customAccent
     : (ACCENT_PRESETS[settings.accentPreset] ?? ACCENT_PRESETS.cyan);
+  const roundness = UI_ROUNDNESS[settings.uiRoundness] ?? UI_ROUNDNESS.soft;
+  const uiFontStack = UI_FONTS[settings.uiFont] ?? UI_FONTS.inter;
+  const backgroundDim = Math.min(80, Math.max(0, Number(settings.backgroundDim) || 0));
 
   const filteredMasonryItems = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
@@ -806,6 +908,11 @@ export default function App() {
 
       return { ...current, [key]: value };
     });
+  };
+
+  const handleResetSettings = () => {
+    setLastSettingsChangeAt(Date.now());
+    setSettings(DEFAULT_SETTINGS);
   };
 
   const handleAudioFileUpload = async (event, target) => {
@@ -877,17 +984,30 @@ export default function App() {
     setCodeStatus('❌ Invalid code.');
   };
 
-  const [copyStatus, setCopyStatus] = useState('');
-  const handleCopyServerValue = async (value, label) => {
+  const [copiedKey, setCopiedKey] = useState('');
+  const copyResetTimer = useRef(null);
+  const handleCopyServerValue = async (value, key) => {
     if (!value) return;
     try {
       await navigator.clipboard.writeText(value);
-      setCopyStatus(`Copied ${label}`);
+      setCopiedKey(key);
     } catch {
-      setCopyStatus(`Could not copy ${label}`);
+      setCopiedKey('');
     }
-    window.setTimeout(() => setCopyStatus(''), 1800);
+    if (copyResetTimer.current) window.clearTimeout(copyResetTimer.current);
+    copyResetTimer.current = window.setTimeout(() => setCopiedKey(''), 1800);
   };
+
+  const renderCopyButton = (value, key, label) => (
+    <button
+      type="button"
+      className={`copy-button${copiedKey === key ? ' copy-button--copied' : ''}`}
+      onClick={() => handleCopyServerValue(value, key)}
+      aria-label={`Copy ${label}`}
+    >
+      {copiedKey === key ? '✓ Copied' : 'Copy'}
+    </button>
+  );
 
   const gamesPage = (
     <section className="games-page games-page--compact">
@@ -901,7 +1021,7 @@ export default function App() {
         >
           <span className="library-switcher__dot" aria-hidden="true" />
           <span className="library-switcher__label">Main games</span>
-          <span className="library-switcher__hint">Script-loaded library</span>
+          <span className="library-switcher__hint">Full library</span>
         </button>
         <button
           type="button"
@@ -912,7 +1032,7 @@ export default function App() {
         >
           <span className="library-switcher__dot" aria-hidden="true" />
           <span className="library-switcher__label">Second Set of Games</span>
-          <span className="library-switcher__hint">Curated games.json</span>
+          <span className="library-switcher__hint">Curated picks</span>
         </button>
         <span
           className={`library-switcher__indicator library-switcher__indicator--${gamesLibrary}`}
@@ -932,6 +1052,9 @@ export default function App() {
           alwaysShowTitles={settings.alwaysShowGameTitles}
           iconShape={settings.gameIconShape}
           iconDensity={settings.gameIconDensity}
+          hoverEffect={settings.cardHoverEffect}
+          favoriteIconStyle={settings.favoriteIconStyle}
+          showPlayBadge={settings.showPlayBadge}
         />
       )}
     </section>
@@ -955,13 +1078,7 @@ export default function App() {
                 <dt>Address</dt>
                 <dd>
                   <code>{MINECRAFT_SERVER.java.combined}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.java.combined, 'Java address')}
-                  >
-                    Copy
-                  </button>
+                  {renderCopyButton(MINECRAFT_SERVER.java.combined, 'java-address', 'Java address')}
                 </dd>
               </div>
             </article>
@@ -973,26 +1090,14 @@ export default function App() {
                 <dt>Address</dt>
                 <dd>
                   <code>{MINECRAFT_SERVER.bedrock.address}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Bedrock address')}
-                  >
-                    Copy
-                  </button>
+                  {renderCopyButton(MINECRAFT_SERVER.bedrock.address, 'bedrock-address', 'Bedrock address')}
                 </dd>
               </div>
               <div className="server-info__row">
                 <dt>Port</dt>
                 <dd>
                   <code>{MINECRAFT_SERVER.bedrock.port}</code>
-                  <button
-                    type="button"
-                    className="copy-button"
-                    onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Bedrock port')}
-                  >
-                    Copy
-                  </button>
+                  {renderCopyButton(MINECRAFT_SERVER.bedrock.port, 'bedrock-port', 'Bedrock port')}
                 </dd>
               </div>
             </article>
@@ -1019,32 +1124,18 @@ export default function App() {
               <dt>Address</dt>
               <dd>
                 <code>{MINECRAFT_SERVER.bedrock.address}</code>
-                <button
-                  type="button"
-                  className="copy-button"
-                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.address, 'Console address')}
-                >
-                  Copy
-                </button>
+                {renderCopyButton(MINECRAFT_SERVER.bedrock.address, 'console-address', 'Console address')}
               </dd>
             </div>
             <div className="server-info__row">
               <dt>Port</dt>
               <dd>
                 <code>{MINECRAFT_SERVER.bedrock.port}</code>
-                <button
-                  type="button"
-                  className="copy-button"
-                  onClick={() => handleCopyServerValue(MINECRAFT_SERVER.bedrock.port, 'Console port')}
-                >
-                  Copy
-                </button>
+                {renderCopyButton(MINECRAFT_SERVER.bedrock.port, 'console-port', 'Console port')}
               </dd>
             </div>
           </article>
         </div>
-
-        {copyStatus && <p className="minecraft-page__toast" role="status">{copyStatus}</p>}
       </div>
     </section>
   );
@@ -1053,6 +1144,10 @@ export default function App() {
     <CardNav
       title="deblocked"
       items={navItems}
+      tabs={[
+        { page: 'games', label: 'Games' },
+        { page: 'minecraft', label: 'Minecraft' },
+      ]}
       activePage={activePage}
       onNavigate={setActivePage}
       showCompactSearch={activePage === 'games' && gamesLibrary === 'second'}
@@ -1067,9 +1162,19 @@ export default function App() {
     />
   );
 
+  const shellClassNames = [
+    'app-shell',
+    `app-shell--${activePage}`,
+    settings.performanceMode ? 'app-shell--performance' : '',
+    settings.reduceMotion ? 'app-shell--reduced-motion' : '',
+    settings.themePreset === 'light' && settings.themeMode === 'preset' ? 'app-shell--light' : '',
+    settings.uiDensity === 'compact' ? 'app-shell--compact' : '',
+    settings.accentGlow ? 'app-shell--glow' : '',
+  ].filter(Boolean).join(' ');
+
   return (
     <main
-      className={`app-shell app-shell--${activePage}${settings.performanceMode ? ' app-shell--performance' : ''}${settings.themePreset === 'light' ? ' app-shell--light' : ''}`}
+      className={shellClassNames}
       style={{
         '--page-gradient-from': activeTheme.pageFrom,
         '--page-gradient-to': activeTheme.pageTo,
@@ -1078,6 +1183,12 @@ export default function App() {
         '--nav-surface': activeTheme.card,
         '--panel-surface': activeTheme.panel,
         '--accent-color': activeAccent,
+        '--ui-radius-sm': roundness.sm,
+        '--ui-radius-md': roundness.md,
+        '--ui-radius-lg': roundness.lg,
+        '--ui-radius-pill': roundness.pill,
+        '--ui-font': uiFontStack,
+        '--background-dim': backgroundDim / 100,
       }}
     >
       {clickSoundDataUrl && <audio ref={clickAudioRef} src={clickSoundDataUrl} preload="auto" />}
@@ -1088,6 +1199,9 @@ export default function App() {
           direction={settings.dynamicStarsDirection}
           origin={settings.dynamicStarsOrigin}
           size={settings.dynamicStarsSize}
+          density={settings.dynamicStarsDensity}
+          speed={settings.dynamicStarsSpeed}
+          twinkle={settings.dynamicStarsTwinkle}
           connectMode={settings.dynamicStarsConnectMode}
         />
       )}
@@ -1115,6 +1229,8 @@ export default function App() {
 
       {activeGame && <GameOverlay game={activeGame} onClose={() => setActiveGame(null)} />}
 
+      {copiedKey && <p className="copy-toast" role="status">Copied to clipboard</p>}
+
       {announcementsOpen && (
         <AnnouncementsModal
           announcement={announcement}
@@ -1123,62 +1239,181 @@ export default function App() {
       )}
 
       {settingsOpen && (
-        <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
-          <div className={`settings-modal__panel${isAnimationEnabled ? ' settings-modal__panel--animated' : ''}`}>
+        <div className="settings-modal" role="dialog" aria-modal="true" aria-label="Settings" onClick={() => setSettingsOpen(false)}>
+          <div
+            className={`settings-modal__panel${isAnimationEnabled ? ' settings-modal__panel--animated' : ''}`}
+            onClick={(event) => event.stopPropagation()}
+          >
             <header className="settings-modal__header">
               <div>
-                <h2>Settings UI</h2>
+                <h2>Settings</h2>
                 <p className="settings-status">Saved automatically · Last change {new Date(lastSettingsChangeAt).toLocaleTimeString()}</p>
               </div>
-              <button type="button" className="settings-modal__close" onClick={() => setSettingsOpen(false)} aria-label="Close settings">
-                ×
-              </button>
+              <div className="settings-modal__header-actions">
+                <button type="button" className="settings-reset" onClick={handleResetSettings}>
+                  Reset all
+                </button>
+                <button type="button" className="settings-modal__close" onClick={() => setSettingsOpen(false)} aria-label="Close settings">
+                  ×
+                </button>
+              </div>
             </header>
 
             <div className="settings-layout">
-              <aside className="settings-sidebar">
-                {[
-                  ['appearance', 'Themes'],
-                  ['games', 'Games'],
-                  ['flow', 'Flow'],
-                  ['audio', 'Audio'],
-                  ['stealth', 'Stealth'],
-                  ['secret', 'Secret'],
-                ].map(([id, label]) => (
+              <aside className="settings-sidebar" role="tablist" aria-label="Settings sections">
+                {SETTINGS_SECTIONS.map((section) => (
                   <button
-                    key={id}
+                    key={section.id}
                     type="button"
-                    className={`settings-nav-button${activeSettingsSection === id ? ' settings-nav-button--active' : ''}`}
-                    onClick={() => setActiveSettingsSection(id)}
+                    role="tab"
+                    aria-selected={activeSettingsSection === section.id}
+                    className={`settings-nav-button${activeSettingsSection === section.id ? ' settings-nav-button--active' : ''}`}
+                    onClick={() => setActiveSettingsSection(section.id)}
                   >
-                    {label}
+                    <span className="settings-nav-button__icon" aria-hidden="true">{section.icon}</span>
+                    <span className="settings-nav-button__text">
+                      <span>{section.label}</span>
+                      <small>{section.blurb}</small>
+                    </span>
                   </button>
                 ))}
               </aside>
 
               <div className="settings-content settings-content--single">
+              {activeSettingsSection === 'interface' && (
+                <section className="settings-block">
+                  <h3>Interface</h3>
+                  <p className="settings-copy">Fine-tune how the whole site feels — corners, spacing, type, and motion.</p>
+                  <div className="settings-subsection">
+                    <h4>Look &amp; feel</h4>
+                    <SettingsChipRow
+                      label="Corner roundness"
+                      options={[
+                        { value: 'sharp', label: 'Sharp' },
+                        { value: 'soft', label: 'Soft' },
+                        { value: 'round', label: 'Round' },
+                      ]}
+                      value={settings.uiRoundness}
+                      onChange={(value) => updateSetting('uiRoundness', value)}
+                    />
+                    <SettingsChipRow
+                      label="Density"
+                      options={[
+                        { value: 'comfortable', label: 'Comfortable' },
+                        { value: 'compact', label: 'Compact' },
+                      ]}
+                      value={settings.uiDensity}
+                      onChange={(value) => updateSetting('uiDensity', value)}
+                    />
+                    <SettingsChipRow
+                      label="Font"
+                      options={[
+                        { value: 'inter', label: 'Inter' },
+                        { value: 'system', label: 'System' },
+                        { value: 'serif', label: 'Serif' },
+                        { value: 'mono', label: 'Mono' },
+                      ]}
+                      value={settings.uiFont}
+                      onChange={(value) => updateSetting('uiFont', value)}
+                    />
+                    <SettingsChipRow
+                      label="UI scale"
+                      options={[
+                        { value: 90, label: '90%' },
+                        { value: 95, label: '95%' },
+                        { value: 100, label: '100%' },
+                        { value: 105, label: '105%' },
+                        { value: 110, label: '110%' },
+                      ]}
+                      value={Number(settings.uiScale)}
+                      onChange={(value) => updateSetting('uiScale', value)}
+                    />
+                  </div>
+                  <div className="settings-subsection">
+                    <h4>Motion</h4>
+                    <div className="settings-mode-grid">
+                      <button
+                        type="button"
+                        className={`settings-mode-card${isAnimationEnabled ? ' settings-mode-card--active' : ''}`}
+                        onClick={() => {
+                          updateSetting('enableAnimations', true);
+                          updateSetting('performanceMode', false);
+                        }}
+                      >
+                        <strong>Flow Mode</strong>
+                        <span>Smooth transitions, hover effects, and animated extras.</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`settings-mode-card${settings.performanceMode ? ' settings-mode-card--active' : ''}`}
+                        onClick={() => {
+                          updateSetting('performanceMode', true);
+                          updateSetting('enableAnimations', false);
+                        }}
+                      >
+                        <strong>Performance Mode</strong>
+                        <span>Disables motion for faster rendering and lower battery usage.</span>
+                      </button>
+                    </div>
+                    <SettingsToggle
+                      id="reduce-motion-toggle"
+                      checked={settings.reduceMotion}
+                      onChange={(event) => updateSetting('reduceMotion', event.target.checked)}
+                      hint="Keeps the look but calms transitions — good for motion sensitivity."
+                    >
+                      Reduce motion
+                    </SettingsToggle>
+                    <SettingsToggle
+                      id="smooth-scroll-toggle"
+                      checked={settings.smoothScroll}
+                      onChange={(event) => updateSetting('smoothScroll', event.target.checked)}
+                    >
+                      Smooth scrolling
+                    </SettingsToggle>
+                  </div>
+                </section>
+              )}
+
               {activeSettingsSection === 'appearance' && (
                 <section className="settings-block">
-                <h3>Appearance</h3>
+                <h3>Themes</h3>
                 <p className="settings-copy">Pick a theme style, upload your own background, or create custom colors.</p>
                 <div className="settings-subsection">
                   <h4>Theme presets</h4>
-                  <div className="settings-chip-row">
-                    {Object.keys(THEME_PRESETS).map((themeKey) => (
-                      <button key={themeKey} type="button" className={`settings-chip${settings.themePreset === themeKey ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themePreset', themeKey)}>
-                        {themeKey}
+                  <div className="settings-theme-grid">
+                    {Object.entries(THEME_PRESETS).map(([themeKey, theme]) => (
+                      <button
+                        key={themeKey}
+                        type="button"
+                        aria-pressed={settings.themePreset === themeKey}
+                        className={`settings-theme-swatch${settings.themePreset === themeKey ? ' settings-theme-swatch--active' : ''}`}
+                        onClick={() => {
+                          updateSetting('themePreset', themeKey);
+                          updateSetting('themeMode', 'preset');
+                        }}
+                      >
+                        <span
+                          className="settings-theme-swatch__preview"
+                          style={{ background: `linear-gradient(135deg, ${theme.pageFrom}, ${theme.pageTo})` }}
+                          aria-hidden="true"
+                        />
+                        <span className="settings-theme-swatch__name">{themeKey}</span>
                       </button>
                     ))}
                   </div>
                 </div>
                 <div className="settings-subsection">
                   <h4>Theme source</h4>
-                  <div className="settings-chip-row">
-                    <button type="button" className={`settings-chip${settings.themeMode === 'preset' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themeMode', 'preset')}>Preset</button>
-                    <button type="button" className={`settings-chip${settings.themeMode === 'solid' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themeMode', 'solid')}>Solid color</button>
-                    <button type="button" className={`settings-chip${settings.themeMode === 'gradient' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themeMode', 'gradient')}>2-color gradient</button>
-                    <button type="button" className={`settings-chip${settings.themeMode === 'image' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('themeMode', 'image')}>Image</button>
-                  </div>
+                  <SettingsChipRow
+                    options={[
+                      { value: 'preset', label: 'Preset' },
+                      { value: 'solid', label: 'Solid color' },
+                      { value: 'gradient', label: '2-color gradient' },
+                      { value: 'image', label: 'Image' },
+                    ]}
+                    value={settings.themeMode}
+                    onChange={(value) => updateSetting('themeMode', value)}
+                  />
                   {settings.themeMode === 'solid' && (
                     <label className="settings-color-field">
                       <span>Solid color</span>
@@ -1196,11 +1431,15 @@ export default function App() {
                         <input type="color" value={settings.customGradientTo} onChange={(event) => updateSetting('customGradientTo', event.target.value)} />
                       </label>
                       <div className="settings-direction-row">
-                        <span>Gradient direction</span>
-                        <div className="settings-chip-row">
-                          <button type="button" className={`settings-chip${settings.gradientDirection === 'vertical' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gradientDirection', 'vertical')}>Vertical</button>
-                          <button type="button" className={`settings-chip${settings.gradientDirection === 'horizontal' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gradientDirection', 'horizontal')}>Horizontal</button>
-                        </div>
+                        <SettingsChipRow
+                          label="Gradient direction"
+                          options={[
+                            { value: 'vertical', label: 'Vertical' },
+                            { value: 'horizontal', label: 'Horizontal' },
+                          ]}
+                          value={settings.gradientDirection}
+                          onChange={(value) => updateSetting('gradientDirection', value)}
+                        />
                       </div>
                     </div>
                   )}
@@ -1208,16 +1447,41 @@ export default function App() {
                     <span>Upload custom theme image</span>
                     <input type="file" accept="image/*" onChange={handleThemeImageUpload} />
                   </label>
+                  <label className="settings-range">
+                    <span className="settings-field__label">Background dim · {backgroundDim}%</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="80"
+                      step="2"
+                      value={backgroundDim}
+                      onChange={(event) => updateSetting('backgroundDim', Number(event.target.value))}
+                      aria-label="Background dim amount"
+                    />
+                  </label>
                 </div>
                 <div className="settings-subsection">
                   <h4>Accent color</h4>
                   <div className="settings-chip-row">
-                    {Object.keys(ACCENT_PRESETS).map((accentKey) => (
-                      <button key={accentKey} type="button" className={`settings-chip${settings.accentPreset === accentKey ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('accentPreset', accentKey)}>
+                    {Object.entries(ACCENT_PRESETS).map(([accentKey, accentValue]) => (
+                      <button
+                        key={accentKey}
+                        type="button"
+                        aria-pressed={settings.accentPreset === accentKey}
+                        className={`settings-chip settings-chip--swatch${settings.accentPreset === accentKey ? ' settings-chip--active' : ''}`}
+                        onClick={() => updateSetting('accentPreset', accentKey)}
+                      >
+                        <span className="settings-chip__dot" style={{ background: accentValue }} aria-hidden="true" />
                         {accentKey}
                       </button>
                     ))}
-                    <button type="button" className={`settings-chip${settings.accentPreset === 'custom' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('accentPreset', 'custom')}>
+                    <button
+                      type="button"
+                      aria-pressed={settings.accentPreset === 'custom'}
+                      className={`settings-chip settings-chip--swatch${settings.accentPreset === 'custom' ? ' settings-chip--active' : ''}`}
+                      onClick={() => updateSetting('accentPreset', 'custom')}
+                    >
+                      <span className="settings-chip__dot" style={{ background: settings.customAccent }} aria-hidden="true" />
                       custom
                     </button>
                   </div>
@@ -1227,6 +1491,14 @@ export default function App() {
                       <input type="color" value={settings.customAccent} onChange={(event) => updateSetting('customAccent', event.target.value)} />
                     </label>
                   )}
+                  <SettingsToggle
+                    id="accent-glow-toggle"
+                    checked={settings.accentGlow}
+                    onChange={(event) => updateSetting('accentGlow', event.target.checked)}
+                    hint="Adds a subtle colored glow to active elements."
+                  >
+                    Accent glow
+                  </SettingsToggle>
                 </div>
                 <div className="settings-subsection">
                   <h4>Dynamic stars</h4>
@@ -1237,27 +1509,43 @@ export default function App() {
                   >
                     Enable falling stars overlay
                   </SettingsToggle>
-                  <div className="settings-chip-row">
-                    {['down', 'up', 'left', 'right'].map((direction) => (
-                      <button key={direction} type="button" className={`settings-chip${settings.dynamicStarsDirection === direction ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('dynamicStarsDirection', direction)}>
-                        {direction}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="settings-chip-row">
-                    {['top', 'bottom', 'left', 'right'].map((side) => (
-                      <button key={side} type="button" className={`settings-chip${settings.dynamicStarsOrigin === side ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('dynamicStarsOrigin', side)}>
-                        From {side}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="settings-chip-row">
-                    {['small', 'medium', 'large'].map((starSize) => (
-                      <button key={starSize} type="button" className={`settings-chip${settings.dynamicStarsSize === starSize ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('dynamicStarsSize', starSize)}>
-                        {starSize}
-                      </button>
-                    ))}
-                  </div>
+                  <SettingsChipRow
+                    label="Direction"
+                    options={['down', 'up', 'left', 'right']}
+                    value={settings.dynamicStarsDirection}
+                    onChange={(value) => updateSetting('dynamicStarsDirection', value)}
+                  />
+                  <SettingsChipRow
+                    label="Spawn from"
+                    options={['top', 'bottom', 'left', 'right']}
+                    value={settings.dynamicStarsOrigin}
+                    onChange={(value) => updateSetting('dynamicStarsOrigin', value)}
+                  />
+                  <SettingsChipRow
+                    label="Star size"
+                    options={['small', 'medium', 'large']}
+                    value={settings.dynamicStarsSize}
+                    onChange={(value) => updateSetting('dynamicStarsSize', value)}
+                  />
+                  <SettingsChipRow
+                    label="Density"
+                    options={['low', 'medium', 'high']}
+                    value={settings.dynamicStarsDensity}
+                    onChange={(value) => updateSetting('dynamicStarsDensity', value)}
+                  />
+                  <SettingsChipRow
+                    label="Speed"
+                    options={['slow', 'medium', 'fast']}
+                    value={settings.dynamicStarsSpeed}
+                    onChange={(value) => updateSetting('dynamicStarsSpeed', value)}
+                  />
+                  <SettingsToggle
+                    id="dynamic-stars-twinkle-toggle"
+                    checked={settings.dynamicStarsTwinkle}
+                    onChange={(event) => updateSetting('dynamicStarsTwinkle', event.target.checked)}
+                  >
+                    Twinkle effect
+                  </SettingsToggle>
                   <SettingsToggle
                     id="dynamic-stars-lines-toggle"
                     checked={settings.dynamicStarsConnectMode}
@@ -1271,9 +1559,10 @@ export default function App() {
 
               {activeSettingsSection === 'games' && (
                 <section className="settings-block">
-                <h3>Games page behavior</h3>
+                <h3>Games page</h3>
+                <p className="settings-copy">Control how the game library is presented.</p>
                 <div className="settings-subsection">
-                  <h4>Title visibility</h4>
+                  <h4>Cards</h4>
                   <SettingsToggle
                     id="always-show-titles-toggle"
                     checked={settings.alwaysShowGameTitles}
@@ -1281,120 +1570,110 @@ export default function App() {
                   >
                     Always show game titles without hovering
                   </SettingsToggle>
-                </div>
-                <div className="settings-subsection">
-                  <h4>Game icon shape</h4>
-                  <div className="settings-chip-row">
-                    <button type="button" className={`settings-chip${settings.gameIconShape === 'default' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'default')}>Default</button>
-                    <button type="button" className={`settings-chip${settings.gameIconShape === 'rounded-rect' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'rounded-rect')}>Rounded Rect</button>
-                    <button type="button" className={`settings-chip${settings.gameIconShape === 'circle' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'circle')}>Circle</button>
-                    <button type="button" className={`settings-chip${settings.gameIconShape === 'diamond' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'diamond')}>Diamond</button>
-                    <button type="button" className={`settings-chip${settings.gameIconShape === 'hex' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconShape', 'hex')}>Hex</button>
-                  </div>
-                </div>
-                <div className="settings-subsection">
-                  <h4>Game icon spacing mode</h4>
-                  <div className="settings-chip-row">
-                    <button type="button" className={`settings-chip${settings.gameIconDensity === 'default' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconDensity', 'default')}>Default</button>
-                    <button type="button" className={`settings-chip${settings.gameIconDensity === 'compact' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconDensity', 'compact')}>Compact</button>
-                    <button type="button" className={`settings-chip${settings.gameIconDensity === 'cozy' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameIconDensity', 'cozy')}>Cozy</button>
-                  </div>
-                </div>
-                <div className="settings-subsection">
-                  <h4>Game tile shape (not border roundness)</h4>
-                  <div className="settings-chip-row">
-                    <button type="button" className={`settings-chip${settings.gameCardAspect === 'standard' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameCardAspect', 'standard')}>Standard</button>
-                    <button type="button" className={`settings-chip${settings.gameCardAspect === 'wide' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameCardAspect', 'wide')}>Rectangle (wide)</button>
-                    <button type="button" className={`settings-chip${settings.gameCardAspect === 'tall' ? ' settings-chip--active' : ''}`} onClick={() => updateSetting('gameCardAspect', 'tall')}>Tall</button>
-                  </div>
-                </div>
-              </section>
-              )}
-
-              {activeSettingsSection === 'flow' && (
-                <section className="settings-block">
-                <h3>Flow + Performance</h3>
-                <div className="settings-mode-grid">
-                  <button
-                    type="button"
-                    className={`settings-mode-card${isAnimationEnabled ? ' settings-mode-card--active' : ''}`}
-                    onClick={() => {
-                      updateSetting('enableAnimations', true);
-                      updateSetting('performanceMode', false);
-                    }}
+                  <SettingsToggle
+                    id="show-play-badge-toggle"
+                    checked={settings.showPlayBadge}
+                    onChange={(event) => updateSetting('showPlayBadge', event.target.checked)}
+                    hint="Shows a play icon when hovering a game."
                   >
-                    <strong>Flow Mode</strong>
-                    <span>Smooth transitions, hover effects, and animated intro.</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`settings-mode-card${settings.performanceMode ? ' settings-mode-card--active' : ''}`}
-                    onClick={() => {
-                      updateSetting('performanceMode', true);
-                      updateSetting('enableAnimations', false);
-                    }}
-                  >
-                    <strong>Performance Mode</strong>
-                    <span>Disables motion for faster rendering and lower battery usage.</span>
-                  </button>
+                    Play badge on hover
+                  </SettingsToggle>
+                  <SettingsChipRow
+                    label="Hover effect"
+                    options={[
+                      { value: 'lift', label: 'Lift' },
+                      { value: 'zoom', label: 'Zoom' },
+                      { value: 'glow', label: 'Glow' },
+                      { value: 'none', label: 'None' },
+                    ]}
+                    value={settings.cardHoverEffect}
+                    onChange={(value) => updateSetting('cardHoverEffect', value)}
+                  />
+                  <SettingsChipRow
+                    label="Favorite icon"
+                    options={[
+                      { value: 'star', label: '★ Star' },
+                      { value: 'heart', label: '♥ Heart' },
+                    ]}
+                    value={settings.favoriteIconStyle}
+                    onChange={(value) => updateSetting('favoriteIconStyle', value)}
+                  />
                 </div>
-                <SettingsToggle
-                  id="enable-animations-toggle"
-                  checked={settings.enableAnimations}
-                  onChange={(event) => updateSetting('enableAnimations', event.target.checked)}
-                >
-                  Enable animations (default on)
-                </SettingsToggle>
-                <SettingsToggle
-                  id="performance-mode-toggle"
-                  checked={settings.performanceMode}
-                  onChange={(event) => updateSetting('performanceMode', event.target.checked)}
-                >
-                  Performance mode (turns off all animations)
-                </SettingsToggle>
-                <SettingsToggle
-                  id="smooth-scroll-toggle"
-                  checked={settings.smoothScroll}
-                  onChange={(event) => updateSetting('smoothScroll', event.target.checked)}
-                >
-                  Smooth scrolling
-                </SettingsToggle>
-                <p className="settings-copy">You can always switch between animated mode and performance mode.</p>
+                <div className="settings-subsection">
+                  <h4>Shape &amp; layout</h4>
+                  <SettingsChipRow
+                    label="Game icon shape"
+                    options={[
+                      { value: 'default', label: 'Default' },
+                      { value: 'rounded-rect', label: 'Rounded Rect' },
+                      { value: 'circle', label: 'Circle' },
+                      { value: 'diamond', label: 'Diamond' },
+                      { value: 'hex', label: 'Hex' },
+                    ]}
+                    value={settings.gameIconShape}
+                    onChange={(value) => updateSetting('gameIconShape', value)}
+                  />
+                  <SettingsChipRow
+                    label="Spacing"
+                    options={[
+                      { value: 'default', label: 'Default' },
+                      { value: 'compact', label: 'Compact' },
+                      { value: 'cozy', label: 'Cozy' },
+                    ]}
+                    value={settings.gameIconDensity}
+                    onChange={(value) => updateSetting('gameIconDensity', value)}
+                  />
+                  <SettingsChipRow
+                    label="Tile proportions"
+                    options={[
+                      { value: 'standard', label: 'Standard' },
+                      { value: 'wide', label: 'Wide' },
+                      { value: 'tall', label: 'Tall' },
+                    ]}
+                    value={settings.gameCardAspect}
+                    onChange={(value) => updateSetting('gameCardAspect', value)}
+                  />
+                </div>
               </section>
               )}
 
               {activeSettingsSection === 'audio' && (
                 <section className="settings-block">
-                <h3>Click sound controls</h3>
-                <SettingsToggle
-                  id="enable-click-sound-toggle"
-                  checked={settings.enableClickSound}
-                  onChange={(event) => updateSetting('enableClickSound', event.target.checked)}
-                >
-                  Allow click sound across the website
-                </SettingsToggle>
-                <label className="settings-upload">
-                  <span>Upload custom click sound (mp3)</span>
-                  <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'click')} />
-                </label>
-                <h3>Background looping audio</h3>
-                <SettingsToggle
-                  id="enable-background-audio-toggle"
-                  checked={settings.enableBackgroundAudio}
-                  onChange={(event) => updateSetting('enableBackgroundAudio', event.target.checked)}
-                >
-                  Enable looping background audio
-                </SettingsToggle>
-                <label className="settings-upload">
-                  <span>Upload background audio (mp3)</span>
-                  <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'background')} />
-                </label>
+                <h3>Audio</h3>
+                <div className="settings-subsection">
+                  <h4>Click sound</h4>
+                  <SettingsToggle
+                    id="enable-click-sound-toggle"
+                    checked={settings.enableClickSound}
+                    onChange={(event) => updateSetting('enableClickSound', event.target.checked)}
+                  >
+                    Allow click sound across the website
+                  </SettingsToggle>
+                  <label className="settings-upload">
+                    <span>Upload custom click sound (mp3)</span>
+                    <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'click')} />
+                  </label>
+                </div>
+                <div className="settings-subsection">
+                  <h4>Background audio</h4>
+                  <SettingsToggle
+                    id="enable-background-audio-toggle"
+                    checked={settings.enableBackgroundAudio}
+                    onChange={(event) => updateSetting('enableBackgroundAudio', event.target.checked)}
+                  >
+                    Enable looping background audio
+                  </SettingsToggle>
+                  <label className="settings-upload">
+                    <span>Upload background audio (mp3)</span>
+                    <input type="file" accept="audio/mpeg,audio/mp3,audio/*" onChange={(event) => handleAudioFileUpload(event, 'background')} />
+                  </label>
+                </div>
               </section>
               )}
 
               {activeSettingsSection === 'stealth' && (
                 <section className="settings-block">
-                <h3>Stealth tools + toggles</h3>
+                <h3>Stealth tools</h3>
                 <SettingsToggle
                   id="cloak-startup-toggle"
                   checked={cloakOnStartup}
@@ -1402,6 +1681,7 @@ export default function App() {
                     setLastSettingsChangeAt(Date.now());
                     setCloakOnStartup(event.target.checked);
                   }}
+                  hint="Opens the site inside an about:blank tab automatically."
                 >
                   Enable About:Blank cloaking on startup
                 </SettingsToggle>
@@ -1422,6 +1702,9 @@ export default function App() {
                     placeholder="Enter game code"
                     value={codeInput}
                     onChange={(event) => setCodeInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') handleUnlockCode();
+                    }}
                   />
                   <button type="button" className="settings-chip settings-chip--active" onClick={handleUnlockCode}>Unlock</button>
                 </div>

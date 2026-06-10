@@ -50,6 +50,9 @@ const Masonry = ({
   alwaysShowTitles = false,
   iconShape = 'default',
   iconDensity = 'default',
+  hoverEffect = 'lift',
+  favoriteIconStyle = 'star',
+  showPlayBadge = true,
 }) => {
   const columns = useMedia(
     ['(min-width: 1680px)', '(min-width: 1320px)', '(min-width: 960px)', '(min-width: 640px)', '(min-width: 420px)'],
@@ -181,6 +184,7 @@ const Masonry = ({
               className={[
                 'item-wrapper',
                 `item-wrapper--density-${iconDensity}`,
+                `item-wrapper--hover-${hoverEffect}`,
                 imagesReady ? 'item-wrapper--hydrated' : '',
                 shouldRenderCard ? 'item-wrapper--ready' : 'item-wrapper--culled',
                 shouldAnimateIn ? 'item-wrapper--entering' : '',
@@ -201,6 +205,13 @@ const Masonry = ({
               >
                 {shouldRenderCard ? (
                   <div className={`item-img item-img--${iconShape}`} style={{ backgroundImage: `url(${item.img})` }}>
+                    {showPlayBadge && (
+                      <span className="item-play-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                          <path d="M8 5.5v13l11-6.5-11-6.5Z" />
+                        </svg>
+                      </span>
+                    )}
                     <div className={`item-copy${alwaysShowTitles ? ' item-copy--always-visible' : ''}`}>
                       <span>{item.title}</span>
                       {item.description ? <small>{item.description}</small> : null}
@@ -215,9 +226,10 @@ const Masonry = ({
                 type="button"
                 className={`favorite-toggle${item.isFavorite ? ' favorite-toggle--active' : ''}`}
                 aria-label={item.isFavorite ? `Unfavorite ${item.title}` : `Favorite ${item.title}`}
+                aria-pressed={item.isFavorite}
                 onClick={() => onToggleFavorite?.(item.id)}
               >
-                <span aria-hidden="true">☆</span>
+                <span aria-hidden="true">{favoriteIconStyle === 'heart' ? (item.isFavorite ? '♥' : '♡') : (item.isFavorite ? '★' : '☆')}</span>
               </button>
             </div>
           );
