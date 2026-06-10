@@ -1,21 +1,96 @@
 :root {
+  color-scheme: dark;
   color: #f5f7ff;
   background: radial-gradient(circle at top, rgba(31, 91, 163, 0.25), transparent 32%), linear-gradient(180deg, #050816 0%, #03040a 100%);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --ui-radius-sm: 10px;
+  --ui-radius-md: 14px;
+  --ui-radius-lg: 20px;
+  --ui-radius-pill: 999px;
+  --accent-color: #58d4ff;
+  --surface-1: rgba(255, 255, 255, 0.03);
+  --surface-2: rgba(255, 255, 255, 0.06);
+  --border-1: rgba(255, 255, 255, 0.09);
+  --border-2: rgba(255, 255, 255, 0.16);
+  --text-dim: rgba(225, 235, 255, 0.66);
 }
 
 * { box-sizing: border-box; }
 html, body, #root { min-height: 100%; }
 body { margin: 0; }
-main { min-height: 100vh; position: relative; background: linear-gradient(180deg, #050816 0%, #03040a 100%); }
+
 main {
+  min-height: 100vh;
+  position: relative;
+  font-family: var(--ui-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   background:
+    linear-gradient(rgba(0, 0, 0, calc(var(--background-dim, 0.32) * 1)), rgba(0, 0, 0, calc(var(--background-dim, 0.32) * 1))),
     linear-gradient(var(--page-gradient-angle, 180deg), color-mix(in oklab, var(--page-gradient-from, #050816), transparent 32%), color-mix(in oklab, var(--page-gradient-to, #03040a), transparent 12%)),
     var(--page-image, none),
     linear-gradient(var(--page-gradient-angle, 180deg), var(--page-gradient-from, #050816) 0%, var(--page-gradient-to, #03040a) 100%);
-  background-size: cover, cover, cover;
+  background-size: cover, cover, cover, cover;
   background-position: center;
+  background-attachment: fixed;
 }
+
+/* ----- Accessibility & comfort ----- */
+
+:focus-visible {
+  outline: 2px solid var(--accent-color, #58d4ff);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 60%);
+  color: #fff;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 60%) transparent;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 65%);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 45%);
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.app-shell--reduced-motion *,
+.app-shell--reduced-motion *::before,
+.app-shell--reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.08s !important;
+}
+
+.app-shell--performance *,
+.app-shell--performance *::before,
+.app-shell--performance *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ----- Layout shell ----- */
 
 .main-content { position: relative; min-height: 100vh; }
 
@@ -25,6 +100,7 @@ main {
 .main-background { opacity: 0.95; }
 .main-background--games { position: fixed; z-index: 0; pointer-events: none; }
 .main-background > * { width: 100%; height: 100%; }
+
 .dynamic-stars {
   position: fixed;
   inset: 0;
@@ -33,12 +109,13 @@ main {
   z-index: 1;
   pointer-events: none;
 }
+
 .games-backdrop {
   background:
-    radial-gradient(circle at 20% 20%, rgba(252, 66, 255, 0.18), transparent 28%),
-    radial-gradient(circle at 80% 12%, rgba(66, 252, 255, 0.16), transparent 24%),
-    radial-gradient(circle at 50% 75%, rgba(83, 103, 255, 0.16), transparent 30%),
-    linear-gradient(180deg, rgba(8, 12, 28, 0.94), rgba(3, 4, 10, 0.98));
+    radial-gradient(circle at 20% 20%, rgba(252, 66, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 80% 12%, rgba(66, 252, 255, 0.14), transparent 24%),
+    radial-gradient(circle at 50% 75%, rgba(83, 103, 255, 0.14), transparent 30%),
+    linear-gradient(180deg, rgba(8, 12, 28, 0.55), rgba(3, 4, 10, 0.65));
   position: relative;
   z-index: 1;
 }
@@ -57,7 +134,7 @@ main {
   content: '';
   position: absolute;
   inset: 0.75rem 0.4rem 1.5rem;
-  border-radius: 28px;
+  border-radius: calc(var(--ui-radius-lg, 20px) + 8px);
   border: 1px solid rgba(255,255,255,0.09);
   background: rgba(6, 10, 20, 0.28);
   backdrop-filter: blur(14px);
@@ -81,6 +158,19 @@ main {
 .games-page h1, .minecraft-page h1 { margin: 0; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.05em; }
 .page-copy { margin: 1rem 0 0; font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.82); max-width: 46rem; }
 
+/* Compact density */
+.app-shell--compact .main-content { padding: 0.9rem 0 2.6rem; }
+.app-shell--compact .games-page,
+.app-shell--compact .minecraft-page { margin-top: 1.2rem; padding-top: 1rem; }
+.app-shell--compact .games-page--compact { padding-top: 0.25rem; }
+.app-shell--compact .library-switcher__tab { padding-block: 0.55rem 0.5rem; min-width: 170px; }
+.app-shell--compact .settings-block { padding: 0.85rem; gap: 0.65rem; }
+.app-shell--compact .settings-subsection { padding: 0.6rem; gap: 0.4rem; }
+.app-shell--compact .settings-chip { padding: 0.48rem 0.78rem; font-size: 0.85rem; }
+.app-shell--compact .minecraft-card { padding: 0.95rem 1rem; gap: 0.55rem; }
+
+/* ----- Library switcher ----- */
+
 .library-switcher {
   position: relative;
   display: inline-flex;
@@ -88,7 +178,7 @@ main {
   gap: 0;
   margin: 0.4rem 0.5rem 1.2rem;
   padding: 6px;
-  border-radius: 18px;
+  border-radius: calc(var(--ui-radius-md, 14px) + 5px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   background:
     linear-gradient(180deg, rgba(20, 28, 48, 0.85), rgba(8, 12, 24, 0.92));
@@ -110,7 +200,7 @@ main {
   min-width: 200px;
   padding: 0.75rem 1.1rem 0.7rem 2.25rem;
   border: 0;
-  border-radius: 13px;
+  border-radius: var(--ui-radius-md, 13px);
   background: transparent;
   color: rgba(225, 235, 255, 0.62);
   font-family: inherit;
@@ -137,7 +227,7 @@ main {
   color: rgba(220, 235, 255, 0.5);
 }
 
-.library-switcher__tab--active .library-switcher__hint { color: rgba(160, 220, 255, 0.85); }
+.library-switcher__tab--active .library-switcher__hint { color: color-mix(in oklab, var(--accent-color, #58d4ff), white 35%); }
 
 .library-switcher__dot {
   position: absolute;
@@ -166,9 +256,9 @@ main {
   bottom: 6px;
   left: 6px;
   width: calc(50% - 6px);
-  border-radius: 13px;
+  border-radius: var(--ui-radius-md, 13px);
   background:
-    linear-gradient(180deg, rgba(88, 212, 255, 0.18), rgba(122, 87, 255, 0.16));
+    linear-gradient(180deg, color-mix(in oklab, var(--accent-color, #58d4ff), transparent 80%), rgba(122, 87, 255, 0.16));
   border: 1px solid color-mix(in oklab, var(--accent-color, #58d4ff), transparent 55%);
   box-shadow:
     0 8px 22px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 75%),
@@ -188,7 +278,7 @@ main {
 .second-library {
   margin-top: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 22px;
+  border-radius: calc(var(--ui-radius-lg, 20px) + 2px);
   padding: 0.7rem 0.85rem 1rem;
   background:
     linear-gradient(180deg, rgba(14, 20, 38, 0.55), rgba(6, 9, 19, 0.78));
@@ -204,7 +294,7 @@ main {
 
 .second-library__embed {
   min-height: 860px;
-  border-radius: 14px;
+  border-radius: var(--ui-radius-md, 14px);
   overflow: hidden;
   background: rgba(4, 8, 18, 0.8);
 }
@@ -213,6 +303,8 @@ main {
   margin: 0.7rem 0 0;
   color: #ffb3b3;
 }
+
+/* ----- Minecraft page ----- */
 
 .minecraft-page {
   position: relative;
@@ -253,7 +345,6 @@ main {
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0.06em;
-  text-transform: none;
   color: rgba(180, 205, 240, 0.6);
 }
 
@@ -279,18 +370,19 @@ main {
   flex-direction: column;
   gap: 0.75rem;
   padding: 1.2rem 1.25rem;
-  border-radius: 18px;
+  border-radius: var(--ui-radius-lg, 18px);
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.025);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease;
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .minecraft-card:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 16px 40px rgba(2, 6, 18, 0.35);
 }
 
 .minecraft-card--java { border-color: rgba(124, 199, 116, 0.18); }
@@ -316,7 +408,6 @@ main {
   font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.04em;
-  text-transform: none;
   color: rgba(245, 251, 255, 0.85);
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -345,7 +436,7 @@ main {
 }
 
 .minecraft-card__steps li::marker {
-  color: rgba(160, 200, 255, 0.85);
+  color: color-mix(in oklab, var(--accent-color, #58d4ff), white 20%);
   font-weight: 700;
 }
 
@@ -356,7 +447,7 @@ main {
   gap: 0.7rem;
   padding: 0.6rem 0.8rem;
   min-height: 2.6rem;
-  border-radius: 12px;
+  border-radius: var(--ui-radius-sm, 12px);
   background: rgba(0, 0, 0, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
@@ -366,7 +457,6 @@ main {
   font-size: 0.7rem;
   font-weight: 500;
   letter-spacing: 0.04em;
-  text-transform: none;
   color: rgba(190, 210, 255, 0.6);
 }
 
@@ -398,48 +488,60 @@ main {
 
 .copy-button {
   padding: 0.4rem 0.85rem;
-  border-radius: 999px;
-  border: 1px solid rgba(120, 200, 255, 0.25);
-  background: rgba(60, 130, 220, 0.1);
+  border-radius: var(--ui-radius-pill, 999px);
+  border: 1px solid color-mix(in oklab, var(--accent-color, #58d4ff), transparent 70%);
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 90%);
   color: #eaf6ff;
+  font-family: inherit;
   font-size: 0.74rem;
   font-weight: 500;
   letter-spacing: 0.02em;
-  text-transform: none;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
   line-height: 1;
 }
 
 .copy-button:hover {
-  border-color: rgba(160, 220, 255, 0.55);
-  background: rgba(70, 150, 240, 0.18);
+  border-color: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 40%);
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 80%);
 }
 
-.minecraft-page__toast {
-  position: sticky;
-  bottom: 0.8rem;
-  margin: 1.1rem auto 0;
+.copy-button--copied {
+  border-color: rgba(145, 255, 192, 0.65);
+  background: rgba(60, 180, 110, 0.18);
+  color: #c9ffdf;
+}
+
+.copy-toast {
+  position: fixed;
+  bottom: 1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 70;
+  margin: 0;
   width: max-content;
-  max-width: calc(100% - 1rem);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  max-width: calc(100vw - 2rem);
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--ui-radius-pill, 999px);
   background: rgba(8, 14, 26, 0.94);
-  border: 1px solid rgba(120, 200, 255, 0.5);
+  border: 1px solid color-mix(in oklab, var(--accent-color, #58d4ff), transparent 45%);
   color: #e9faff;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   font-size: 0.82rem;
   line-height: 1.3;
   box-shadow: 0 10px 24px rgba(2, 6, 18, 0.5);
-  animation: minecraftToastIn 0.25s ease-out;
+  animation: toast-in 0.25s ease-out;
+  pointer-events: none;
 }
 
-@keyframes minecraftToastIn {
-  from { transform: translateY(6px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+@keyframes toast-in {
+  from { transform: translate(-50%, 8px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
 }
+
+/* ----- Announcements modal ----- */
 
 .announcements-modal {
   position: fixed;
@@ -451,7 +553,7 @@ main {
   display: grid;
   place-items: center;
   padding: 1rem;
-  animation: announcementsFadeIn 0.18s ease-out;
+  animation: modal-fade-in 0.18s ease-out;
 }
 
 .announcements-modal__panel {
@@ -461,13 +563,13 @@ main {
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 22px;
+  border-radius: calc(var(--ui-radius-lg, 20px) + 2px);
   background:
-    radial-gradient(circle at top right, rgba(88, 168, 255, 0.16), transparent 55%),
+    radial-gradient(circle at top right, color-mix(in oklab, var(--accent-color, #58a8ff), transparent 84%), transparent 55%),
     linear-gradient(180deg, rgba(12, 18, 32, 0.96), rgba(7, 11, 22, 0.96));
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55);
   overflow: hidden;
-  animation: announcementsPopIn 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.05);
+  animation: modal-pop-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.05);
 }
 
 .announcements-modal__header {
@@ -484,7 +586,7 @@ main {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(150, 190, 240, 0.7);
+  color: color-mix(in oklab, var(--accent-color, #96bef0), transparent 30%);
   margin-bottom: 0.2rem;
 }
 
@@ -547,15 +649,17 @@ main {
   color: rgba(170, 195, 235, 0.62);
 }
 
-@keyframes announcementsFadeIn {
+@keyframes modal-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes announcementsPopIn {
+@keyframes modal-pop-in {
   from { opacity: 0; transform: translateY(10px) scale(0.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ----- Game overlay ----- */
 
 .game-overlay {
   position: fixed;
@@ -577,11 +681,6 @@ main {
   box-shadow: none;
 }
 
-.game-overlay__shell--fullscreen {
-  border-radius: 0;
-  border: 0;
-}
-
 .game-overlay__frame {
   width: 100%;
   height: 100%;
@@ -593,118 +692,142 @@ main {
 .game-overlay__hud {
   position: absolute;
   z-index: 2;
-  width: min(229.977px, calc(100vw - 1rem));
-  min-width: min(229.977px, calc(100vw - 1rem));
-  max-width: min(229.977px, calc(100vw - 1rem));
-  height: 67.65px;
-  min-height: 67.65px;
-  max-height: 67.65px;
-  padding: 0.58rem 1.1rem;
-  border-radius: 18px;
-  background: rgba(8, 11, 20, 0.94);
-  border: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
-  display: grid;
-  gap: 0.2rem;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: min(420px, calc(100vw - 1rem));
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--ui-radius-md, 14px);
+  background: rgba(8, 11, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: hud-in 0.3s ease-out;
 }
 
-.game-overlay__hud--top-right { top: 0.45rem; right: 0.45rem; }
+@keyframes hud-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .game-overlay__hud--top-left {
-  top: 0.45rem;
-  left: 0.45rem;
+  top: 0.55rem;
+  left: 0.55rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
 }
 
-.game-overlay__hud--top-left strong {
-  font-size: clamp(0.83rem, 0.85vw, 0.95rem);
-  line-height: 1.12;
-  overflow-wrap: anywhere;
+.game-overlay__hud--top-right { top: 0.55rem; right: 0.55rem; }
+.game-overlay__hud--bottom-left { bottom: 0.55rem; left: 0.55rem; gap: 0.9rem; }
+
+.game-overlay__title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #f2f8ff;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.game-overlay__tip-copy {
-  font-size: clamp(0.54rem, 0.56vw, 0.64rem) !important;
-  line-height: 1.2 !important;
+.game-overlay__tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  color: rgba(225, 238, 255, 0.72);
+}
+
+.game-overlay__tip-dismiss {
+  border: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  width: 18px;
+  height: 18px;
+  font-size: 0.55rem;
+  line-height: 1;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.game-overlay__tip-dismiss:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
 }
 
 .game-overlay__shortcut {
   display: inline-block;
   padding: 0.08rem 0.34rem;
   border-radius: 6px;
-  background: rgba(137, 196, 255, 0.24);
-  border: 1px solid rgba(137, 196, 255, 0.52);
+  background: color-mix(in oklab, var(--accent-color, #89c4ff), transparent 76%);
+  border: 1px solid color-mix(in oklab, var(--accent-color, #89c4ff), transparent 48%);
   color: rgba(228, 245, 255, 0.98);
   font-weight: 700;
-}
-.game-overlay__hud--bottom-left {
-  bottom: 0.45rem;
-  left: 0.45rem;
-}
-.game-overlay__hud--bottom-left strong {
-  font-size: clamp(0.62rem, 1.5vw, 0.72rem);
-  line-height: 1;
-}
-.game-overlay__hud--bottom-right {
-  bottom: 0.45rem;
-  right: 0.45rem;
-  padding-block: 0.66rem;
-  gap: 0.2rem;
+  white-space: nowrap;
 }
 
-.game-overlay__hud--bottom-right .game-overlay__label {
-  font-size: clamp(0.62rem, 0.65vw, 0.7rem);
-  line-height: 1;
+.game-overlay__stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
 }
 
-.game-overlay__hud--bottom-right strong {
-  font-size: clamp(0.76rem, 0.8vw, 0.9rem);
-  line-height: 1.05;
-}
-.game-overlay__hud--actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.game-overlay__label {
-  font-size: clamp(0.66rem, 0.72vw, 0.74rem);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  line-height: 1.05;
-  color: rgba(255,255,255,0.62);
-}
-
-.game-overlay__hud strong {
+.game-overlay__stat strong {
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 
-.game-overlay__button {
-  border: 0;
-  border-radius: 999px;
-  min-width: 140px;
-  padding: 0.75rem 1.25rem;
-  background: #ffffff;
-  color: #09101f;
-  font-weight: 700;
-  text-align: center;
-  cursor: pointer;
+.game-overlay__label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  line-height: 1.05;
+  color: rgba(255, 255, 255, 0.55);
 }
 
-.game-overlay__button--icon {
-  min-width: 0;
-  width: 100%;
-  height: 32px;
+.game-overlay__button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--ui-radius-sm, 10px);
+  width: 36px;
+  height: 36px;
   padding: 0;
   display: inline-grid;
   place-items: center;
-  font-size: 1rem;
-  line-height: 1;
+  background: rgba(255, 255, 255, 0.07);
+  color: #f2f8ff;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.15s ease;
+}
+
+.game-overlay__button:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.game-overlay__button:active {
+  transform: scale(0.94);
 }
 
 .game-overlay__button--danger {
-  background: #ff5c7c;
-  color: #fff;
+  border-color: rgba(255, 92, 124, 0.4);
+  background: rgba(255, 92, 124, 0.14);
+  color: #ffd4dd;
 }
+
+.game-overlay__button--danger:hover {
+  background: rgba(255, 92, 124, 0.3);
+  border-color: rgba(255, 92, 124, 0.65);
+}
+
+/* ----- Settings modal ----- */
 
 .settings-modal {
   position: fixed;
@@ -716,6 +839,7 @@ main {
   overflow: hidden;
   background: rgba(3, 6, 16, 0.72);
   backdrop-filter: blur(8px);
+  animation: modal-fade-in 0.18s ease-out;
 }
 
 .settings-modal__panel {
@@ -725,13 +849,14 @@ main {
   overflow-x: hidden;
   scrollbar-width: none;
   border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 24px;
+  border-radius: calc(var(--ui-radius-lg, 20px) + 4px);
   background: var(--panel-surface, rgba(9, 14, 28, 0.96));
   padding: 1rem;
   display: grid;
   gap: 1rem;
   position: relative;
   isolation: isolate;
+  animation: modal-pop-in 0.22s cubic-bezier(0.2, 0.8, 0.3, 1.05);
 }
 
 .settings-modal__panel::-webkit-scrollbar {
@@ -747,8 +872,8 @@ main {
   opacity: 0;
   transition: opacity 0.5s ease;
   background:
-    radial-gradient(circle, rgba(73, 130, 255, 0.35) 0, transparent 55%),
-    radial-gradient(circle, rgba(170, 88, 255, 0.35) 0, transparent 60%);
+    radial-gradient(circle, color-mix(in oklab, var(--accent-color, #4982ff), transparent 70%) 0, transparent 55%),
+    radial-gradient(circle, rgba(170, 88, 255, 0.3) 0, transparent 60%);
 }
 
 .settings-modal__panel--animated::before {
@@ -763,6 +888,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.6rem;
   padding: 0.3rem 0.4rem 0 0.4rem;
   background: color-mix(in oklab, var(--panel-surface, rgba(9, 14, 28, 0.96)), transparent 6%);
   backdrop-filter: blur(10px);
@@ -770,24 +896,57 @@ main {
 
 .settings-modal__header h2 {
   margin: 0 0 0.35rem;
-  font-size: clamp(1.7rem, 2vw, 2.1rem);
+  font-size: clamp(1.6rem, 2vw, 2rem);
+  letter-spacing: -0.02em;
+}
+
+.settings-modal__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-reset {
+  border: 1px solid rgba(255, 150, 150, 0.3);
+  border-radius: var(--ui-radius-pill, 999px);
+  height: 36px;
+  padding: 0 0.9rem;
+  background: rgba(255, 100, 100, 0.08);
+  color: #ffd9d9;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.settings-reset:hover {
+  background: rgba(255, 100, 100, 0.18);
+  border-color: rgba(255, 150, 150, 0.55);
 }
 
 .settings-status {
   margin: 0;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: var(--accent-color, rgba(175, 235, 255, 0.92));
 }
 
 .settings-modal__close {
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px;
-  width: 40px;
-  height: 40px;
+  border-radius: var(--ui-radius-sm, 12px);
+  width: 38px;
+  height: 38px;
   background: rgba(16, 24, 40, 0.92);
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  line-height: 1;
   cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.settings-modal__close:hover {
+  background: rgba(30, 42, 66, 0.95);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .settings-content {
@@ -801,7 +960,7 @@ main {
 
 .settings-layout {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 230px minmax(0, 1fr);
   gap: 0.9rem;
   min-height: 0;
 }
@@ -811,31 +970,83 @@ main {
   top: 4.8rem;
   align-self: start;
   display: grid;
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .settings-nav-button {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 0.65rem 0.75rem;
-  background: rgba(11, 20, 36, 0.72);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--ui-radius-md, 12px);
+  padding: 0.6rem 0.7rem;
+  background: rgba(11, 20, 36, 0.55);
   color: rgba(255, 255, 255, 0.85);
+  font-family: inherit;
   text-align: left;
   cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.settings-nav-button:hover {
+  background: rgba(20, 32, 54, 0.8);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.settings-nav-button__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--ui-radius-sm, 9px);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.8);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.settings-nav-button__text {
+  display: grid;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
+.settings-nav-button__text span {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.settings-nav-button__text small {
+  font-size: 0.7rem;
+  color: rgba(220, 235, 255, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .settings-nav-button--active {
   border-color: var(--accent-color, #58d4ff);
-  background: color-mix(in oklab, var(--accent-color, #58d4ff), #101b31 78%);
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), #101b31 82%);
+}
+
+.settings-nav-button--active .settings-nav-button__icon {
+  background: var(--accent-color, #58d4ff);
+  color: #04101f;
+}
+
+.app-shell--glow .settings-nav-button--active {
+  box-shadow: 0 0 18px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 78%);
 }
 
 .settings-block {
   border: 1px solid rgba(255,255,255,0.11);
-  border-radius: 18px;
+  border-radius: var(--ui-radius-lg, 18px);
   background: linear-gradient(180deg, rgba(8, 15, 30, 0.92), rgba(8, 15, 30, 0.62));
   padding: 1.1rem;
   display: grid;
   gap: 0.85rem;
+  align-content: start;
 }
 
 .settings-block h3 {
@@ -843,37 +1054,127 @@ main {
   color: var(--accent-color, rgba(134, 206, 255, 0.95));
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 1.02rem;
+  font-size: 1rem;
 }
 
 .settings-copy {
   margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
   color: rgba(255,255,255,0.72);
+}
+
+.settings-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.settings-field__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: rgba(225, 238, 255, 0.62);
 }
 
 .settings-chip-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .settings-chip {
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px;
-  padding: 0.62rem 0.95rem;
+  border-radius: var(--ui-radius-sm, 12px);
+  padding: 0.55rem 0.9rem;
   background: rgba(11, 20, 36, 0.86);
   color: rgba(255,255,255,0.9);
+  font-family: inherit;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.12s ease;
+}
+
+.settings-chip:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(20, 32, 54, 0.92);
+}
+
+.settings-chip:active {
+  transform: scale(0.97);
 }
 
 .settings-chip--active {
   border-color: var(--accent-color, rgba(39, 197, 255, 0.8));
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), #0b1424 84%);
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 60%);
+}
+
+.app-shell--glow .settings-chip--active {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 60%),
+    0 0 14px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 80%);
+}
+
+.settings-chip--swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.settings-chip__dot {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
 }
 
 .settings-chip--cta {
   border-color: rgba(145, 255, 192, 0.65);
+}
+
+.settings-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 0.55rem;
+}
+
+.settings-theme-swatch {
+  display: grid;
+  gap: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--ui-radius-md, 12px);
+  padding: 0.45rem;
+  background: rgba(11, 20, 36, 0.66);
+  color: rgba(255, 255, 255, 0.88);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.settings-theme-swatch:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.settings-theme-swatch--active {
+  border-color: var(--accent-color, #58d4ff);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 55%);
+}
+
+.settings-theme-swatch__preview {
+  display: block;
+  height: 44px;
+  border-radius: calc(var(--ui-radius-sm, 10px) - 2px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.settings-theme-swatch__name {
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  text-align: center;
 }
 
 .settings-toggle {
@@ -881,6 +1182,7 @@ main {
   align-items: center;
   gap: 0.7rem;
   padding: 0.4rem 0;
+  cursor: pointer;
 }
 
 .settings-toggle input[type='checkbox'] {
@@ -911,6 +1213,17 @@ main {
   transition: transform 0.2s ease;
 }
 
+.settings-toggle__text {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.settings-toggle__hint {
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: rgba(220, 235, 255, 0.5);
+}
+
 .settings-toggle input[type='checkbox']:checked + .settings-toggle__track {
   background: color-mix(in oklab, var(--accent-color, #58d4ff), #0e1a2e 30%);
   border-color: var(--accent-color, #58d4ff);
@@ -931,6 +1244,7 @@ main {
 
 .settings-range input[type='range'] {
   width: 100%;
+  accent-color: var(--accent-color, #58d4ff);
 }
 
 .settings-upload {
@@ -938,12 +1252,24 @@ main {
   gap: 0.5rem;
 }
 
+.settings-upload > span {
+  font-size: 0.85rem;
+  color: rgba(225, 238, 255, 0.78);
+}
+
 .settings-upload input[type='file'] {
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 12px;
+  border: 1px dashed rgba(255,255,255,0.22);
+  border-radius: var(--ui-radius-sm, 12px);
   padding: 0.55rem;
-  background: rgba(11, 20, 36, 0.86);
+  background: rgba(11, 20, 36, 0.6);
   color: rgba(255,255,255,0.92);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.settings-upload input[type='file']:hover {
+  border-color: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 35%);
 }
 
 .settings-color-field {
@@ -953,12 +1279,19 @@ main {
   gap: 0.8rem;
 }
 
+.settings-color-field > span {
+  font-size: 0.88rem;
+  color: rgba(225, 238, 255, 0.82);
+}
+
 .settings-color-field input[type='color'] {
-  width: 44px;
+  width: 48px;
   height: 34px;
-  border: 0;
-  padding: 0;
-  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--ui-radius-sm, 8px);
+  padding: 2px;
+  background: rgba(11, 20, 36, 0.6);
+  cursor: pointer;
 }
 
 .settings-gradient-grid {
@@ -980,10 +1313,18 @@ main {
   flex: 1;
   min-width: 120px;
   border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 12px;
+  border-radius: var(--ui-radius-sm, 12px);
   padding: 0.66rem 0.74rem;
   background: rgba(11, 20, 36, 0.86);
   color: #fff;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.settings-code-input:focus {
+  outline: none;
+  border-color: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 30%);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 82%);
 }
 
 .settings-mode-grid {
@@ -994,14 +1335,21 @@ main {
 
 .settings-mode-card {
   border: 1px solid rgba(255,255,255,0.16);
-  border-radius: 14px;
+  border-radius: var(--ui-radius-md, 14px);
   background: rgba(10, 18, 36, 0.74);
   color: rgba(255,255,255,0.92);
   padding: 0.85rem;
   text-align: left;
+  font-family: inherit;
   display: grid;
   gap: 0.35rem;
   cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+
+.settings-mode-card:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
 }
 
 .settings-mode-card strong {
@@ -1016,36 +1364,32 @@ main {
 
 .settings-mode-card--active {
   border-color: var(--accent-color, rgba(87, 229, 255, 0.95));
-  background: linear-gradient(180deg, rgba(35, 89, 122, 0.55), rgba(10, 18, 36, 0.82));
+  background: linear-gradient(180deg, color-mix(in oklab, var(--accent-color, #58d4ff), #0a1224 70%), rgba(10, 18, 36, 0.82));
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 55%);
 }
 
 .settings-subsection {
   display: grid;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: 0.55rem;
+  padding: 0.8rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: var(--ui-radius-md, 12px);
   background: rgba(255, 255, 255, 0.02);
 }
 
 .settings-subsection h4 {
-  margin: 0;
-  font-size: 0.82rem;
+  margin: 0 0 0.15rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.72);
 }
 
-.app-shell--performance *,
-.app-shell--performance *::before,
-.app-shell--performance *::after {
-  animation: none !important;
-  transition: none !important;
-}
+/* ----- Light theme ----- */
 
 .app-shell--light {
   color: #1b2435;
+  color-scheme: light;
 }
 
 .app-shell--light .eyebrow,
@@ -1056,85 +1400,100 @@ main {
   color: rgba(29, 39, 58, 0.78);
 }
 
+.app-shell--light .main-content::before {
+  border-color: rgba(20, 40, 80, 0.12);
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.app-shell--light .games-backdrop {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(252, 66, 255, 0.07), transparent 28%),
+    radial-gradient(circle at 80% 12%, rgba(66, 200, 255, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(238, 245, 255, 0.4), rgba(222, 232, 255, 0.5));
+}
+
+.app-shell--light .dynamic-stars {
+  filter: invert(1);
+  opacity: 0.5;
+}
+
+.app-shell--light .logo-wordmark,
+.app-shell--light .nav-tab,
+.app-shell--light .header-action-button {
+  color: #16233c;
+}
+
+.app-shell--light .nav-tab--active {
+  color: #04101f;
+}
+
+.app-shell--light .header-action-button {
+  border-color: rgba(20, 40, 80, 0.18);
+  background: rgba(20, 40, 80, 0.05);
+}
+
+.app-shell--light .library-switcher {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(238, 245, 255, 0.95));
+  border-color: rgba(20, 40, 80, 0.12);
+}
+
+.app-shell--light .library-switcher__tab { color: rgba(25, 40, 70, 0.62); }
+.app-shell--light .library-switcher__tab:hover,
+.app-shell--light .library-switcher__tab--active { color: #14233f; }
+.app-shell--light .library-switcher__hint { color: rgba(25, 40, 70, 0.5); }
+
+.app-shell--light .minecraft-page__intro h1,
+.app-shell--light .minecraft-card h2 { color: #16233c; }
+.app-shell--light .minecraft-card__copy,
+.app-shell--light .minecraft-card__steps { color: rgba(25, 40, 70, 0.82); }
+.app-shell--light .minecraft-section__label,
+.app-shell--light .minecraft-page__sub { color: rgba(25, 40, 70, 0.6); }
+.app-shell--light .minecraft-card { background: rgba(255, 255, 255, 0.5); border-color: rgba(20, 40, 80, 0.1); }
+.app-shell--light .server-info__row { background: rgba(20, 40, 80, 0.05); border-color: rgba(20, 40, 80, 0.06); }
+.app-shell--light .server-info__row code { color: #14233f; background: rgba(20, 40, 80, 0.06); border-color: rgba(20, 40, 80, 0.12); }
+.app-shell--light .server-info__row dt { color: rgba(25, 40, 70, 0.6); }
+.app-shell--light .copy-button { color: #14233f; }
+
 @keyframes settings-flow {
   0% { transform: translate(-8%, -8%) rotate(0deg); }
   50% { transform: translate(8%, 7%) rotate(180deg); }
   100% { transform: translate(-8%, -8%) rotate(360deg); }
 }
 
+/* ----- Responsive ----- */
 
 @media (max-width: 768px) {
-  :root {
-    --mobile-hud-width: clamp(149.076px, 45.9954vw, 252.702px);
-    --mobile-hud-height: 89.42px;
-  }
   .main-content { padding-top: 0.5rem; }
   .page-shell { width: min(100vw - 8px, 1520px); padding-inline: 0.15rem; }
   .games-page { margin-top: 1.5rem; }
   .minecraft-page__content { padding: 1.5rem 1.25rem 2rem; }
   .minecraft-grid { gap: 0.85rem; }
   .server-info__row { grid-template-columns: 1fr; gap: 0.3rem; }
+
   .game-overlay { padding: 0; }
   .game-overlay__shell { height: 100vh; border-radius: 0; }
-  .game-overlay__hud,
-  .game-overlay__hud--top-left,
-  .game-overlay__hud--top-right,
-  .game-overlay__hud--bottom-left,
-  .game-overlay__hud--bottom-right,
-  .game-overlay__hud--actions {
-    width: var(--mobile-hud-width);
-    min-width: var(--mobile-hud-width);
-    max-width: var(--mobile-hud-width);
-    height: var(--mobile-hud-height);
-    min-height: var(--mobile-hud-height);
-    max-height: var(--mobile-hud-height);
-    padding: 0.42rem 0.55rem;
-    gap: 0.18rem;
-    overflow: hidden;
-  }
+  .game-overlay__hud { max-width: min(300px, calc(100vw - 1rem)); padding: 0.4rem 0.6rem; }
+  .game-overlay__title { font-size: 0.78rem; max-width: 200px; }
+  .game-overlay__tip { font-size: 0.6rem; }
+  .game-overlay__button { width: 34px; height: 34px; }
 
-  .game-overlay__hud--top-left {
-    padding-block: 0.5rem;
-  }
-
-  .game-overlay__hud--actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
-    gap: 0.3rem;
-  }
-
-  .game-overlay__hud strong {
-    font-size: clamp(0.52rem, 1.9vw, 0.66rem);
-    line-height: 1.05;
-  }
-
-  .game-overlay__label {
-    font-size: clamp(0.46rem, 1.5vw, 0.56rem);
-    letter-spacing: 0.1em;
-  }
-
-  .game-overlay__hud * { min-width: 0; }
-
-  .party-panel__stats { grid-template-columns: 1fr; }
-  .game-overlay__button {
-    min-width: 0;
-    width: 100%;
-    min-height: 0;
-    height: 100%;
-    padding: 0.35rem 0.45rem;
-    font-size: clamp(0.5rem, 1.8vw, 0.62rem);
-    line-height: 1;
-  }
   .settings-code-row { flex-direction: column; }
   .settings-mode-grid { grid-template-columns: 1fr; }
   .settings-layout { grid-template-columns: 1fr; }
   .settings-sidebar {
     position: static;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0.4rem;
+    padding-bottom: 0.2rem;
   }
   .settings-nav-button {
-    text-align: center;
-    font-size: 0.85rem;
-    padding: 0.55rem 0.4rem;
+    flex: 0 0 auto;
+    padding: 0.5rem 0.65rem;
   }
+  .settings-nav-button__text small {
+    display: none;
+  }
+  .settings-gradient-grid { grid-template-columns: 1fr; }
 }
