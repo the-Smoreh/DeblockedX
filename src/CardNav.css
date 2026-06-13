@@ -136,10 +136,10 @@
 }
 
 .logo-wordmark {
-  font-family: 'Sora', Inter, system-ui, sans-serif;
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: -0.045em;
+  font-family: var(--heading-font, 'Russo One', Inter, system-ui, sans-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: #ffffff;
   text-transform: lowercase;
 }
@@ -147,6 +147,11 @@
 .logo-wordmark::after {
   content: 'x';
   color: var(--accent-color, #58d4ff);
+  margin-left: 0.02em;
+}
+
+.app-shell--glow .logo-wordmark::after {
+  text-shadow: 0 0 14px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 40%);
 }
 
 .nav-actions {
@@ -419,8 +424,8 @@
   }
 
   .header-action-button {
-    width: 38px;
-    height: 38px;
+    width: 42px;
+    height: 42px;
     padding: 0;
     justify-content: center;
   }
