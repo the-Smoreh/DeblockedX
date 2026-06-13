@@ -415,12 +415,22 @@ function DynamicStars({
       animationFrameId = window.requestAnimationFrame(render);
     };
 
+    const handleVisibility = () => {
+      if (document.hidden) {
+        window.cancelAnimationFrame(animationFrameId);
+      } else {
+        animationFrameId = window.requestAnimationFrame(render);
+      }
+    };
+
     resize();
     window.addEventListener('resize', resize);
+    document.addEventListener('visibilitychange', handleVisibility);
     animationFrameId = window.requestAnimationFrame(render);
 
     return () => {
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', handleVisibility);
       window.cancelAnimationFrame(animationFrameId);
     };
   }, [connectMode, density, direction, enabled, origin, size, speed, twinkle]);

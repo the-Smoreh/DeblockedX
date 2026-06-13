@@ -33,7 +33,12 @@ main {
     linear-gradient(var(--page-gradient-angle, 180deg), var(--page-gradient-from, #050816) 0%, var(--page-gradient-to, #03040a) 100%);
   background-size: cover, cover, cover, cover;
   background-position: center;
-  background-attachment: fixed;
+  /*
+   * Intentionally NOT using background-attachment: fixed. A fixed background on
+   * a tall scrolling page repaints the whole backdrop every scroll frame on
+   * mobile (jank + heat). The viewport-anchored gradient on :root plus the fixed
+   * .games-backdrop overlay already provide the stable backdrop look.
+   */
 }
 
 /* ----- Accessibility & comfort ----- */
@@ -132,15 +137,20 @@ main {
   padding: 1.25rem 0 4rem;
 }
 
+/*
+ * Framing panel behind the page content. This deliberately avoids
+ * backdrop-filter: a blurred layer this tall forces the browser to re-blur the
+ * whole region every frame while scrolling the long games list (the main cause
+ * of scroll jank / device heating). A flat tint + border gives the same framing
+ * at near-zero paint cost. The nav keeps its blur because it's small and sticky.
+ */
 .main-content::before {
   content: '';
   position: absolute;
   inset: 0.75rem 0.4rem 1.5rem;
   border-radius: calc(var(--ui-radius-lg, 20px) + 8px);
   border: 1px solid rgba(255,255,255,0.09);
-  background: rgba(6, 10, 20, 0.28);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(6, 10, 20, 0.42);
   pointer-events: none;
   z-index: 1;
 }
