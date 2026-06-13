@@ -53,6 +53,8 @@ const DEFAULT_SETTINGS = {
   cardHoverEffect: 'lift',
   favoriteIconStyle: 'star',
   showPlayBadge: true,
+  retroScanlines: false,
+  headingFont: 'arcade',
 };
 
 const THEME_PRESETS = {
@@ -79,9 +81,15 @@ const ACCENT_PRESETS = {
 
 const UI_FONTS = {
   inter: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  gaming: "'Chakra Petch', 'Inter', system-ui, sans-serif",
   system: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   serif: "'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif",
   mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+};
+
+const HEADING_FONTS = {
+  arcade: "'Russo One', 'Chakra Petch', Inter, system-ui, sans-serif",
+  match: 'inherit',
 };
 
 const UI_ROUNDNESS = {
@@ -131,6 +139,7 @@ const saveStorageValue = (key, value) => {
 function SecondLibraryGames() {
   const containerRef = useRef(null);
   const [embedError, setEmbedError] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let isActive = true;
@@ -197,9 +206,11 @@ function SecondLibraryGames() {
           theme: 'dark',
           gamesPerPage: 1000,
         });
+        if (isActive) setIsLoading(false);
       } catch {
         if (!isActive) return;
-        setEmbedError('Could not load the second game library right now.');
+        setIsLoading(false);
+        setEmbedError('Could not load the games library right now.');
       }
     };
 
@@ -212,8 +223,22 @@ function SecondLibraryGames() {
 
   return (
     <section className="second-library" aria-label="Main games library">
+      {isLoading && !embedError && (
+        <div className="library-skeleton" aria-hidden="true">
+          {Array.from({ length: 18 }).map((_, index) => (
+            <span key={index} className="library-skeleton__tile" style={{ animationDelay: `${(index % 6) * 90}ms` }} />
+          ))}
+        </div>
+      )}
       <div ref={containerRef} className="second-library__embed" />
-      {embedError && <p className="second-library__error">{embedError}</p>}
+      {embedError && (
+        <div className="second-library__error" role="alert">
+          <p>{embedError}</p>
+          <button type="button" className="games-empty__action" onClick={() => window.location.reload()}>
+            Retry
+          </button>
+        </div>
+      )}
     </section>
   );
 }
@@ -638,13 +663,30 @@ function AnnouncementsModal({ announcement, onClose }) {
   );
 }
 
+const ICON_PATHS = {
+  interface: <path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5Zm6-2v18" />,
+  appearance: <><circle cx="12" cy="12" r="9" /><path d="M12 3v18a9 9 0 0 0 0-18Z" fill="currentColor" stroke="none" /></>,
+  games: <><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></>,
+  audio: <><path d="M11 5 6 9H3v6h3l5 4V5Z" /><path d="M15 9a3 3 0 0 1 0 6" /><path d="M18 6a7 7 0 0 1 0 12" /></>,
+  stealth: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></>,
+  secret: <path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 22l-5.2-2.9 1-5.8L3.5 9.2l5.9-.9L12 3Z" />,
+};
+
+function SettingsIcon({ name }) {
+  return (
+    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {ICON_PATHS[name]}
+    </svg>
+  );
+}
+
 const SETTINGS_SECTIONS = [
-  { id: 'interface', label: 'Interface', icon: '◧', blurb: 'Layout, motion, and feel' },
-  { id: 'appearance', label: 'Themes', icon: '◑', blurb: 'Colors, background, and stars' },
-  { id: 'games', label: 'Games', icon: '▦', blurb: 'How the library looks' },
-  { id: 'audio', label: 'Audio', icon: '♪', blurb: 'Clicks and background sound' },
-  { id: 'stealth', label: 'Stealth', icon: '◍', blurb: 'Cloaking tools' },
-  { id: 'secret', label: 'Secret', icon: '✦', blurb: 'Unlock hidden games' },
+  { id: 'interface', label: 'Interface', blurb: 'Layout, motion, and feel' },
+  { id: 'appearance', label: 'Themes', blurb: 'Colors, background, and stars' },
+  { id: 'games', label: 'Games', blurb: 'How the library looks' },
+  { id: 'audio', label: 'Audio', blurb: 'Clicks and background sound' },
+  { id: 'stealth', label: 'Stealth', blurb: 'Cloaking tools' },
+  { id: 'secret', label: 'Secret', blurb: 'Unlock hidden games' },
 ];
 
 export default function App() {
@@ -877,6 +919,7 @@ export default function App() {
     : (ACCENT_PRESETS[settings.accentPreset] ?? ACCENT_PRESETS.cyan);
   const roundness = UI_ROUNDNESS[settings.uiRoundness] ?? UI_ROUNDNESS.soft;
   const uiFontStack = UI_FONTS[settings.uiFont] ?? UI_FONTS.inter;
+  const headingFontStack = HEADING_FONTS[settings.headingFont] ?? HEADING_FONTS.arcade;
   const backgroundDim = Math.min(80, Math.max(0, Number(settings.backgroundDim) || 0));
 
   const filteredMasonryItems = useMemo(() => {
@@ -1042,6 +1085,20 @@ export default function App() {
 
       {gamesLibrary === 'main' ? (
         <SecondLibraryGames />
+      ) : filteredMasonryItems.length === 0 && searchQuery.trim() ? (
+        <div className="games-empty" role="status">
+          <div className="games-empty__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+          </div>
+          <h3>No games match “{searchQuery.trim()}”</h3>
+          <p>Try a different name, or clear the search to see everything.</p>
+          <button type="button" className="games-empty__action" onClick={() => setSearchQuery('')}>
+            Clear search
+          </button>
+        </div>
       ) : (
         <Masonry
           items={filteredMasonryItems}
@@ -1188,6 +1245,7 @@ export default function App() {
         '--ui-radius-lg': roundness.lg,
         '--ui-radius-pill': roundness.pill,
         '--ui-font': uiFontStack,
+        '--heading-font': headingFontStack,
         '--background-dim': backgroundDim / 100,
       }}
     >
@@ -1205,6 +1263,7 @@ export default function App() {
           connectMode={settings.dynamicStarsConnectMode}
         />
       )}
+      {settings.retroScanlines && !settings.reduceMotion && <div className="scanline-overlay" aria-hidden="true" />}
       {!activeGame && (
         <section className="main-content main-content--intro-ready">
           <div className="main-background main-background--games">
@@ -1270,7 +1329,7 @@ export default function App() {
                     className={`settings-nav-button${activeSettingsSection === section.id ? ' settings-nav-button--active' : ''}`}
                     onClick={() => setActiveSettingsSection(section.id)}
                   >
-                    <span className="settings-nav-button__icon" aria-hidden="true">{section.icon}</span>
+                    <span className="settings-nav-button__icon" aria-hidden="true"><SettingsIcon name={section.id} /></span>
                     <span className="settings-nav-button__text">
                       <span>{section.label}</span>
                       <small>{section.blurb}</small>
@@ -1306,15 +1365,25 @@ export default function App() {
                       onChange={(value) => updateSetting('uiDensity', value)}
                     />
                     <SettingsChipRow
-                      label="Font"
+                      label="Body font"
                       options={[
                         { value: 'inter', label: 'Inter' },
+                        { value: 'gaming', label: 'Chakra Petch' },
                         { value: 'system', label: 'System' },
                         { value: 'serif', label: 'Serif' },
                         { value: 'mono', label: 'Mono' },
                       ]}
                       value={settings.uiFont}
                       onChange={(value) => updateSetting('uiFont', value)}
+                    />
+                    <SettingsChipRow
+                      label="Heading style"
+                      options={[
+                        { value: 'arcade', label: 'Arcade (Russo One)' },
+                        { value: 'match', label: 'Match body' },
+                      ]}
+                      value={settings.headingFont}
+                      onChange={(value) => updateSetting('headingFont', value)}
                     />
                     <SettingsChipRow
                       label="UI scale"
@@ -1369,6 +1438,14 @@ export default function App() {
                       onChange={(event) => updateSetting('smoothScroll', event.target.checked)}
                     >
                       Smooth scrolling
+                    </SettingsToggle>
+                    <SettingsToggle
+                      id="retro-scanlines-toggle"
+                      checked={settings.retroScanlines}
+                      onChange={(event) => updateSetting('retroScanlines', event.target.checked)}
+                      hint="Subtle CRT scanline overlay for a retro-arcade vibe. Auto-off with reduced motion."
+                    >
+                      Retro scanlines
                     </SettingsToggle>
                   </div>
                 </section>

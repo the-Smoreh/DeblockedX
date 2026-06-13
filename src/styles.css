@@ -24,6 +24,8 @@ main {
   min-height: 100vh;
   position: relative;
   font-family: var(--ui-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   background:
     linear-gradient(rgba(0, 0, 0, calc(var(--background-dim, 0.32) * 1)), rgba(0, 0, 0, calc(var(--background-dim, 0.32) * 1))),
     linear-gradient(var(--page-gradient-angle, 180deg), color-mix(in oklab, var(--page-gradient-from, #050816), transparent 32%), color-mix(in oklab, var(--page-gradient-to, #03040a), transparent 12%)),
@@ -155,7 +157,13 @@ main {
 .games-page__intro { padding: 1rem 0 2rem; }
 .games-page__intro--compact { padding-inline: 0.5rem; }
 .eyebrow { margin: 0 0 0.6rem; text-transform: uppercase; letter-spacing: 0.24em; font-size: 0.72rem; color: rgba(255,255,255,0.72); }
-.games-page h1, .minecraft-page h1 { margin: 0; font-size: clamp(2.5rem, 5vw, 4.5rem); letter-spacing: -0.05em; }
+.games-page h1, .minecraft-page h1 {
+  margin: 0;
+  font-family: var(--heading-font, inherit);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
 .page-copy { margin: 1rem 0 0; font-size: 1.05rem; line-height: 1.7; color: rgba(255,255,255,0.82); max-width: 46rem; }
 
 /* Compact density */
@@ -301,7 +309,116 @@ main {
 
 .second-library__error {
   margin: 0.7rem 0 0;
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
   color: #ffb3b3;
+}
+
+.second-library__error p { margin: 0; }
+
+/* Loading skeleton for the embedded library */
+.library-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.7rem;
+  padding: 0.3rem;
+}
+
+.library-skeleton__tile {
+  display: block;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--ui-radius-md, 14px);
+  background:
+    linear-gradient(100deg, rgba(255, 255, 255, 0.02) 30%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0.02) 70%),
+    rgba(11, 15, 28, 0.7);
+  background-size: 200% 100%;
+  animation: masonry-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Empty search state */
+.games-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  margin: 1rem auto 0;
+  max-width: 30rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--ui-radius-lg, 20px);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.games-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  color: var(--accent-color, #58d4ff);
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 88%);
+  margin-bottom: 0.4rem;
+}
+
+.games-empty h3 {
+  margin: 0;
+  font-family: var(--heading-font, inherit);
+  font-size: 1.25rem;
+  color: #f2f7ff;
+}
+
+.games-empty p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: rgba(225, 238, 255, 0.62);
+}
+
+.games-empty__action {
+  margin-top: 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--accent-color, #58d4ff), transparent 50%);
+  border-radius: var(--ui-radius-pill, 999px);
+  padding: 0.55rem 1.4rem;
+  min-height: 44px;
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 85%);
+  color: #eaf6ff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.games-empty__action:hover {
+  background: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 72%);
+  border-color: color-mix(in oklab, var(--accent-color, #58d4ff), transparent 30%);
+}
+
+.games-empty__action:active {
+  transform: scale(0.97);
+}
+
+/* Retro CRT scanline overlay */
+.scanline-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  opacity: 0.5;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0,
+    rgba(255, 255, 255, 0.05) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  animation: scanline-drift 8s linear infinite;
+}
+
+@keyframes scanline-drift {
+  from { background-position: 0 0; }
+  to { background-position: 0 100px; }
 }
 
 /* ----- Minecraft page ----- */
@@ -324,10 +441,11 @@ main {
 
 .minecraft-page__intro h1 {
   margin: 0;
+  font-family: var(--heading-font, inherit);
   font-size: clamp(1.8rem, 3.2vw, 2.4rem);
   font-weight: 600;
   letter-spacing: -0.01em;
-  line-height: 1.1;
+  line-height: 1.15;
   color: #f1f8ff;
 }
 
@@ -896,8 +1014,9 @@ main {
 
 .settings-modal__header h2 {
   margin: 0 0 0.35rem;
-  font-size: clamp(1.6rem, 2vw, 2rem);
-  letter-spacing: -0.02em;
+  font-family: var(--heading-font, inherit);
+  font-size: clamp(1.5rem, 2vw, 1.9rem);
+  letter-spacing: -0.01em;
 }
 
 .settings-modal__header-actions {
