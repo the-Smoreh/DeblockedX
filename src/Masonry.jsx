@@ -35,12 +35,6 @@ const useMeasure = () => {
   return [ref, size];
 };
 
-const preloadImages = async (urls) => Promise.all(urls.map((src) => new Promise((resolve) => {
-  const img = new Image();
-  img.src = src;
-  img.onload = img.onerror = () => resolve();
-})));
-
 const Masonry = ({
   items,
   onItemClick,
@@ -75,13 +69,13 @@ const Masonry = ({
     seenIdsRef.current = new Set();
   }, [items]);
 
+  // Mark ready on the next frame instead of eagerly decoding every image in the
+  // library at once. Visible cards lazy-load their own background images, which
+  // keeps memory/CPU flat no matter how large the library is.
   useEffect(() => {
-    let active = true;
     setImagesReady(false);
-    preloadImages(items.map((item) => item.img)).then(() => {
-      if (active) setImagesReady(true);
-    });
-    return () => { active = false; };
+    const frame = window.requestAnimationFrame(() => setImagesReady(true));
+    return () => window.cancelAnimationFrame(frame);
   }, [items]);
 
   const grid = useMemo(() => {
@@ -103,7 +97,9 @@ const Masonry = ({
 
   const totalHeight = Math.max(...grid.map((item) => item.y + item.h), 0);
 
-  useEffect(() => {
+  // Layout effect so the first batch of visible cards is computed before paint
+  // (avoids a blank frame now that off-screen cards aren't mounted).
+  useLayoutEffect(() => {
     if (!grid.length || !containerRef.current) return undefined;
 
     let frameId = 0;
@@ -157,7 +153,7 @@ const Masonry = ({
       frameId = window.requestAnimationFrame(updateVisibility);
     };
 
-    scheduleUpdate();
+    updateVisibility();
     window.addEventListener('scroll', scheduleUpdate, { passive: true });
     window.addEventListener('resize', scheduleUpdate);
 
@@ -170,71 +166,68 @@ const Masonry = ({
 
   return (
     <div ref={containerRef} className="list" style={{ height: totalHeight }}>
-      {grid.map((item, index) => (
-        (() => {
-          const isVisible = visibleIds.has(item.id);
-          const hasBeenSeen = seenIds.has(item.id);
-          const shouldRenderCard = isVisible || hasBeenSeen;
-          const shouldAnimateIn = imagesReady && isVisible && !hasBeenSeen;
+      {grid.map((item, index) => {
+        // Only mount cards inside the viewport (+overscan). Off-screen cards are
+        // removed from the DOM entirely, so node count, image memory, and paint
+        // cost stay constant no matter how far you scroll the library.
+        if (!visibleIds.has(item.id)) return null;
 
-          return (
-            <div
-              key={item.id}
-              data-key={item.id}
-              className={[
-                'item-wrapper',
-                `item-wrapper--density-${iconDensity}`,
-                `item-wrapper--hover-${hoverEffect}`,
-                imagesReady ? 'item-wrapper--hydrated' : '',
-                shouldRenderCard ? 'item-wrapper--ready' : 'item-wrapper--culled',
-                shouldAnimateIn ? 'item-wrapper--entering' : '',
-              ].filter(Boolean).join(' ')}
-              style={{
-                width: item.w,
-                height: item.h,
-                transform: `translate(${item.x}px, ${item.y}px)`,
-                transitionDelay: shouldAnimateIn ? `${index * stagger}s` : '0s',
-                '--hover-scale': hoverScale,
-              }}
+        const hasBeenSeen = seenIds.has(item.id);
+        const shouldAnimateIn = imagesReady && !hasBeenSeen;
+
+        return (
+          <div
+            key={item.id}
+            data-key={item.id}
+            className={[
+              'item-wrapper',
+              `item-wrapper--density-${iconDensity}`,
+              `item-wrapper--hover-${hoverEffect}`,
+              imagesReady ? 'item-wrapper--hydrated' : '',
+              'item-wrapper--ready',
+              shouldAnimateIn ? 'item-wrapper--entering' : '',
+            ].filter(Boolean).join(' ')}
+            style={{
+              width: item.w,
+              height: item.h,
+              transform: `translate(${item.x}px, ${item.y}px)`,
+              transitionDelay: shouldAnimateIn ? `${(index % 12) * stagger}s` : '0s',
+              '--hover-scale': hoverScale,
+            }}
+          >
+            <button
+              type="button"
+              className="item-hitarea"
+              onClick={() => onItemClick?.(item)}
+              aria-label={`Open ${item.title}`}
             >
-              <button
-                type="button"
-                className="item-hitarea"
-                onClick={() => onItemClick?.(item)}
-                aria-label={`Open ${item.title}`}
-              >
-                {shouldRenderCard ? (
-                  <div className={`item-img item-img--${iconShape}`} style={{ backgroundImage: `url(${item.img})` }}>
-                    {showPlayBadge && (
-                      <span className="item-play-badge" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                          <path d="M8 5.5v13l11-6.5-11-6.5Z" />
-                        </svg>
-                      </span>
-                    )}
-                    <div className={`item-copy${alwaysShowTitles ? ' item-copy--always-visible' : ''}`}>
-                      <span>{item.title}</span>
-                      {item.description ? <small>{item.description}</small> : null}
-                    </div>
-                  </div>
-                ) : (
-                  <div className={`item-img item-img--placeholder item-img--${iconShape}`} aria-hidden="true" />
+              <div className={`item-img item-img--${iconShape}`} style={{ backgroundImage: `url(${item.img})` }}>
+                {showPlayBadge && (
+                  <span className="item-play-badge" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                      <path d="M8 5.5v13l11-6.5-11-6.5Z" />
+                    </svg>
+                  </span>
                 )}
-              </button>
+                <div className={`item-copy${alwaysShowTitles ? ' item-copy--always-visible' : ''}`}>
+                  <span>{item.title}</span>
+                  {item.description ? <small>{item.description}</small> : null}
+                </div>
+              </div>
+            </button>
 
-              <button
-                type="button"
-                className={`favorite-toggle${item.isFavorite ? ' favorite-toggle--active' : ''}`}
-                aria-label={item.isFavorite ? `Unfavorite ${item.title}` : `Favorite ${item.title}`}
-                aria-pressed={item.isFavorite}
-                onClick={() => onToggleFavorite?.(item.id)}
-              >
-                <span aria-hidden="true">{favoriteIconStyle === 'heart' ? (item.isFavorite ? '♥' : '♡') : (item.isFavorite ? '★' : '☆')}</span>
-              </button>
-            </div>
-          );
-        })()
-      ))}
+            <button
+              type="button"
+              className={`favorite-toggle${item.isFavorite ? ' favorite-toggle--active' : ''}`}
+              aria-label={item.isFavorite ? `Unfavorite ${item.title}` : `Favorite ${item.title}`}
+              aria-pressed={item.isFavorite}
+              onClick={() => onToggleFavorite?.(item.id)}
+            >
+              <span aria-hidden="true">{favoriteIconStyle === 'heart' ? (item.isFavorite ? '♥' : '♡') : (item.isFavorite ? '★' : '☆')}</span>
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 };

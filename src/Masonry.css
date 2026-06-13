@@ -31,7 +31,7 @@
   overflow: hidden;
   background-size: cover;
   background-position: center;
-  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.32);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
 }
 
