@@ -273,7 +273,8 @@ main {
   top: 6px;
   bottom: 6px;
   left: 6px;
-  width: calc(50% - 6px);
+  /* Three tabs now: Games / Extra / Classic. */
+  width: calc(33.333% - 4px);
   border-radius: var(--ui-radius-md, 13px);
   background:
     linear-gradient(180deg, color-mix(in oklab, var(--accent-color, #58d4ff), transparent 80%), rgba(122, 87, 255, 0.16));
@@ -285,8 +286,25 @@ main {
   pointer-events: none;
 }
 
-.library-switcher__indicator--main { transform: translateX(0); }
-.library-switcher__indicator--second { transform: translateX(100%); }
+.library-switcher__indicator--stream { transform: translateX(0); }
+.library-switcher__indicator--main { transform: translateX(100%); }
+.library-switcher__indicator--second { transform: translateX(200%); }
+
+/* Three tabs at the desktop min-width overflow a 375px viewport, so below that
+ * the tabs shrink and drop their uppercase hint line. */
+@media (max-width: 620px) {
+  .library-switcher { display: flex; margin-inline: 0; width: 100%; }
+  .library-switcher__tab,
+  .app-shell--compact .library-switcher__tab {
+    flex: 1 1 0;
+    min-width: 0;
+    align-items: center;
+    padding-inline: 0.4rem;
+  }
+  .library-switcher__label { font-size: 0.85rem; }
+  .library-switcher__hint { display: none; }
+  .library-switcher__dot { display: none; }
+}
 
 @media (max-width: 720px) {
   .library-switcher { display: flex; width: 100%; }

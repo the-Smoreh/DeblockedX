@@ -1,0 +1,139 @@
+/*
+ * Floating centre pill nav.
+ *
+ * This is the one place backdrop-filter is still used. It stays because the
+ * blurred area is small and fixed, so the re-blur cost per frame is bounded --
+ * the rule that killed scroll performance before was a full-height blurred
+ * panel over the animated stars canvas, not this.
+ */
+
+.pn {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 1rem 0.35rem;
+  pointer-events: none;
+}
+
+.pn__pill {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0.4rem 0.5rem 0.4rem 1rem;
+  border-radius: var(--ui-radius-pill, 999px);
+  background: color-mix(in oklab, var(--nav-surface, rgba(18, 20, 28, 0.86)), transparent 8%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-family: var(--ui-font, 'Inter', system-ui, sans-serif);
+}
+
+.pn__brand {
+  font-family: var(--heading-font, var(--ui-font, sans-serif));
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.9);
+  padding-right: 0.5rem;
+  margin-right: 0.15rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+}
+
+.pn__tabs { display: flex; align-items: center; gap: 0.15rem; }
+
+.pn__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 40px;
+  padding: 0 0.85rem;
+  border: 0;
+  border-radius: var(--ui-radius-pill, 999px);
+  background: transparent;
+  color: rgba(238, 240, 250, 0.72);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 550;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.pn__tab:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+
+.pn__tab.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.pn__actions { display: flex; align-items: center; gap: 0.2rem; margin-left: 0.35rem; }
+
+.pn__icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(238, 240, 250, 0.78);
+  cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.pn__icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+.pn__tab:focus-visible,
+.pn__icon-btn:focus-visible,
+.pn__search-input:focus-visible {
+  outline: 2px solid var(--accent-color, #58d4ff);
+  outline-offset: 2px;
+}
+
+.pn__search { display: flex; align-items: center; }
+
+.pn__search-input {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: width 240ms ease, opacity 200ms ease, padding 240ms ease, background-color 200ms ease;
+}
+
+.pn__search.is-open .pn__search-input {
+  width: clamp(120px, 20vw, 220px);
+  padding: 0.5rem 0.85rem;
+  background: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+}
+
+.pn__search-input::placeholder { color: rgba(238, 240, 250, 0.5); }
+.pn__search-input::-webkit-search-cancel-button { filter: invert(1); opacity: 0.6; }
+
+@media (max-width: 760px) {
+  .pn { padding: 0.5rem 0.5rem 0.25rem; }
+  .pn__pill { width: 100%; padding-left: 0.75rem; gap: 0.2rem; }
+  .pn__brand { display: none; }
+  .pn__tab span { display: none; }
+  .pn__tab { padding: 0 0.7rem; }
+  .pn__search.is-open .pn__search-input { width: clamp(90px, 34vw, 160px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pn__tab,
+  .pn__icon-btn,
+  .pn__search-input { transition: none; }
+}

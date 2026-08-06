@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import CardNav from './CardNav';
+import PillNav from './PillNav';
 import ClickSpark from './ClickSpark';
 import Masonry from './Masonry';
+import StreamHome from './StreamHome';
+import { readPlayCounts, recordPlay } from './streamRows';
 import gamesData from '../games.json';
 import secretData from '../secret.json';
 import announcementsData from '../announcements.json';
@@ -731,9 +733,10 @@ export default function App() {
   const [activePage, setActivePage] = useState('games');
   const [activeGame, setActiveGame] = useState(null);
   const [gamesLibrary, setGamesLibrary] = useState(() => {
-    const stored = loadStorageValue(GAMES_LIBRARY_PREF_KEY, 'main');
-    return stored === 'second' ? 'second' : 'main';
+    const stored = loadStorageValue(GAMES_LIBRARY_PREF_KEY, 'stream');
+    return stored === 'second' || stored === 'main' ? stored : 'stream';
   });
+  const [playCounts, setPlayCounts] = useState(() => readPlayCounts());
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [announcementsOpen, setAnnouncementsOpen] = useState(false);
   const [activeSettingsSection, setActiveSettingsSection] = useState('interface');
@@ -895,27 +898,6 @@ export default function App() {
    }, [secretUnlocked, favoriteGameIds, gamesData, secretConfig, settings.gameCardAspect]);
 
 
-  const navItems = useMemo(
-    () => [
-      {
-        label: 'Games',
-        bgColor: activePage === 'games' ? '#1a2235' : '#111827',
-        textColor: '#fff',
-        links: [{ label: 'Tip: press CTRL − / CTRL + anytime to resize the in-game HUD buttons', ariaLabel: 'Tip: press CTRL minus or CTRL plus anytime to resize the in-game HUD buttons', page: 'games' }],
-      },
-      {
-        label: 'Minecraft Server',
-        bgColor: activePage === 'minecraft' ? '#1d2a26' : '#161e1c',
-        textColor: '#fff',
-        links: [
-          { label: 'Server Address & Ports', ariaLabel: 'Open School Minecraft Server page', page: 'minecraft' },
-          { label: 'Java + Bedrock + Console', ariaLabel: 'Open School Minecraft Server page', page: 'minecraft' },
-        ],
-      },
-    ],
-    [activePage],
-  );
-
   const isAnimationEnabled = settings.enableAnimations && !settings.performanceMode && !settings.reduceMotion;
   const presetTheme = THEME_PRESETS[settings.themePreset] ?? THEME_PRESETS.midnight;
   const activeTheme = {
@@ -937,8 +919,6 @@ export default function App() {
     if (!normalizedSearch) return masonryItems;
     return masonryItems.filter((item) => item.title?.toLowerCase().includes(normalizedSearch));
   }, [masonryItems, searchQuery]);
-
-  const totalGameAmount = filteredMasonryItems.length + 1000;
 
   const updateSetting = (key, value) => {
     setLastSettingsChangeAt(Date.now());
@@ -1009,6 +989,13 @@ export default function App() {
     });
   };
 
+  /* Play counts drive the Top 10 row. Kept in state as well as localStorage so
+   * the row reorders without a reload. */
+  const handlePlayGame = (game) => {
+    setActiveGame(game);
+    setPlayCounts(recordPlay(game?.id));
+  };
+
   const handleUnlockCode = () => {
     if (!secretConfig?.code) {
       setCodeStatus('❌ Secret data unavailable.');
@@ -1068,13 +1055,24 @@ export default function App() {
         <button
           type="button"
           role="tab"
+          aria-selected={gamesLibrary === 'stream'}
+          className={`library-switcher__tab${gamesLibrary === 'stream' ? ' library-switcher__tab--active' : ''}`}
+          onClick={() => setGamesLibrary('stream')}
+        >
+          <span className="library-switcher__dot" aria-hidden="true" />
+          <span className="library-switcher__label">Games</span>
+          <span className="library-switcher__hint">Full library</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
           aria-selected={gamesLibrary === 'main'}
           className={`library-switcher__tab${gamesLibrary === 'main' ? ' library-switcher__tab--active' : ''}`}
           onClick={() => setGamesLibrary('main')}
         >
           <span className="library-switcher__dot" aria-hidden="true" />
-          <span className="library-switcher__label">Main games</span>
-          <span className="library-switcher__hint">Full library</span>
+          <span className="library-switcher__label">Extra games</span>
+          <span className="library-switcher__hint">External set</span>
         </button>
         <button
           type="button"
@@ -1084,8 +1082,8 @@ export default function App() {
           onClick={() => setGamesLibrary('second')}
         >
           <span className="library-switcher__dot" aria-hidden="true" />
-          <span className="library-switcher__label">Second Set of Games</span>
-          <span className="library-switcher__hint">Curated picks</span>
+          <span className="library-switcher__label">Classic</span>
+          <span className="library-switcher__hint">Old library</span>
         </button>
         <span
           className={`library-switcher__indicator library-switcher__indicator--${gamesLibrary}`}
@@ -1093,7 +1091,16 @@ export default function App() {
         />
       </div>
 
-      {gamesLibrary === 'main' ? (
+      {gamesLibrary === 'stream' ? (
+        <StreamHome
+          onPlay={handlePlayGame}
+          favoriteIds={favoriteGameIds}
+          onToggleFavorite={handleToggleFavoriteGame}
+          searchQuery={searchQuery}
+          playCounts={playCounts}
+          reduceMotion={settings.reduceMotion || settings.performanceMode}
+        />
+      ) : gamesLibrary === 'main' ? (
         <SecondLibraryGames />
       ) : filteredMasonryItems.length === 0 && searchQuery.trim() ? (
         <div className="games-empty" role="status">
@@ -1208,24 +1215,19 @@ export default function App() {
   );
 
   const activeNavCardItems = (
-    <CardNav
+    <PillNav
       title="deblocked"
-      items={navItems}
       tabs={[
-        { page: 'games', label: 'Games' },
-        { page: 'minecraft', label: 'Minecraft' },
+        { page: 'games', label: 'Games', icon: 'games' },
+        { page: 'minecraft', label: 'Minecraft', icon: 'minecraft' },
       ]}
       activePage={activePage}
       onNavigate={setActivePage}
-      showCompactSearch={activePage === 'games' && gamesLibrary === 'second'}
+      showSearch={activePage === 'games' && (gamesLibrary === 'stream' || gamesLibrary === 'second')}
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
-      searchResultCount={totalGameAmount}
       onOpenSettings={() => setSettingsOpen(true)}
       onOpenAnnouncements={() => setAnnouncementsOpen(true)}
-      baseColor="var(--nav-surface)"
-      menuColor="#ffffff"
-      ease="power3.out"
     />
   );
 
