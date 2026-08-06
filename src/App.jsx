@@ -3,7 +3,9 @@ import PillNav from './PillNav';
 import ClickSpark from './ClickSpark';
 import Masonry from './Masonry';
 import StreamHome from './StreamHome';
+import LibrarySidebar from './LibrarySidebar';
 import { readPlayCounts, recordPlay } from './streamRows';
+import { setMuted, sfx } from './uiSound';
 import gamesData from '../games.json';
 import secretData from '../secret.json';
 import announcementsData from '../announcements.json';
@@ -57,6 +59,7 @@ const DEFAULT_SETTINGS = {
   showPlayBadge: true,
   retroScanlines: false,
   headingFont: 'arcade',
+  uiSounds: true,
 };
 
 const THEME_PRESETS = {
@@ -98,11 +101,6 @@ const UI_ROUNDNESS = {
   sharp: { sm: '6px', md: '10px', lg: '14px', pill: '14px' },
   soft: { sm: '10px', md: '14px', lg: '20px', pill: '999px' },
   round: { sm: '14px', md: '20px', lg: '28px', pill: '999px' },
-};
-
-const MINECRAFT_SERVER = {
-  java: { address: '135.148.252.219', port: '25961', combined: '135.148.252.219:25961' },
-  bedrock: { address: '135.148.252.219', port: '25961' },
 };
 
 const GAMES_LIBRARY_PREF_KEY = 'deblockedx-games-library-v1';
@@ -737,6 +735,13 @@ export default function App() {
     return stored === 'second' || stored === 'main' ? stored : 'stream';
   });
   const [playCounts, setPlayCounts] = useState(() => readPlayCounts());
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Sounds are synthesized on demand, so muting is just a flag; nothing is
+  // preloaded and nothing plays before the first user gesture.
+  useEffect(() => {
+    setMuted(!settings.uiSounds);
+  }, [settings.uiSounds]);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [announcementsOpen, setAnnouncementsOpen] = useState(false);
   const [activeSettingsSection, setActiveSettingsSection] = useState('interface');
@@ -991,6 +996,7 @@ export default function App() {
 
   /* Play counts drive the Top 10 row. Kept in state as well as localStorage so
    * the row reorders without a reload. */
+
   const handlePlayGame = (game) => {
     setActiveGame(game);
     setPlayCounts(recordPlay(game?.id));
@@ -1038,59 +1044,8 @@ export default function App() {
     copyResetTimer.current = window.setTimeout(() => setCopiedKey(''), 1800);
   };
 
-  const renderCopyButton = (value, key, label) => (
-    <button
-      type="button"
-      className={`copy-button${copiedKey === key ? ' copy-button--copied' : ''}`}
-      onClick={() => handleCopyServerValue(value, key)}
-      aria-label={`Copy ${label}`}
-    >
-      {copiedKey === key ? '✓ Copied' : 'Copy'}
-    </button>
-  );
-
   const gamesPage = (
     <section className="games-page games-page--compact">
-      <div className="library-switcher" role="tablist" aria-label="Choose game library">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={gamesLibrary === 'stream'}
-          className={`library-switcher__tab${gamesLibrary === 'stream' ? ' library-switcher__tab--active' : ''}`}
-          onClick={() => setGamesLibrary('stream')}
-        >
-          <span className="library-switcher__dot" aria-hidden="true" />
-          <span className="library-switcher__label">Main library</span>
-          <span className="library-switcher__hint">671 games</span>
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={gamesLibrary === 'main'}
-          className={`library-switcher__tab${gamesLibrary === 'main' ? ' library-switcher__tab--active' : ''}`}
-          onClick={() => setGamesLibrary('main')}
-        >
-          <span className="library-switcher__dot" aria-hidden="true" />
-          <span className="library-switcher__label">Extra games</span>
-          <span className="library-switcher__hint">External set</span>
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={gamesLibrary === 'second'}
-          className={`library-switcher__tab${gamesLibrary === 'second' ? ' library-switcher__tab--active' : ''}`}
-          onClick={() => setGamesLibrary('second')}
-        >
-          <span className="library-switcher__dot" aria-hidden="true" />
-          <span className="library-switcher__label">Classic</span>
-          <span className="library-switcher__hint">Old library</span>
-        </button>
-        <span
-          className={`library-switcher__indicator library-switcher__indicator--${gamesLibrary}`}
-          aria-hidden="true"
-        />
-      </div>
-
       {gamesLibrary === 'stream' ? (
         <StreamHome
           onPlay={handlePlayGame}
@@ -1134,106 +1089,30 @@ export default function App() {
     </section>
   );
 
-  const minecraftPage = (
-    <section className="minecraft-page">
-      <div className="minecraft-page__content">
-        <header className="minecraft-page__intro">
-          <h1>School Minecraft Server</h1>
-          <p className="minecraft-page__sub">Paid · Crossplay · All versions · No mods.</p>
-        </header>
-
-        <div className="minecraft-section">
-          <p className="minecraft-section__label">In-game server browser</p>
-          <div className="minecraft-grid minecraft-grid--pair">
-            <article className="minecraft-card minecraft-card--java">
-              <span className="minecraft-card__chip">Java</span>
-              <h2>Java Edition</h2>
-              <div className="server-info__row">
-                <dt>Address</dt>
-                <dd>
-                  <code>{MINECRAFT_SERVER.java.combined}</code>
-                  {renderCopyButton(MINECRAFT_SERVER.java.combined, 'java-address', 'Java address')}
-                </dd>
-              </div>
-            </article>
-
-            <article className="minecraft-card minecraft-card--bedrock">
-              <span className="minecraft-card__chip">Bedrock</span>
-              <h2>Bedrock Edition (PC / Mobile)</h2>
-              <div className="server-info__row">
-                <dt>Address</dt>
-                <dd>
-                  <code>{MINECRAFT_SERVER.bedrock.address}</code>
-                  {renderCopyButton(MINECRAFT_SERVER.bedrock.address, 'bedrock-address', 'Bedrock address')}
-                </dd>
-              </div>
-              <div className="server-info__row">
-                <dt>Port</dt>
-                <dd>
-                  <code>{MINECRAFT_SERVER.bedrock.port}</code>
-                  {renderCopyButton(MINECRAFT_SERVER.bedrock.port, 'bedrock-port', 'Bedrock port')}
-                </dd>
-              </div>
-            </article>
-          </div>
-        </div>
-
-        <hr className="minecraft-divider" aria-hidden="true" />
-
-        <div className="minecraft-section">
-          <p className="minecraft-section__label">Different join method — read this</p>
-          <article className="minecraft-card minecraft-card--console minecraft-card--full">
-            <span className="minecraft-card__chip">Console</span>
-            <h2>Xbox · PlayStation · Switch</h2>
-            <p className="minecraft-card__copy">
-              Consoles can't type a server address directly. Use the workaround below:
-            </p>
-            <ol className="minecraft-card__steps">
-              <li>On your phone, install <strong>Bedrock Together</strong> or <strong>Bedrock Connect</strong> (App Store / Google Play).</li>
-              <li>Open the app and enter the server address &amp; port below.</li>
-              <li>Make sure your phone and console are on the <strong>same Wi-Fi</strong>.</li>
-              <li>On the console, go to <strong>Play → Friends → LAN Games</strong>. The server will be listed.</li>
-            </ol>
-            <div className="server-info__row">
-              <dt>Address</dt>
-              <dd>
-                <code>{MINECRAFT_SERVER.bedrock.address}</code>
-                {renderCopyButton(MINECRAFT_SERVER.bedrock.address, 'console-address', 'Console address')}
-              </dd>
-            </div>
-            <div className="server-info__row">
-              <dt>Port</dt>
-              <dd>
-                <code>{MINECRAFT_SERVER.bedrock.port}</code>
-                {renderCopyButton(MINECRAFT_SERVER.bedrock.port, 'console-port', 'Console port')}
-              </dd>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-  );
-
   const activeNavCardItems = (
     <PillNav
       title="deblocked"
-      tabs={[
-        { page: 'games', label: 'Games', icon: 'games' },
-        { page: 'minecraft', label: 'Minecraft', icon: 'minecraft' },
-      ]}
+      tabs={[{ page: 'games', label: 'Games', icon: 'games' }]}
       activePage={activePage}
       onNavigate={setActivePage}
-      showSearch={activePage === 'games' && (gamesLibrary === 'stream' || gamesLibrary === 'second')}
+      showSearch={gamesLibrary === 'stream' || gamesLibrary === 'second'}
       searchQuery={searchQuery}
       onSearchChange={setSearchQuery}
       onOpenSettings={() => setSettingsOpen(true)}
       onOpenAnnouncements={() => setAnnouncementsOpen(true)}
+      onOpenMenu={() => { sfx.slide(); setMenuOpen(true); }}
     />
   );
+
+  /* The stream home paints its own full bleed black surface, so the decorative
+   * starfield, glow backdrop and shell gutters are suppressed under it. They
+   * still apply to the Classic library. */
+  const streamActive = gamesLibrary === 'stream';
 
   const shellClassNames = [
     'app-shell',
     `app-shell--${activePage}`,
+    streamActive ? 'app-shell--stream' : '',
     settings.performanceMode ? 'app-shell--performance' : '',
     settings.reduceMotion ? 'app-shell--reduced-motion' : '',
     settings.themePreset === 'light' && settings.themeMode === 'preset' ? 'app-shell--light' : '',
@@ -1263,7 +1142,7 @@ export default function App() {
     >
       {clickSoundDataUrl && <audio ref={clickAudioRef} src={clickSoundDataUrl} preload="auto" />}
       {backgroundAudioDataUrl && <audio ref={backgroundAudioRef} src={backgroundAudioDataUrl} preload="auto" />}
-      {settings.dynamicStarsEnabled && (
+      {settings.dynamicStarsEnabled && !streamActive && (
         <DynamicStars
           enabled={settings.dynamicStarsEnabled}
           direction={settings.dynamicStarsDirection}
@@ -1278,23 +1157,36 @@ export default function App() {
       {settings.retroScanlines && !settings.reduceMotion && <div className="scanline-overlay" aria-hidden="true" />}
       {!activeGame && (
         <section className="main-content main-content--intro-ready">
-          <div className="main-background main-background--games">
-            <div className="games-backdrop" aria-hidden="true" />
-          </div>
+          {!streamActive && (
+            <div className="main-background main-background--games">
+              <div className="games-backdrop" aria-hidden="true" />
+            </div>
+          )}
 
-          {isAnimationEnabled ? (
+          {isAnimationEnabled && !streamActive ? (
             <ClickSpark sparkColor="#fff" sparkSize={7} sparkRadius={30} sparkCount={8} duration={400}>
               <section className="page-shell">
                 {activeNavCardItems}
-                {activePage === 'games' ? gamesPage : minecraftPage}
+                {gamesPage}
               </section>
             </ClickSpark>
           ) : (
             <section className="page-shell">
               {activeNavCardItems}
-              {activePage === 'games' ? gamesPage : minecraftPage}
+              {gamesPage}
             </section>
           )}
+
+          <LibrarySidebar
+            open={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            library={gamesLibrary}
+            onSelectLibrary={setGamesLibrary}
+            onJumpToGenre={(genre) => {
+              const target = document.getElementById(`row-genre-${genre}`);
+              target?.closest('.sx-row')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+          />
         </section>
       )}
 

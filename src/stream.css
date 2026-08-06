@@ -1,138 +1,133 @@
 /*
- * Streaming-style home. Reads the app's existing theme variables
- * (--accent-color, --ui-radius-*, --ui-font, --heading-font) so the Settings
- * presets keep working against the new layout.
+ * Streaming-style home.
  *
- * Deliberately avoids backdrop-filter anywhere that sits over the animated
- * stars canvas: the canvas repaints every frame, so a blurred layer above it
- * can never be cached and has to re-blur continuously. See the note in
- * styles.css above .main-content::before.
+ * Type is pinned to a clean UI stack rather than the app's --heading-font: that
+ * variable defaults to the "arcade" preset, which is the wrong register for
+ * this layout. Everything else still honours --accent-color.
+ *
+ * backdrop-filter is used nowhere here. The hero wash is a static filter on a
+ * static image, so it rasterises once instead of re-blurring every frame the
+ * way a backdrop-filter over moving content does.
  */
 
+/* The app shell centres .page-shell inside a max-width column with its own
+ * gutters and top margins. The stream home owns the full viewport instead, so
+ * those are flattened while it is the active library. */
+.app-shell--stream { background: #0a0a0b; }
+.app-shell--stream .page-shell { width: 100%; max-width: none; margin: 0; padding: 0; }
+.app-shell--stream .games-page { margin: 0; padding: 0; }
+.app-shell--stream .main-content::before { display: none; }
+.app-shell--stream .main-content { background: #0a0a0b; }
+
+/* Nav floats over the hero rather than sitting above it in flow. */
+.app-shell--stream .pn { position: fixed; top: 0; left: 0; right: 0; }
+
 .sx-home {
-  --sx-card: 172px;
-  --sx-gap: 12px;
-  --sx-ink: #f4f4f6;
-  --sx-muted: rgba(238, 238, 245, 0.62);
-  --sx-surface: rgba(255, 255, 255, 0.06);
-  --sx-surface-hi: rgba(255, 255, 255, 0.13);
-  font-family: var(--ui-font, 'Inter', system-ui, sans-serif);
+  /* Scales with the viewport so a wide monitor gets bigger art rather than
+     more tiny tiles. */
+  --sx-card: clamp(142px, 11vw, 206px);
+  --sx-gap: 10px;
+  --sx-gutter: clamp(1rem, 3.4vw, 3.4rem);
+  --sx-ink: #ffffff;
+  --sx-muted: rgba(255, 255, 255, 0.62);
+  --sx-font: 'Inter', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+  /* No 100vw break-out here: .app-shell--stream already flattens .page-shell to
+     full width. 100vw would count the scrollbar and shift everything left. */
+  width: 100%;
+
+  font-family: var(--sx-font);
   color: var(--sx-ink);
+  background: #0a0a0b;
+  padding-bottom: 4rem;
 }
+
+.sx-home--search { padding-top: 5.5rem; }
 
 /* ---------- hero ---------- */
 
 .sx-hero {
   position: relative;
   isolation: isolate;
-  min-height: min(64vh, 520px);
-  display: flex;
-  align-items: flex-end;
-  border-radius: var(--ui-radius-lg, 20px);
+  height: clamp(460px, 78vh, 760px);
+  margin-bottom: 1.5rem;
   overflow: hidden;
-  margin-bottom: 2.25rem;
 }
 
-.sx-hero__bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
+.sx-hero__wash,
+.sx-hero__key { position: absolute; inset: 0; z-index: 0; }
 
-.sx-hero__bg img {
+.sx-hero__wash img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Static filter on a static image: rasterised once, then cached. */
-  filter: blur(52px) saturate(1.7) brightness(0.9);
-  transform: scale(1.35);
-  animation: sx-fade 420ms ease-out;
+  filter: blur(64px) saturate(1.9) brightness(0.82);
+  transform: scale(1.6);
+  animation: sx-fade 500ms ease-out;
 }
 
-@keyframes sx-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* The sharp copy is held to the right and feathered into the wash, so a 1:1
+   cover reads as a wide cinematic plate instead of a stamp in the middle. */
+.sx-hero__key { left: auto; width: min(58%, 900px); }
+
+.sx-hero__key img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: sx-fade 500ms ease-out;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 24%, #000 62%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.5) 24%, #000 62%);
 }
+
+@keyframes sx-fade { from { opacity: 0; } to { opacity: 1; } }
 
 .sx-hero__scrim {
   position: absolute;
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(90deg, rgba(6, 7, 12, 0.92) 0%, rgba(6, 7, 12, 0.55) 45%, rgba(6, 7, 12, 0.25) 100%),
-    linear-gradient(0deg, rgba(6, 7, 12, 0.95) 0%, rgba(6, 7, 12, 0) 60%);
+    linear-gradient(90deg, #0a0a0b 6%, rgba(10, 10, 11, 0.72) 38%, rgba(10, 10, 11, 0) 72%),
+    linear-gradient(0deg, #0a0a0b 2%, rgba(10, 10, 11, 0.35) 26%, rgba(10, 10, 11, 0) 55%);
 }
 
 .sx-hero__inner {
-  position: relative;
+  position: absolute;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 1.75rem;
-  padding: 2.5rem clamp(1.25rem, 3vw, 3rem) 3.25rem;
-  width: 100%;
-}
-
-.sx-hero__art {
-  flex: 0 0 auto;
-  width: 220px;
-  height: 220px;
-  border-radius: var(--ui-radius-md, 16px);
-  overflow: hidden;
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.sx-hero__art img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.sx-hero__copy { min-width: 0; }
-
-.sx-hero__eyebrow {
-  margin: 0 0 0.5rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent-color, #58c7ff);
+  left: var(--sx-gutter);
+  bottom: clamp(3rem, 8vh, 5.5rem);
+  max-width: min(640px, 60vw);
 }
 
 .sx-hero__title {
-  margin: 0 0 0.6rem;
-  font-family: var(--heading-font, var(--ui-font, sans-serif));
-  font-size: clamp(1.9rem, 4.4vw, 3.2rem);
-  line-height: 1.05;
-  font-weight: 700;
+  margin: 0 0 0.5rem;
+  font-size: clamp(2.6rem, 6.2vw, 5.2rem);
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
+.sx-hero__meta {
+  margin: 0 0 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.66);
+}
+
 .sx-hero__desc {
-  margin: 0 0 1.25rem;
-  max-width: 56ch;
+  margin: 0 0 1.5rem;
+  max-width: 50ch;
   font-size: 0.98rem;
-  line-height: 1.55;
-  color: rgba(240, 240, 248, 0.82);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.sx-hero__actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.sx-hero__genres {
-  font-size: 0.85rem;
-  color: var(--sx-muted);
-}
+.sx-hero__actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
 
 .sx-btn {
   display: inline-flex;
@@ -140,80 +135,69 @@
   justify-content: center;
   gap: 0.5rem;
   min-height: 44px;
-  padding: 0 1.35rem;
+  padding: 0 1.3rem;
   border: 0;
-  border-radius: var(--ui-radius-pill, 999px);
-  font: inherit;
+  border-radius: 8px;
+  font-family: inherit;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.94rem;
   cursor: pointer;
-  transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  transition: transform 160ms ease, background-color 180ms ease, opacity 180ms ease;
 }
 
-.sx-btn--primary {
-  background: #fff;
-  color: #101014;
-}
+.sx-btn--primary { background: #fff; color: #0a0a0b; }
+.sx-btn--primary:hover { background: rgba(255, 255, 255, 0.88); transform: translateY(-1px); }
 
-.sx-btn--primary:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4); }
-.sx-btn:focus-visible { outline: 3px solid var(--accent-color, #58c7ff); outline-offset: 3px; }
+.sx-btn--ghost { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.sx-btn--ghost:hover { background: rgba(255, 255, 255, 0.26); transform: translateY(-1px); }
+
+.sx-btn:focus-visible { outline: 3px solid var(--accent-color, #58d4ff); outline-offset: 3px; }
 
 .sx-hero__dots {
   position: absolute;
   z-index: 3;
-  bottom: 1.1rem;
+  bottom: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  gap: 7px;
 }
 
 .sx-hero__dot {
-  width: 26px;
-  height: 4px;
+  position: relative;
+  width: 22px;
+  height: 3px;
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.28);
   cursor: pointer;
   transition: background-color 200ms ease, width 200ms ease;
-  /* Keeps the 4px bar tappable without inflating the visual dot. */
-  position: relative;
 }
 
-.sx-hero__dot::after {
-  content: '';
-  position: absolute;
-  inset: -14px -4px;
-}
-
-.sx-hero__dot.is-active { background: #fff; width: 40px; }
-.sx-hero__dot:focus-visible { outline: 2px solid var(--accent-color, #58c7ff); outline-offset: 4px; }
+/* Keeps a 3px bar inside a 44px tap target. */
+.sx-hero__dot::after { content: ''; position: absolute; inset: -20px -5px; }
+.sx-hero__dot.is-active { background: #fff; width: 34px; }
+.sx-hero__dot:focus-visible { outline: 2px solid var(--accent-color, #58d4ff); outline-offset: 5px; }
 
 /* ---------- rows ---------- */
 
-.sx-rows { display: flex; flex-direction: column; gap: 2.1rem; }
+.sx-rows { display: flex; flex-direction: column; gap: 1.75rem; }
 
 .sx-row {
-  /* Rows below the fold skip layout/paint until scrolled near. */
   content-visibility: auto;
-  contain-intrinsic-size: auto 280px;
+  contain-intrinsic-size: auto 264px;
+  scroll-margin-top: 88px;
 }
 
-.sx-row__head { margin: 0 0 0.7rem; padding-inline: 0.15rem; }
+.sx-row__head { margin: 0 0 0.6rem; padding-inline: var(--sx-gutter); }
 
 .sx-row__head h2 {
   margin: 0;
-  font-family: var(--heading-font, var(--ui-font, sans-serif));
-  font-size: 1.12rem;
+  font-size: 1.06rem;
   font-weight: 650;
-  letter-spacing: 0.01em;
-}
-
-.sx-row__blurb {
-  margin: 0.18rem 0 0;
-  font-size: 0.82rem;
-  color: var(--sx-muted);
+  letter-spacing: -0.006em;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .sx-row__viewport { position: relative; }
@@ -222,10 +206,13 @@
   display: flex;
   gap: var(--sx-gap);
   margin: 0;
-  padding: 0.35rem 0.15rem 0.5rem;
+  padding: 0.3rem var(--sx-gutter) 0.4rem;
   list-style: none;
   overflow-x: auto;
   scroll-snap-type: x proximity;
+  /* Without this the snap port ignores padding-left, so the first card snaps
+     flush to the viewport edge and the gutter visually disappears. */
+  scroll-padding-inline: var(--sx-gutter);
   scrollbar-width: none;
   overscroll-behavior-x: contain;
 }
@@ -235,28 +222,25 @@
 
 .sx-row__arrow {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  bottom: 24px;
   z-index: 4;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: clamp(2.2rem, var(--sx-gutter), 3.4rem);
   border: 0;
-  border-radius: 999px;
-  background: rgba(10, 10, 14, 0.78);
+  background: linear-gradient(90deg, rgba(10, 10, 11, 0.92), rgba(10, 10, 11, 0.55));
   color: #fff;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 200ms ease, background-color 200ms ease;
+  transition: opacity 200ms ease;
 }
 
-.sx-row__viewport:hover .sx-row__arrow,
+.sx-row__arrow--left { left: 0; }
+.sx-row__arrow--right { right: 0; background: linear-gradient(270deg, rgba(10, 10, 11, 0.92), rgba(10, 10, 11, 0.55)); }
+.sx-row__viewport:hover .sx-row__arrow:not([disabled]),
 .sx-row__arrow:focus-visible { opacity: 1; }
-.sx-row__arrow:hover { background: rgba(20, 20, 26, 0.95); }
-.sx-row__arrow--left { left: -8px; }
-.sx-row__arrow--right { right: -8px; }
-.sx-row__arrow[disabled] { opacity: 0 !important; pointer-events: none; }
+.sx-row__arrow[disabled] { opacity: 0; pointer-events: none; }
 
 /* ---------- cards ---------- */
 
@@ -278,25 +262,20 @@
 .sx-card__art {
   position: relative;
   aspect-ratio: 1 / 1;
-  border-radius: var(--ui-radius-md, 14px);
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--sx-surface);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  background: rgba(255, 255, 255, 0.05);
+  transition: transform 220ms cubic-bezier(0.32, 0.72, 0.24, 1), box-shadow 220ms ease;
 }
 
 .sx-card__art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .sx-card__hit:hover .sx-card__art {
-  transform: scale(1.045);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.5);
-  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.06);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.85);
 }
 
-.sx-card__hit:focus-visible .sx-card__art {
-  outline: 3px solid var(--accent-color, #58c7ff);
-  outline-offset: 2px;
-}
+.sx-card__hit:focus-visible .sx-card__art { outline: 3px solid var(--accent-color, #58d4ff); outline-offset: 2px; }
 
 .sx-card__play {
   position: absolute;
@@ -304,7 +283,7 @@
   display: grid;
   place-items: center;
   color: #fff;
-  background: rgba(6, 7, 12, 0.42);
+  background: rgba(6, 6, 8, 0.4);
   opacity: 0;
   transition: opacity 200ms ease;
 }
@@ -315,9 +294,10 @@
 .sx-card__title {
   display: block;
   margin-top: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 500;
   line-height: 1.3;
-  color: rgba(240, 240, 248, 0.9);
+  color: rgba(255, 255, 255, 0.72);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -330,22 +310,14 @@
   place-items: center;
   padding: 0.7rem;
   text-align: center;
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   font-weight: 600;
   line-height: 1.25;
-  color: rgba(255, 255, 255, 0.95);
-  background:
-    linear-gradient(150deg,
-      hsl(var(--fb-hue) 58% 32%) 0%,
-      hsl(calc(var(--fb-hue) + 38) 52% 18%) 100%);
+  color: #fff;
+  background: linear-gradient(150deg, hsl(var(--fb-hue) 55% 30%) 0%, hsl(calc(var(--fb-hue) + 38) 50% 16%) 100%);
 }
 
-.sx-card__fallback span {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
+.sx-card__fallback span { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 
 .sx-card__fav {
   position: absolute;
@@ -354,102 +326,147 @@
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border: 0;
   border-radius: 999px;
-  background: rgba(8, 9, 14, 0.6);
+  background: rgba(8, 8, 12, 0.66);
   color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 180ms ease, color 180ms ease, background-color 180ms ease;
+  transition: opacity 180ms ease, color 180ms ease;
 }
 
 .sx-card__body:hover .sx-card__fav,
 .sx-card__fav:focus-visible,
 .sx-card__fav.is-on { opacity: 1; }
 .sx-card__fav.is-on { color: #ffd056; }
-.sx-card__fav:hover { background: rgba(8, 9, 14, 0.85); }
 
 /* ---------- top 10 ---------- */
 
-/* The rank digit overhangs the card to the left, so the track needs a left
- * inset or the "1" is sliced off by the scroll container edge. */
-.sx-row--top10 .sx-row__track { gap: 20px; padding-left: 0.6rem; }
+.sx-row--top10 .sx-row__track { gap: 18px; }
+.sx-row--top10 { contain-intrinsic-size: auto 300px; }
 .sx-card--ranked { display: flex; align-items: flex-end; width: auto; }
-
 .sx-card--ranked .sx-card__body { width: var(--sx-card); }
 
 .sx-card__rank {
   flex: 0 0 auto;
-  font-family: var(--heading-font, var(--ui-font, sans-serif));
-  font-size: clamp(5.5rem, 10vw, 9.5rem);
+  /* Derived from the card, not the viewport: a vw-based size drifts far out of
+     proportion with the artwork on very wide screens. */
+  font-size: calc(var(--sx-card) * 0.86);
   font-weight: 800;
-  line-height: 0.74;
-  letter-spacing: -0.06em;
-  color: transparent;
-  /* Bright enough to read against the near-black page. At 0.42 the numerals
-   * disappeared into the background once real art sat next to them. */
-  -webkit-text-stroke: 3px rgba(255, 255, 255, 0.72);
-  /* Only a sliver tucks behind the card; any more and the digit is unreadable
-   * because the artwork above it is fully opaque. */
-  margin-right: -0.1em;
-  margin-bottom: 1.05rem;
+  line-height: 0.72;
+  letter-spacing: -0.07em;
+  color: #0a0a0b;
+  -webkit-text-stroke: 3px rgba(255, 255, 255, 0.55);
+  margin-right: -0.08em;
+  margin-bottom: 1rem;
   user-select: none;
 }
 
-/* Double digits need room, and "10" reads badly if it is squeezed. */
-.sx-row--top10 .sx-row__track > li:nth-child(10) .sx-card__rank { letter-spacing: -0.09em; }
+.sx-row--top10 .sx-row__track > li:nth-child(10) .sx-card__rank { letter-spacing: -0.1em; }
 
-/* ---------- search results / empty ---------- */
+/* ---------- detail sheet ---------- */
+
+.sx-sheet { position: fixed; inset: 0; z-index: 95; display: grid; place-items: center; padding: 1rem; }
+
+.sx-sheet__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.72);
+  cursor: pointer;
+  animation: sx-fade 200ms ease-out;
+}
+
+.sx-sheet__panel {
+  position: relative;
+  display: flex;
+  gap: 1.4rem;
+  width: min(680px, 100%);
+  padding: 1.4rem;
+  border-radius: 16px;
+  background: #131316;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.65);
+  animation: sx-rise 240ms cubic-bezier(0.32, 0.72, 0.24, 1);
+}
+
+@keyframes sx-rise { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+.sx-sheet__art { flex: 0 0 auto; width: 168px; height: 168px; border-radius: 10px; overflow: hidden; }
+.sx-sheet__art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sx-sheet__body { min-width: 0; }
+.sx-sheet__body h2 { margin: 0 0 0.3rem; font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+.sx-sheet__meta { margin: 0 0 0.7rem; font-size: 0.82rem; color: rgba(255, 255, 255, 0.55); }
+.sx-sheet__desc { margin: 0 0 1.2rem; font-size: 0.92rem; line-height: 1.55; color: rgba(255, 255, 255, 0.78); }
+.sx-sheet__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.sx-sheet__close {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+
+.sx-sheet__close:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+
+/* ---------- search / empty ---------- */
+
+.sx-results { padding-top: 0.5rem; }
 
 .sx-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(var(--sx-card), 1fr));
   gap: 1.1rem var(--sx-gap);
   margin: 0;
-  padding: 0.35rem 0.15rem;
+  padding: 0.35rem var(--sx-gutter);
   list-style: none;
 }
 
 .sx-grid .sx-card { width: 100%; }
 
-.sx-empty {
-  padding: 3.5rem 1rem;
-  text-align: center;
-  color: var(--sx-muted);
-}
-
-.sx-empty h2 { margin: 0 0 0.4rem; color: var(--sx-ink); font-size: 1.15rem; }
+.sx-empty { padding: 5rem 1rem; text-align: center; color: var(--sx-muted); }
+.sx-empty h2 { margin: 0 0 0.4rem; color: #fff; font-size: 1.2rem; font-weight: 650; }
 .sx-empty p { margin: 0; }
 
 /* ---------- responsive ---------- */
 
 @media (max-width: 1024px) {
-  .sx-home { --sx-card: 150px; }
-  .sx-hero__art { width: 168px; height: 168px; }
+  .sx-hero__key { width: min(70%, 700px); }
 }
 
 @media (max-width: 760px) {
-  .sx-home { --sx-card: 132px; --sx-gap: 10px; }
-  .sx-hero { min-height: 0; }
-  .sx-hero__inner { flex-direction: column; align-items: flex-start; gap: 1.15rem; padding: 1.75rem 1.15rem 2.75rem; }
-  .sx-hero__art { width: 128px; height: 128px; }
+  .sx-home { --sx-card: 124px; --sx-gap: 8px; }
+  .sx-hero { height: clamp(400px, 62vh, 520px); }
+  .sx-hero__inner { max-width: none; right: var(--sx-gutter); bottom: 2.75rem; }
+  .sx-hero__key { width: 100%; }
+  .sx-hero__key img {
+    -webkit-mask-image: linear-gradient(180deg, #000 18%, rgba(0, 0, 0, 0.25) 78%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 18%, rgba(0, 0, 0, 0.25) 78%, transparent 100%);
+  }
+  .sx-hero__scrim { background: linear-gradient(0deg, #0a0a0b 14%, rgba(10, 10, 11, 0.45) 48%, rgba(10, 10, 11, 0.1) 100%); }
   .sx-hero__desc { -webkit-line-clamp: 3; }
-  /* Arrows are hover-only affordances; touch users swipe the track instead. */
   .sx-row__arrow { display: none; }
   .sx-card__fav { opacity: 1; }
+  .sx-sheet__panel { flex-direction: column; }
+  .sx-sheet__art { width: 100%; height: 180px; }
 }
 
-/* ---------- motion ---------- */
-
 @media (prefers-reduced-motion: reduce) {
-  .sx-hero__bg img { animation: none; }
-  .sx-card__art,
-  .sx-card__play,
-  .sx-btn,
-  .sx-row__arrow,
-  .sx-hero__dot { transition: none; }
+  .sx-hero__wash img,
+  .sx-hero__key img,
+  .sx-sheet__panel,
+  .sx-sheet__scrim { animation: none; }
+  .sx-card__art, .sx-card__play, .sx-btn, .sx-row__arrow, .sx-hero__dot { transition: none; }
   .sx-card__hit:hover .sx-card__art { transform: none; }
-  .sx-row__track { scroll-behavior: auto; }
 }

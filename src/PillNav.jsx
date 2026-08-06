@@ -28,6 +28,7 @@ export default function PillNav({
   onSearchChange,
   onOpenSettings,
   onOpenAnnouncements,
+  onOpenMenu,
 }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const inputRef = useRef(null);
@@ -43,6 +44,14 @@ export default function PillNav({
   return (
     <header className="pn">
       <nav className="pn__pill" aria-label="Main">
+        {onOpenMenu && (
+          <button type="button" className="pn__icon-btn pn__menu" onClick={onOpenMenu} aria-label="Open browse menu">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+              strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+        )}
         <span className="pn__brand">{title}</span>
 
         <div className="pn__tabs" role="tablist" aria-label="Pages">
