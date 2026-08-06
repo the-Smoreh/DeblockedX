@@ -1344,6 +1344,14 @@ export default function App() {
                       Smooth scrolling
                     </SettingsToggle>
                     <SettingsToggle
+                      id="ui-sounds-toggle"
+                      checked={settings.uiSounds}
+                      onChange={(event) => updateSetting('uiSounds', event.target.checked)}
+                      hint="Short clicks and ticks on hover, select and menus."
+                    >
+                      Interface sounds
+                    </SettingsToggle>
+                    <SettingsToggle
                       id="retro-scanlines-toggle"
                       checked={settings.retroScanlines}
                       onChange={(event) => updateSetting('retroScanlines', event.target.checked)}
