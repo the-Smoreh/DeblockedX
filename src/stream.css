@@ -44,8 +44,8 @@
   height: 100%;
   object-fit: cover;
   /* Static filter on a static image: rasterised once, then cached. */
-  filter: blur(46px) saturate(1.45) brightness(0.62);
-  transform: scale(1.25);
+  filter: blur(52px) saturate(1.7) brightness(0.9);
+  transform: scale(1.35);
   animation: sx-fade 420ms ease-out;
 }
 
@@ -373,7 +373,9 @@
 
 /* ---------- top 10 ---------- */
 
-.sx-row--top10 .sx-row__track { gap: 6px; }
+/* The rank digit overhangs the card to the left, so the track needs a left
+ * inset or the "1" is sliced off by the scroll container edge. */
+.sx-row--top10 .sx-row__track { gap: 20px; padding-left: 0.6rem; }
 .sx-card--ranked { display: flex; align-items: flex-end; width: auto; }
 
 .sx-card--ranked .sx-card__body { width: var(--sx-card); }
@@ -381,16 +383,23 @@
 .sx-card__rank {
   flex: 0 0 auto;
   font-family: var(--heading-font, var(--ui-font, sans-serif));
-  font-size: clamp(5rem, 9vw, 8.5rem);
+  font-size: clamp(5.5rem, 10vw, 9.5rem);
   font-weight: 800;
-  line-height: 0.78;
+  line-height: 0.74;
   letter-spacing: -0.06em;
   color: transparent;
-  -webkit-text-stroke: 3px rgba(255, 255, 255, 0.42);
-  margin-right: -0.22em;
-  margin-bottom: 1.1rem;
+  /* Bright enough to read against the near-black page. At 0.42 the numerals
+   * disappeared into the background once real art sat next to them. */
+  -webkit-text-stroke: 3px rgba(255, 255, 255, 0.72);
+  /* Only a sliver tucks behind the card; any more and the digit is unreadable
+   * because the artwork above it is fully opaque. */
+  margin-right: -0.1em;
+  margin-bottom: 1.05rem;
   user-select: none;
 }
+
+/* Double digits need room, and "10" reads badly if it is squeezed. */
+.sx-row--top10 .sx-row__track > li:nth-child(10) .sx-card__rank { letter-spacing: -0.09em; }
 
 /* ---------- search results / empty ---------- */
 

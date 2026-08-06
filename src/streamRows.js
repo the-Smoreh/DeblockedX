@@ -122,9 +122,12 @@ export function buildRows({ favoriteIds = [], playCounts = {} } = {}) {
     rows.push({ id: 'top10', title: 'Picked For You', kind: 'top10', games: heroGames.slice(0, 10) });
   }
 
+  /* Anything already sitting in the Top 10 is excluded here, otherwise the two
+   * rows are identical for anyone with a short play history. */
+  const inTop10 = new Set(played.map((g) => g.id));
   const recentlyPlayed = Object.entries(playCounts)
     .map(([id]) => byId.get(id))
-    .filter((g) => g && !g.artDead);
+    .filter((g) => g && !g.artDead && !inTop10.has(g.id));
   if (recentlyPlayed.length >= 4) {
     rows.push({
       id: 'continue',

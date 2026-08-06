@@ -1060,8 +1060,8 @@ export default function App() {
           onClick={() => setGamesLibrary('stream')}
         >
           <span className="library-switcher__dot" aria-hidden="true" />
-          <span className="library-switcher__label">Games</span>
-          <span className="library-switcher__hint">Full library</span>
+          <span className="library-switcher__label">Main library</span>
+          <span className="library-switcher__hint">671 games</span>
         </button>
         <button
           type="button"
