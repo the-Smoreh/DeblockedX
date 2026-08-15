@@ -1,8 +1,12 @@
 :root {
   color-scheme: dark;
   color: #f5f7ff;
-  background: radial-gradient(circle at top, rgba(31, 91, 163, 0.25), transparent 32%), linear-gradient(180deg, #050816 0%, #03040a 100%);
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Wide, low-alpha wash. At the previous 0.25 alpha over a 32% falloff this
+     landed as a visible blue dome at the top of every page. */
+  background:
+    radial-gradient(ellipse 120% 70% at 50% -10%, rgba(31, 91, 163, 0.14), transparent 72%),
+    linear-gradient(180deg, #050816 0%, #03040a 100%);
+  font-family: Outfit, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   --ui-radius-sm: 10px;
   --ui-radius-md: 14px;
@@ -23,7 +27,7 @@ body { margin: 0; }
 main {
   min-height: 100vh;
   position: relative;
-  font-family: var(--ui-font, Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  font-family: var(--ui-font, Outfit, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   background:
@@ -280,8 +284,12 @@ main {
   /* Three tabs now: Games / Extra / Classic. */
   width: calc(33.333% - 4px);
   border-radius: var(--ui-radius-md, 13px);
+  /* Both stops track the accent; the lower one was a fixed violet that pulled
+     the active tab purple no matter which accent was selected. */
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--accent-color, #58d4ff), transparent 80%), rgba(122, 87, 255, 0.16));
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--accent-color, #58d4ff), transparent 80%),
+      color-mix(in oklab, var(--accent-color, #58d4ff), transparent 88%));
   border: 1px solid color-mix(in oklab, var(--accent-color, #58d4ff), transparent 55%);
   box-shadow:
     0 8px 22px color-mix(in oklab, var(--accent-color, #58d4ff), transparent 75%),

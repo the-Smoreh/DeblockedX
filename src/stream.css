@@ -30,7 +30,7 @@
   --sx-gutter: clamp(1rem, 3.4vw, 3.4rem);
   --sx-ink: #ffffff;
   --sx-muted: rgba(255, 255, 255, 0.62);
-  --sx-font: 'Inter', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --sx-font: 'Outfit', 'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
 
   /* No 100vw break-out here: .app-shell--stream already flattens .page-shell to
      full width. 100vw would count the scrollbar and shift everything left. */

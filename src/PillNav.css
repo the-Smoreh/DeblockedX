@@ -30,7 +30,7 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  font-family: var(--ui-font, 'Inter', system-ui, sans-serif);
+  font-family: var(--ui-font, 'Outfit', system-ui, sans-serif);
 }
 
 .pn__brand {

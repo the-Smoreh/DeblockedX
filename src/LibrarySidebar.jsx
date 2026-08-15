@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { genreList, artGames, legacyGames } from './streamRows';
 import { sfx } from './uiSound';
+import { LEGAL_NAV } from './legal';
 import './LibrarySidebar.css';
 
 const LIBRARIES = [
@@ -9,7 +10,7 @@ const LIBRARIES = [
   { id: 'second', label: 'Classic', hint: `${legacyGames.length} archived` },
 ];
 
-export default function LibrarySidebar({ open, onClose, library, onSelectLibrary, onJumpToGenre }) {
+export default function LibrarySidebar({ open, onClose, library, onSelectLibrary, onJumpToGenre, onOpenLegal }) {
   const panelRef = useRef(null);
 
   useEffect(() => {
@@ -78,6 +79,22 @@ export default function LibrarySidebar({ open, onClose, library, onSelectLibrary
             </ul>
           </>
         )}
+
+        {/* Policy links live at the foot of the drawer -- the only persistent
+            chrome on a site whose home page is a full-bleed hero with no
+            footer of its own. */}
+        <nav className="lsb__legal" aria-label="Site policies">
+          {LEGAL_NAV.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className="lsb__legal-link"
+              onClick={() => { sfx.toggle(); onOpenLegal?.(id); }}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
       </aside>
     </div>
   );

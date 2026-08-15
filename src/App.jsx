@@ -4,6 +4,8 @@ import ClickSpark from './ClickSpark';
 import Masonry from './Masonry';
 import StreamHome from './StreamHome';
 import LibrarySidebar from './LibrarySidebar';
+import LegalPage from './LegalPage';
+import { LEGAL_PAGES } from './legal';
 import { readPlayCounts, recordPlay } from './streamRows';
 import { setMuted, sfx } from './uiSound';
 import gamesData from '../games.json';
@@ -49,7 +51,7 @@ const DEFAULT_SETTINGS = {
   enableBackgroundAudio: false,
   uiRoundness: 'soft',
   uiDensity: 'comfortable',
-  uiFont: 'inter',
+  uiFont: 'outfit',
   uiScale: 100,
   reduceMotion: false,
   accentGlow: true,
@@ -85,15 +87,15 @@ const ACCENT_PRESETS = {
 };
 
 const UI_FONTS = {
-  inter: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  gaming: "'Chakra Petch', 'Inter', system-ui, sans-serif",
+  outfit: "'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  gaming: "'Chakra Petch', 'Outfit', system-ui, sans-serif",
   system: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   serif: "'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif",
   mono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
 };
 
 const HEADING_FONTS = {
-  arcade: "'Russo One', 'Chakra Petch', Inter, system-ui, sans-serif",
+  arcade: "'Russo One', 'Chakra Petch', Outfit, system-ui, sans-serif",
   match: 'inherit',
 };
 
@@ -106,6 +108,13 @@ const UI_ROUNDNESS = {
 const GAMES_LIBRARY_PREF_KEY = 'deblockedx-games-library-v1';
 
 const formatBatteryLevel = (level) => `${Math.round(level * 100)}%`;
+
+/* '#/privacy' -> 'privacy', and '' for anything that is not a legal page. */
+const readLegalHash = () => {
+  if (typeof window === 'undefined') return '';
+  const key = window.location.hash.replace(/^#\/?/, '');
+  return key in LEGAL_PAGES ? key : '';
+};
 
 const normalizeSecretConfig = (rawSecretData) => {
   if (Array.isArray(rawSecretData)) {
@@ -737,6 +746,29 @@ export default function App() {
   const [playCounts, setPlayCounts] = useState(() => readPlayCounts());
   const [menuOpen, setMenuOpen] = useState(false);
 
+  /* Legal pages are addressed by hash (#/privacy) so they can be linked to
+   * directly -- a takedown notice or a parent's question usually arrives with
+   * a URL attached, and a modal with no address is useless for that. */
+  const [legalPage, setLegalPage] = useState(() => readLegalHash());
+
+  useEffect(() => {
+    const sync = () => setLegalPage(readLegalHash());
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, []);
+
+  const openLegal = (page) => {
+    window.location.hash = `/${page}`;
+    setLegalPage(page);
+  };
+
+  const closeLegal = () => {
+    // Drop the hash without adding another history entry, so Back leaves the
+    // site rather than cycling through opened policy pages.
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    setLegalPage('');
+  };
+
   // Sounds are synthesized on demand, so muting is just a flag; nothing is
   // preloaded and nothing plays before the first user gesture.
   useEffect(() => {
@@ -915,7 +947,7 @@ export default function App() {
     ? settings.customAccent
     : (ACCENT_PRESETS[settings.accentPreset] ?? ACCENT_PRESETS.cyan);
   const roundness = UI_ROUNDNESS[settings.uiRoundness] ?? UI_ROUNDNESS.soft;
-  const uiFontStack = UI_FONTS[settings.uiFont] ?? UI_FONTS.inter;
+  const uiFontStack = UI_FONTS[settings.uiFont] ?? UI_FONTS.outfit;
   const headingFontStack = HEADING_FONTS[settings.headingFont] ?? HEADING_FONTS.arcade;
   const backgroundDim = Math.min(80, Math.max(0, Number(settings.backgroundDim) || 0));
 
@@ -1186,11 +1218,16 @@ export default function App() {
               const target = document.getElementById(`row-genre-${genre}`);
               target?.closest('.sx-row')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }}
+            onOpenLegal={(page) => { setMenuOpen(false); openLegal(page); }}
           />
         </section>
       )}
 
       {activeGame && <GameOverlay game={activeGame} onClose={() => setActiveGame(null)} />}
+
+      {legalPage && (
+        <LegalPage page={legalPage} onNavigate={openLegal} onClose={closeLegal} />
+      )}
 
       {copiedKey && <p className="copy-toast" role="status">Copied to clipboard</p>}
 
@@ -1271,7 +1308,7 @@ export default function App() {
                     <SettingsChipRow
                       label="Body font"
                       options={[
-                        { value: 'inter', label: 'Inter' },
+                        { value: 'outfit', label: 'Outfit' },
                         { value: 'gaming', label: 'Chakra Petch' },
                         { value: 'system', label: 'System' },
                         { value: 'serif', label: 'Serif' },

@@ -1,0 +1,136 @@
+/*
+ * Legal pages. Deliberately plainer than the rest of the site: a measure-capped
+ * single column on a flat surface, no accent washes or glow. These documents
+ * are meant to be read and printed, not browsed.
+ */
+
+.lgl {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: start center;
+  padding: clamp(0.5rem, 3vw, 2.5rem) 1rem;
+  background: rgba(3, 5, 12, 0.86);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.lgl__panel {
+  position: relative;
+  width: min(760px, 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--ui-radius-lg, 20px);
+  background: #0d1220;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+
+.lgl__panel:focus { outline: none; }
+
+.lgl__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--ui-radius-lg, 20px) var(--ui-radius-lg, 20px) 0 0;
+  background: #0d1220;
+}
+
+.lgl__tabs { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+
+.lgl__tab {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-pill, 999px);
+  background: none;
+  color: rgba(225, 235, 255, 0.62);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.lgl__tab:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+
+.lgl__tab.is-active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.lgl__close {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
+
+.lgl__close:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+.lgl__doc {
+  padding: 1.6rem clamp(1rem, 4vw, 2.4rem) 2.6rem;
+  /* Held near 70 characters: these are long-form documents, and the site's
+     wide game-browsing measure is unreadable for running prose. */
+  max-width: 68ch;
+  color: rgba(228, 236, 252, 0.86);
+  font-size: 1rem;
+  line-height: 1.68;
+}
+
+.lgl__doc h1 {
+  margin: 0 0 0.25rem;
+  /* Deliberately not --heading-font. That variable defaults to the arcade
+     display face, which is the wrong register for a policy document and hurts
+     legibility at paragraph scale. */
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.4vw, 2.1rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.lgl__updated {
+  margin: 0 0 1.4rem;
+  font-size: 0.84rem;
+  color: rgba(225, 235, 255, 0.5);
+}
+
+.lgl__intro {
+  margin: 0 0 2rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: 1.06rem;
+  color: rgba(233, 240, 255, 0.92);
+}
+
+.lgl__doc h2 {
+  margin: 2rem 0 0.6rem;
+  font-size: 1.08rem;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+  color: #fff;
+}
+
+.lgl__doc p { margin: 0 0 0.9rem; }
+.lgl__doc ul { margin: 0 0 0.9rem; padding-left: 1.15rem; }
+.lgl__doc li { margin-bottom: 0.45rem; }
+
+@media print {
+  .lgl { position: static; background: none; overflow: visible; padding: 0; }
+  .lgl__panel { width: 100%; border: 0; box-shadow: none; background: #fff; }
+  .lgl__head { display: none; }
+  .lgl__doc { max-width: none; color: #000; }
+  .lgl__doc h1, .lgl__doc h2 { color: #000; }
+  .lgl__intro { color: #000; }
+}
