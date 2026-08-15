@@ -101,10 +101,7 @@ main {
 
 .main-content { position: relative; min-height: 100vh; }
 
-.main-background,
-.line-waves-container { position: absolute; inset: 0; width: 100%; height: 100%; }
-
-.main-background { opacity: 0.95; }
+.main-background { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.95; }
 .main-background--games { position: fixed; z-index: 0; pointer-events: none; }
 .main-background > * { width: 100%; height: 100%; }
 
@@ -117,19 +114,26 @@ main {
   pointer-events: none;
 }
 
+/*
+ * Ambient wash, not orbs. The previous version stacked three fixed neon hues
+ * (magenta / cyan / indigo) at a tight 24-30% falloff, which reads as discrete
+ * coloured blobs pasted over the page and fights whatever accent the user
+ * picked. This derives a single tint from --accent-color so the backdrop stays
+ * cohesive across all eight accent presets, and widens the falloff so it lands
+ * as light in the room rather than a shape on the screen.
+ */
 .games-backdrop {
   background:
-    radial-gradient(circle at 20% 20%, rgba(252, 66, 255, 0.16), transparent 28%),
-    radial-gradient(circle at 80% 12%, rgba(66, 252, 255, 0.14), transparent 24%),
-    radial-gradient(circle at 50% 75%, rgba(83, 103, 255, 0.14), transparent 30%),
+    radial-gradient(ellipse 90% 60% at 22% 8%,
+      color-mix(in oklab, var(--accent-color, #58d4ff), transparent 92%), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 82% 82%,
+      rgba(120, 140, 200, 0.05), transparent 72%),
     linear-gradient(180deg, rgba(8, 12, 28, 0.55), rgba(3, 4, 10, 0.65));
   position: relative;
   z-index: 1;
 }
 
-.line-waves-container { z-index: 0; }
 .page-shell { position: relative; z-index: 2; }
-.blur-text-segment { display: inline-block; will-change: transform, filter, opacity; }
 
 .main-content {
   position: relative;
@@ -1017,9 +1021,11 @@ main {
   z-index: -1;
   opacity: 0;
   transition: opacity 0.5s ease;
+  /* Both washes track the accent; the second was a hardcoded purple that turned
+     every theme violet regardless of the user's choice. */
   background:
-    radial-gradient(circle, color-mix(in oklab, var(--accent-color, #4982ff), transparent 70%) 0, transparent 55%),
-    radial-gradient(circle, rgba(170, 88, 255, 0.3) 0, transparent 60%);
+    radial-gradient(circle, color-mix(in oklab, var(--accent-color, #58d4ff), transparent 78%) 0, transparent 55%),
+    radial-gradient(circle, color-mix(in oklab, var(--accent-color, #58d4ff), transparent 88%) 0, transparent 60%);
 }
 
 .settings-modal__panel--animated::before {
@@ -1554,8 +1560,8 @@ main {
 
 .app-shell--light .games-backdrop {
   background:
-    radial-gradient(circle at 20% 20%, rgba(252, 66, 255, 0.07), transparent 28%),
-    radial-gradient(circle at 80% 12%, rgba(66, 200, 255, 0.08), transparent 24%),
+    radial-gradient(ellipse 90% 60% at 22% 8%,
+      color-mix(in oklab, var(--accent-color, #58d4ff), transparent 94%), transparent 70%),
     linear-gradient(180deg, rgba(238, 245, 255, 0.4), rgba(222, 232, 255, 0.5));
 }
 
